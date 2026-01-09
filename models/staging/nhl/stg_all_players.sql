@@ -1,6 +1,7 @@
 {{
   config(
     materialized = 'table',
+    tags = ['nhl','staging', 'player_id']
     )
 }}
 

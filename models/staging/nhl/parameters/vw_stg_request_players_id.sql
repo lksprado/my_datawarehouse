@@ -1,6 +1,7 @@
 {{ 
   config(
-    materialized = 'view'
+    materialized = 'view',
+    tags = ['nhl','staging', 'player_id']
   )
 }}
 

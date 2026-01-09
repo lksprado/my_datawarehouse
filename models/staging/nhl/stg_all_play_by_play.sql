@@ -2,7 +2,8 @@
   config(
     materialized = 'incremental',
     unique_key = ['game_id', 'event_id'],
-    incremental_strategy = 'delete+insert'
+    incremental_strategy = 'delete+insert',
+    tags = ['nhl','staging', 'game_id']
     )
 }}
 
