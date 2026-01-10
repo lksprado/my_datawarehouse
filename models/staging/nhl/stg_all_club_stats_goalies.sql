@@ -5,16 +5,14 @@
   )
 }}
 
-with source as (
-
-    select payload
-    from {{ source('raw', 'nhl_raw_all_club_stats') }}
+with base as (
+  select * from {{ ref('stg_base_all_club_stats') }}
 ),
 
 goalies as (
     select
-        (payload ->> 'season')::int as season_id,
-        (payload ->> 'gameType')::int as game_type_id,
+        base.season_id,
+        base.game_type_id,
         'goalie' as player_type,
         (p ->> 'playerId')::int as player_id,
         (p -> 'firstName' ->> 'default') as player_first_name,
@@ -35,7 +33,7 @@ goalies as (
         (p ->> 'penalyMinutes')::int as pim,
         (p ->> 'savePercentage')::float as save_pctg,
         (p ->> 'goalsAgainstAverage')::float as goals_against_average
-    from source,
-         jsonb_array_elements(payload -> 'goalies') as p
+    from base,
+          jsonb_array_elements(payload -> 'goalies') as p
 )
 select * from goalies

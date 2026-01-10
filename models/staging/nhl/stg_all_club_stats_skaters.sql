@@ -5,15 +5,14 @@
   )
 }}
 
-with source as (
-    select *
-    from {{ source('raw', 'nhl_raw_all_club_stats') }}
+with base as (
+  select * from {{ ref('stg_base_all_club_stats') }}
 ),
 
 skaters as (
     select
-        (payload ->> 'season')::int as season_id,
-        (payload ->> 'gameType')::int as game_type_id,
+        base.season_id,
+        base.game_type_id,
         'skater' as player_type,
         (p ->> 'playerId')::int as player_id,
         (p -> 'firstName' ->> 'default') as player_first_name,
@@ -35,7 +34,7 @@ skaters as (
         (p ->> 'gameWinningGoals')::int as game_winning_goals,
         (p ->> 'shorthandedGoals')::int as shorthanded_goals,
         (p ->> 'avgTimeOnIcePerGame')::float as avg_toi_per_game
-    from source,
+    from base,
         jsonb_array_elements(payload -> 'skaters') as p
 )
 select * from skaters
