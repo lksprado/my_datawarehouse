@@ -12,11 +12,10 @@ source as (
 renamed as (
   select
   (payload ->> 'id')::int as team_id,
-  (payload ->> 'triCode')::int as team_code,
-  (payload ->> 'fullName')::int as team_fullname,
-  (payload ->> 'leagueId')::int as league_id,
-  (payload ->> 'rawTricode')::int as team_raw_code,
+  (payload ->> 'triCode') as team_code,
+  (payload ->> 'fullName') as team_fullname,
   (payload ->> 'franchiseId')::int as franchise_id
   from source 
+  where (payload ->> 'id')::int  <> 70
 )
-select * from source
+select * from renamed
