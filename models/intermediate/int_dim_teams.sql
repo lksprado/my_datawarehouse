@@ -30,10 +30,9 @@ teams as (
         t2.team_placename,
         t2.team_commonname,
         t2.latest_season_id,
-        t3.is_current as is_active
+        t3.is_current as is_active,
         t2.team_logo,
-        t2.team_darklogo,
-
+        t2.team_darklogo
     from source t1
     left join game_details t2
     on t1.team_id = t2.team_id

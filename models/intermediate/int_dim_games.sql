@@ -20,6 +20,8 @@ renamed as (
   gs.game_type_id,
   gs.game_type_name,
   gs.game_start_timestamp_et,
+  gs.home_team_id,
+  gs.visiting_team_id as away_team_id,
   gs.has_happened_by_status,
   gs.has_happened_by_time,
   gd.game_state,
