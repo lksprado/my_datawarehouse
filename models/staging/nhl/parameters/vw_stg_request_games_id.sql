@@ -66,9 +66,12 @@ final as (
         and coalesce(pbp.has_play_by_play, false), false) as is_fully_synced
 
     from games_happened as gh
-    left join games_details as gd on gh.game_id = gd.game_id
-left join games_summary_details as gsd using (game_id)
-left join play_by_play as pbp using (game_id)
+    left join games_details gd
+        on gh.game_id = gd.game_id
+    left join games_summary_details gsd
+        on gh.game_id = gsd.game_id
+    left join play_by_play pbp
+        on gh.game_id = pbp.game_id
 )
 
 select *
