@@ -6,10 +6,11 @@
 
 
 with source as (
-    select *,
-          row_number() over (
+    select
+        *,
+        row_number() over (
             partition by player_id
-          ) as rn
+        ) as rn
     from {{ ref('stg_all_players') }}
 ),
 

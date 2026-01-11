@@ -7,18 +7,18 @@
 }}
 
 with base as (
-    select * 
+    select *
     from {{ ref('stg_base_all_games_details') }}
     {% if is_incremental() %}
-    where game_id > (
-        select coalesce(max(game_id), 0)
-        from {{ this }}
-    )
+        where game_id > (
+            select coalesce(max(game_id), 0)
+            from {{ this }}
+        )
     {% endif %}
 ),
 
 game_details as (
-    select 
+    select
         game_id,
         season_id,
         game_type_id,
@@ -34,14 +34,14 @@ game_details as (
         (payload -> 'awayTeam' ->> 'id')::int as away_team_id,
         (payload -> 'awayTeam' ->> 'sog')::int as away_team_sog,
         (payload -> 'awayTeam' ->> 'score')::int as away_team_score,
+        (payload -> 'homeTeam' ->> 'id')::int as home_team_id,
+        (payload -> 'homeTeam' ->> 'sog')::int as home_team_sog,
+        (payload -> 'homeTeam' ->> 'score')::int as home_team_score,
         (payload -> 'awayTeam' ->> 'abbrev') as away_team_abbrev,
         (payload -> 'awayTeam' -> 'placeName' ->> 'default') as away_team_placename,
         (payload -> 'awayTeam' -> 'commonName' ->> 'default') as away_team_commonname,
         (payload -> 'awayTeam' ->> 'logo') as away_team_logo,
         (payload -> 'awayTeam' ->> 'darkLogo') as away_team_darklogo,
-        (payload -> 'homeTeam' ->> 'id')::int as home_team_id,
-        (payload -> 'homeTeam' ->> 'sog')::int as home_team_sog,
-        (payload -> 'homeTeam' ->> 'score')::int as home_team_score,
         (payload -> 'homeTeam' ->> 'abbrev') as home_team_abbrev,
         (payload -> 'homeTeam' -> 'placeName' ->> 'default') as home_team_placename,
         (payload -> 'homeTeam' -> 'commonName' ->> 'default') as home_team_commonname,

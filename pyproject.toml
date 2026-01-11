@@ -1,0 +1,11 @@
+[project]
+name = "the-dw"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dbt-postgres>=1.10.0",
+    "sqlfluff>=3.5.0",
+    "sqlfluff-templater-dbt>=3.5.0",
+]

@@ -7,13 +7,13 @@
 }}
 
 with base as (
-    select * 
+    select *
     from {{ ref('stg_base_all_games_details') }}
     {% if is_incremental() %}
-    where game_id not in (
-        select distinct game_id 
-        from {{ this }}
-    )
+        where game_id not in (
+            select distinct game_id
+            from {{ this }}
+        )
     {% endif %}
 ),
 
@@ -40,7 +40,7 @@ away_goalies as (
         split_part((p ->> 'evenStrengthShotsAgainst'), '/', 1)::int as evenstrenght_saves,
         split_part((p ->> 'evenStrengthShotsAgainst'), '/', 2)::int as evenstrenght_shots_against
     from base,
-    jsonb_array_elements(payload -> 'playerByGameStats' -> 'awayTeam' -> 'goalies') as p
+        jsonb_array_elements(payload -> 'playerByGameStats' -> 'awayTeam' -> 'goalies') as p
 ),
 
 home_goalies as (
@@ -66,7 +66,7 @@ home_goalies as (
         split_part((p ->> 'evenStrengthShotsAgainst'), '/', 1)::int as evenstrenght_saves,
         split_part((p ->> 'evenStrengthShotsAgainst'), '/', 2)::int as evenstrenght_shots_against
     from base,
-    jsonb_array_elements(payload -> 'playerByGameStats' -> 'homeTeam' -> 'goalies') as p
+        jsonb_array_elements(payload -> 'playerByGameStats' -> 'homeTeam' -> 'goalies') as p
 )
 
 select * from away_goalies

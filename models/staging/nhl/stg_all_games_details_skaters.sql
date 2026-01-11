@@ -7,13 +7,13 @@
 }}
 
 with base as (
-    select * 
+    select *
     from {{ ref('stg_base_all_games_details') }}
     {% if is_incremental() %}
-    where game_id not in (
-        select distinct game_id 
-        from {{ this }}
-    )
+        where game_id not in (
+            select distinct game_id
+            from {{ this }}
+        )
     {% endif %}
 ),
 
@@ -36,7 +36,7 @@ away_defense as (
         (p ->> 'blockedShots')::int as blocked_shots,
         (p ->> 'plusMinus')::int as plus_minus
     from base,
-    jsonb_array_elements(payload -> 'playerByGameStats' -> 'awayTeam' -> 'defense') as p
+        jsonb_array_elements(payload -> 'playerByGameStats' -> 'awayTeam' -> 'defense') as p
 ),
 
 away_forwards as (
@@ -58,7 +58,7 @@ away_forwards as (
         (p ->> 'blockedShots')::int as blocked_shots,
         (p ->> 'plusMinus')::int as plus_minus
     from base,
-    jsonb_array_elements(payload -> 'playerByGameStats' -> 'awayTeam' -> 'forwards') as p
+        jsonb_array_elements(payload -> 'playerByGameStats' -> 'awayTeam' -> 'forwards') as p
 ),
 
 home_defense as (
@@ -80,7 +80,7 @@ home_defense as (
         (p ->> 'blockedShots')::int as blocked_shots,
         (p ->> 'plusMinus')::int as plus_minus
     from base,
-    jsonb_array_elements(payload -> 'playerByGameStats' -> 'homeTeam' -> 'defense') as p
+        jsonb_array_elements(payload -> 'playerByGameStats' -> 'homeTeam' -> 'defense') as p
 ),
 
 home_forwards as (
@@ -102,7 +102,7 @@ home_forwards as (
         (p ->> 'blockedShots')::int as blocked_shots,
         (p ->> 'plusMinus')::int as plus_minus
     from base,
-    jsonb_array_elements(payload -> 'playerByGameStats' -> 'homeTeam' -> 'forwards') as p
+        jsonb_array_elements(payload -> 'playerByGameStats' -> 'homeTeam' -> 'forwards') as p
 ),
 
 all_skaters as (

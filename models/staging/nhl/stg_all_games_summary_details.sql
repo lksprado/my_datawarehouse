@@ -7,10 +7,10 @@
 }}
 
 with base as (
-    select * 
+    select *
     from {{ ref('stg_base_all_games_summary_details') }}
     {% if is_incremental() %}
-    where game_id >= (select max(game_id) from {{ this }})
+        where game_id >= (select max(game_id) from {{ this }})
     {% endif %}
 ),
 
@@ -21,7 +21,7 @@ exploded as (
         (p ->> 'awayValue') as away_value,
         (p ->> 'homeValue') as home_value
     from base,
-    jsonb_array_elements(payload -> 'teamGameStats') as p
+        jsonb_array_elements(payload -> 'teamGameStats') as p
 ),
 
 wide as (
@@ -29,8 +29,10 @@ wide as (
         game_id,
         max(away_value) filter (where metric = 'sog')::int as away_sog,
         max(home_value) filter (where metric = 'sog')::int as home_sog,
-        max(away_value) filter (where metric = 'faceoffWinningPctg')::float as away_faceoff_winning_pctg,
-        max(home_value) filter (where metric = 'faceoffWinningPctg')::float as home_faceoff_winning_pctg,
+        max(away_value) filter (where metric = 'faceoffWinningPctg')::float
+            as away_faceoff_winning_pctg,
+        max(home_value) filter (where metric = 'faceoffWinningPctg')::float
+            as home_faceoff_winning_pctg,
         max(away_value) filter (where metric = 'powerPlayPctg')::float as away_powerplay_pctg,
         max(home_value) filter (where metric = 'powerPlayPctg')::float as home_powerplay_pctg,
         max(away_value) filter (where metric = 'pim')::int as away_pim,

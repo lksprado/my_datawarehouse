@@ -12,19 +12,21 @@ with game_summary as (
         game_date,
         game_start_timestamp_et,
         game_number,
-        "period" as final_period,
+        period as final_period,
         home_team_id,
         visiting_team_id as away_team_id,
         game_type_id,
         home_score,
         game_state_id,
         visiting_score as away_score,
-        case when home_score > visiting_score then home_team_id else visiting_team_id end as winner_team_id
+        case when home_score > visiting_score then home_team_id else visiting_team_id end
+            as winner_team_id
     from {{ ref('stg_all_games_summary') }}
     where has_happened_by_status is true
 ),
+
 game_details as (
-    select 
+    select
         game_id,
         away_sog,
         home_sog,
@@ -42,8 +44,9 @@ game_details as (
         home_giveaways,
         away_takeaways,
         home_takeaways
-    from {{ ref('stg_all_games_summary_details') }} 
+    from {{ ref('stg_all_games_summary_details') }}
 ),
+
 final as (
     select
         gs.game_id,
@@ -75,10 +78,10 @@ final as (
         gd.away_giveaways,
         gd.home_takeaways,
         gd.away_takeaways
-    from game_summary gs
-    left join game_details gd
-    on gs.game_id = gd.game_id
-    ORDER BY gs.game_id desc
+    from game_summary as gs
+    left join game_details as gd
+        on gs.game_id = gd.game_id
+    order by gs.game_id desc
 )
 
 select * from final

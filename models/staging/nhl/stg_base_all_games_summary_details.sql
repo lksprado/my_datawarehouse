@@ -6,7 +6,7 @@
 }}
 
 with source as (
-    select 
+    select
         payload,
         source_filename,
         split_part(source_filename, '_', 2)::int as game_id

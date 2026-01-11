@@ -5,7 +5,7 @@
   )
 }}
 
-select 
+select
     payload,
     (payload ->> 'season')::int as season_id,
     (payload ->> 'gameType')::int as game_type_id
