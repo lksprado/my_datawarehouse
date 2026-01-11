@@ -1,7 +1,6 @@
 {{
   config(
     materialized = 'view',
-    unique_key=['game_id', 'period_number'],
     tags = ['nhl','intermediate'],
     )
 }}
