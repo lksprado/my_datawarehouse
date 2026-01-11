@@ -31,7 +31,7 @@ renamed as (
         gd.game_outcome_last_period,
         gd.game_outcome_total_periods,
         gd.special_event_name,
-        gd.game_start_timestamp_utc,
+        gd.game_date_timestamp_utc,
         gd.game_schedule_state
     from game_summary as gs
     left join game_details as gd

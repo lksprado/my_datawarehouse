@@ -1,12 +1,64 @@
+version: 2
 
-# version: 2
+models:
+  - name: int_dim_games
+    columns:
+      - name: game_id
+        tests:
+          - unique
+          - not_null
 
-# models:
-#   - name: my_first_dbt_model
-#     description: "A starter dbt model"
-#     columns:
-#       - name: id
-#         description: "The primary key for this table"
-#         data_tests:
-#           - unique
-#           - not_null
+  - name: int_dim_players
+    columns:
+      - name: player_id
+        tests:
+        - unique
+        - not_null
+
+  - name: int_dim_teams
+    columns:
+      - name: team_id
+        tests:
+        - unique
+        - not_null
+
+  - name: int_fct_games_events
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - game_id
+            - event_id
+
+  - name: int_fct_games_periods_events
+    columns:
+      - name: game_id
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - game_id
+            - period_number
+
+  - name: int_fct_games_periods_fights
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - game_id
+            - period_number
+
+  - name: int_fct_games_team_stats_long
+    columns:
+      - name: game_id
+      - name: season_id
+      - name: game_type_id
+      - name: team_id
+
+  - name: int_fct_games_team_stats_wide
+    columns:
+      - name: game_id
+        tests:
+          - unique
+          - not_null
+
+  - name: int_fct_games_player_stats_long
+    columns:
+      - name: game_id
