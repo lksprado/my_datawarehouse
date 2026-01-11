@@ -24,6 +24,12 @@ game_details as (
         game_type_id,
         game_date,
         game_state,
+        regular_periods,
+        game_outcome_last_period,
+        game_outcome_total_periods,
+        special_event_name,
+        game_start_timestamp_utc,
+        game_schedule_state,
         -- Campos específicos do game
         (payload -> 'awayTeam' ->> 'id')::int as away_team_id,
         (payload -> 'awayTeam' ->> 'sog')::int as away_team_sog,
@@ -31,20 +37,16 @@ game_details as (
         (payload -> 'awayTeam' ->> 'abbrev') as away_team_abbrev,
         (payload -> 'awayTeam' -> 'placeName' ->> 'default') as away_team_placename,
         (payload -> 'awayTeam' -> 'commonName' ->> 'default') as away_team_commonname,
-        case 
-            when game_type_id = 1 then 'preseason'
-            when game_type_id = 2 then 'regular'
-            when game_type_id = 3 then 'playoffs'
-        end as game_type_name,
+        (payload -> 'awayTeam' ->> 'logo') as away_team_logo,
+        (payload -> 'awayTeam' ->> 'darkLogo') as away_team_darklogo,
         (payload -> 'homeTeam' ->> 'id')::int as home_team_id,
         (payload -> 'homeTeam' ->> 'sog')::int as home_team_sog,
         (payload -> 'homeTeam' ->> 'score')::int as home_team_score,
         (payload -> 'homeTeam' ->> 'abbrev') as home_team_abbrev,
         (payload -> 'homeTeam' -> 'placeName' ->> 'default') as home_team_placename,
         (payload -> 'homeTeam' -> 'commonName' ->> 'default') as home_team_commonname,
-        (payload ->> 'regPeriods') as reg_periods,
-        (payload -> 'gameOutcome' ->> 'lastPeriodType') as last_period_type,
-        (payload ->> 'startTimeUTC')::timestamp as game_start_timestamp_utc
+        (payload -> 'homeTeam' ->> 'logo') as home_team_logo,
+        (payload -> 'homeTeam' ->> 'darkLogo') as home_team_darklogo
     from base
 )
 

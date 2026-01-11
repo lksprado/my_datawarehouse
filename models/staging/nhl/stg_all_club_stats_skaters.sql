@@ -11,8 +11,8 @@ with base as (
 
 skaters as (
     select
-        base.season_id,
-        base.game_type_id,
+        season_id,
+        game_type_id,
         'skater' as player_type,
         (p ->> 'playerId')::int as player_id,
         (p -> 'firstName' ->> 'default') as player_first_name,
@@ -28,12 +28,12 @@ skaters as (
         (p ->> 'shootingPctg')::float as shooting_pctg,
         (p ->> 'overtimeGoals')::int as overtime_goals,
         (p ->> 'faceoffWinPctg')::float as faceoff_win_pctg,
-        (p ->> 'penalyMinutes')::int as pim,        
+        (p ->> 'penaltyMinutes')::int as pim,        
         (p ->> 'powerPlayGoals')::int as powerplay_goals,
         (p ->> 'avgShiftsPerGame')::float as avg_shifts_per_game,
         (p ->> 'gameWinningGoals')::int as game_winning_goals,
         (p ->> 'shorthandedGoals')::int as shorthanded_goals,
-        (p ->> 'avgTimeOnIcePerGame')::float as avg_toi_per_game
+        (p ->> 'avgTimeOnIcePerGame')::float as avg_toi_per_game_seconds
     from base,
         jsonb_array_elements(payload -> 'skaters') as p
 )

@@ -20,11 +20,10 @@ with base as (
 away_goalies as (
     select
         game_id,
+        -- Campos específicos
         'away' as team_side,
         'goalie' as player_type,
         (p ->> 'playerId')::int as player_id,
-        season_id,
-        game_type_id,
         (p -> 'name' ->> 'default') as player_name,
         (p ->> 'position') as position,
         (p ->> 'sweaterNumber')::int as sweater_number,
@@ -47,11 +46,10 @@ away_goalies as (
 home_goalies as (
     select
         game_id,
+        -- Campos específicos
         'home' as team_side,
         'goalie' as player_type,
         (p ->> 'playerId')::int as player_id,
-        season_id,
-        game_type_id,
         (p -> 'name' ->> 'default') as player_name,
         (p ->> 'position') as position,
         (p ->> 'sweaterNumber')::int as sweater_number,

@@ -6,50 +6,36 @@
 }}
 
 with
+base as (
+  select
+    season_id,
+    max(game_type_id) as game_type_id
+  from {{ ref('stg_all_games_summary') }}
+  where season_id = (select max(season_id) from {{ ref('stg_all_games_summary') }})
+  group by season_id
+),
 goalies_club_stats as (
   select 
   distinct
-  player_id,
-  'goalie' as position
-  from {{ ref('stg_all_club_stats_goalies') }}
-  where season_id = (select max(season_id) from {{ ref('stg_all_club_stats_goalies') }})
-  and game_type_id in (2,3)
+  player_id
+  from {{ ref('stg_all_club_stats_goalies') }} t1
+  inner join base t2
+  on t1.season_id = t2.season_id
+    and t1.game_type_id = t2.game_type_id
 ),
 skaters_club_stats as (
   select 
   distinct
-  player_id,
-  'skater' as position
-  from {{ ref('stg_all_club_stats_skaters') }}
-  where season_id = (select max(season_id) from {{ ref('stg_all_club_stats_skaters') }})
-  and game_type_id in (2,3)
+  player_id
+  from {{ ref('stg_all_club_stats_skaters') }} t1
+  inner join base t2
+  on t1.season_id = t2.season_id
+    and t1.game_type_id = t2.game_type_id
 ),
-goalies_games_details as (
-  select
-  distinct
-  player_id,
-  'skater' as position
-  from {{ ref('stg_all_games_details_goalies') }}
-  where season_id = (select max(season_id) from {{ ref('stg_all_games_details_goalies') }})
-  and game_type_id in (2,3)
-), 
-skaters_games_details as (
-  select
-  distinct
-  player_id,
-  'skater' as position
-  from {{ ref('stg_all_games_details_skaters') }}
-  where season_id = (select max(season_id) from {{ ref('stg_all_games_details_skaters') }})
-  and game_type_id in (2,3)
-), 
 final as (
   select * from goalies_club_stats
   union
   select * from skaters_club_stats
-  union
-  select * from goalies_games_details
-  union
-  select * from skaters_games_details
 )
 select 
 * 

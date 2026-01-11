@@ -1,7 +1,7 @@
 {{
   config(
     materialized = 'ephemeral',
-    tags = ['nhl', 'staging']
+    tags = ['nhl', 'staging', 'game_id']
   )
 }}
 

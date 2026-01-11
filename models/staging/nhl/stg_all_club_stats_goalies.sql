@@ -30,7 +30,7 @@ goalies as (
         (p ->> 'gamesStarted')::int as games_started,
         (p ->> 'goalsAgainst')::int as goals_against,
         (p ->> 'shotsAgainst')::int as shots_against,
-        (p ->> 'penalyMinutes')::int as pim,
+        (p ->> 'penaltyMinutes')::int as pim,
         (p ->> 'savePercentage')::float as save_pctg,
         (p ->> 'goalsAgainstAverage')::float as goals_against_average
     from base,

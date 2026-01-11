@@ -1,3 +1,10 @@
+{{
+  config(
+    tags = ['nhl','intermediate'],
+    )
+}}
+
+
 with source as (
     select *,
           row_number() over (

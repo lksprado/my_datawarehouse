@@ -7,41 +7,19 @@
 }}
 
 with
-skaters_games_details as (
-  select 
-  distinct
-  player_id,
-  season_id,
-  game_type_id
-  from {{ ref('stg_all_games_details_skaters') }}
-  where season_id = (select max(season_id) from {{ ref('stg_all_games_details_skaters') }})
-  and game_type_id in (2,3)
+base as (
+  select
+    season_id,
+    max(game_type_id) as game_type_id
+  from {{ ref('stg_all_games_summary') }}
+  where season_id = (select max(season_id) from {{ ref('stg_all_games_summary') }})
+  group by season_id
 ),
-goalie_games_details as (
-  select 
-  distinct
-  player_id,
-  season_id,
-  game_type_id
-  from {{ ref('stg_all_games_details_goalies') }}
-  where season_id = (select max(season_id) from {{ ref('stg_all_games_details_skaters') }})
-  and game_type_id in (2,3)
-),
-players_gamelog as (
-  select 
-  distinct
-  player_id,
-  season_id,
-  game_type_id
-  from {{ ref('stg_all_player_game_log') }}
-  where season_id = (select max(season_id) from {{ ref('stg_all_games_details_skaters') }})
-  and game_type_id in (2,3)
+players as (
+  select * from {{ ref('vw_stg_request_players_id')}}
 ),
 final as (
-  select * from skaters_games_details
-  union
-  select * from goalie_games_details
-  union
-  select * from players_gamelog
+  select * from base,
+    players
 )
 select * from final
