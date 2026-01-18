@@ -13,6 +13,8 @@ source as (
 regular as (
     select
         (payload ->> 'playerId')::int as player_id,
+        (payload -> 'firstName' ->> 'default') as player_firstname,
+        (payload -> 'lastName' ->> 'default') as player_lastname,
         (payload ->> 'isActive')::boolean as is_active,
         (payload ->> 'position') as position,
         (payload -> 'birthCity' ->> 'default') as birth_city,
@@ -57,7 +59,6 @@ regular as (
     from source
     where
         1 = 1
-        {# and payload not like 'https://api-web.nhle.com/v1/player/%/landing' #}
         and payload is not null
         and payload <> 'null'
 ),
@@ -65,6 +66,8 @@ regular as (
 playoffs as (
     select
         (payload ->> 'playerId')::int as player_id,
+        (payload -> 'firstName' ->> 'default') as player_firstname,
+        (payload -> 'lastName' ->> 'default') as player_lastname,
         (payload ->> 'isActive')::boolean as is_active,
         (payload ->> 'position') as position,
         (payload -> 'birthCity' ->> 'default') as birth_city,
