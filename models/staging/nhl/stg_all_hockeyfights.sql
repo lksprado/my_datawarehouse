@@ -18,12 +18,13 @@ renamed as (
             when season_type like 'pos' then 3
         end as game_type_id,
         {{ dbt_utils.generate_surrogate_key(['fight', 'date', 'gametime']) }} as fight_id,
+        fight as fight_desc,
         player_1_name,
         player_2_name,
         player_1_team,
         player_2_team,
-        split_part(split_part(fight, '(', 2), ')', 1) as team_1_id,
-        split_part(split_part(fight, '(', 3), ')', 1) as team_2_id,
+        split_part(split_part(fight, '(', 2), ')', 1) as team_1_code,
+        split_part(split_part(fight, '(', 3), ')', 1) as team_2_code,
         to_date(date, 'MM/DD/YY') as game_date,
         period,
         gametime as time_in_period,
@@ -41,14 +42,23 @@ dedup as (
 final as (
     select 
         fight_id,
+        fight_desc,
         season_id,
         game_type_id,
         player_1_name,
         player_2_name,
         player_1_team,
         player_2_team,
-        team_1_id,
-        team_2_id,
+        case 
+            when team_1_code like 'MON' then 'MTL'
+            WHEN team_1_code LIKE 'WAS' then 'WSH'
+            when team_1_code LIKE 'CAL' then 'CGY'
+        ELSE team_1_code end as team_1_code,
+        case 
+            when team_2_code like 'MON' then 'MTL'
+            WHEN team_2_code LIKE 'WAS' then 'WSH'
+            WHEN team_2_code LIKE 'CAL' THEN 'CGY'
+        ELSE team_2_code end as team_2_code,
         game_date,
         period,
         time_in_period,

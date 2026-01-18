@@ -62,3 +62,13 @@ models:
   - name: int_fct_games_player_stats_long
     columns:
       - name: game_id
+  - name: int_fct_games_fights
+    columns:
+      - name: game_id
+        tests:
+          - unique
+          - not_null
+      - name: fight_id
+        tests:
+          - unique
+          - not_null

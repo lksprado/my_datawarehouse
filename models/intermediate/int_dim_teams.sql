@@ -18,7 +18,8 @@ game_details as (
             as team_placename,
         string_agg(distinct home_team_commonname, ', ' order by home_team_commonname)
             as team_commonname,
-        max(season_id) as latest_season_id
+        max(season_id) as latest_season_id,
+        min(season_id) as first_season_id
     from {{ ref('stg_all_games_details') }}
     group by home_team_id
 ),
@@ -34,6 +35,7 @@ teams as (
         t1.team_fullname,
         t2.team_placename,
         t2.team_commonname,
+        t2.first_season_id,
         t2.latest_season_id,
         t3.is_current as is_active,
         t2.team_logo,
@@ -43,6 +45,8 @@ teams as (
         on t1.team_id = t2.team_id
     left join seasons as t3
         on t2.latest_season_id = t3.season_id
+    left join seasons as t4
+        on t2.first_season_id = t4.season_id
     where t1.team_id < 99
 )
 
