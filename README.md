@@ -1,15 +1,11 @@
-Welcome to your new dbt project!
+# My Datawarehouse
+English version.
 
-### Using the starter project
+## O que contém no meu DW?
+Contém dados atualizados com frequência regular para estudos e curiosidade analítica.
+- Dados do meu projeto de energia solar residencial e clima do local. Disponível em: https://github.com/lksprado/Solar e https://github.com/lksprado/openweather.
+- Dados da Liga NHL. Disponível em https://github.com/lksprado/nhl-extraction.
 
-Try running the following commands:
-- dbt run
-- dbt test
-
-
-### Resources:
-- Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)
-- Check out [Discourse](https://discourse.getdbt.com/) for commonly asked questions and answers
-- Join the [chat](https://community.getdbt.com/) on Slack for live discussions and support
-- Find [dbt events](https://events.getdbt.com) near you
-- Check out [the blog](https://blog.getdbt.com/) for the latest news on dbt's development and best practices
+## Novos objetivos 2026
+- Incluir dados de consumo para medição da inflação e monitoramento de preços;
+- Incluir dados de livraria online para monitoramento de preços;

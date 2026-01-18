@@ -30,3 +30,5 @@ sources:
       description: "Estatísticas dos jogadores por jogo. Atualizar diariamente."
     - name: nhl_raw_all_play_by_play
       description: "Todos eventos de um jogo. Atualizar diariamente, cruzando com nhl_raw_all_games_summary."
+    - name: hockeyfights_raw_all_fights
+      description: "Todas as brigas entre 1986 e última temporada completa"

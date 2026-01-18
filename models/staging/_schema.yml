@@ -42,3 +42,11 @@ models:
         data_tests:
           - unique
           - not_null
+  - name: stg_all_hockeyfights
+    description: "A starter dbt model"
+    columns:
+      - name: fight_id
+        description: "The unique key for this table"
+        data_tests:
+          - unique
+          - not_null
