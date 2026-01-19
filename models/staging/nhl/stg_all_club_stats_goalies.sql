@@ -1,7 +1,10 @@
 {{ 
   config(
     materialized = 'table',
-    tags = ['nhl','staging', 'player_id']
+    tags = ['nhl','staging', 'player_id'],
+    post_hook = [
+        "create index if not exists idx_club_goalies on {{ this }} (season_id, player_id)"
+    ]
   )
 }}
 

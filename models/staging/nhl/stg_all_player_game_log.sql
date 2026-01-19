@@ -2,7 +2,11 @@
   config(
     materialized = 'incremental',
     unique_key = ['player_id', 'game_id', 'game_type_id'],
-    tags = ['nhl','staging', 'player_id']
+    tags = ['nhl','staging', 'player_id'],
+    post_hook = [
+        "create index if not exists idx_games_log on {{ this }} (game_id, player_id)",
+        "create index if not exists idx_player_log_date on {{ this }} (player_id, game_date)"
+    ]
   )
 }}
 

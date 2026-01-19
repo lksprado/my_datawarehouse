@@ -3,7 +3,11 @@
     materialized = 'incremental',
     unique_key = ['game_id', 'event_id'],
     incremental_strategy = 'delete+insert',
-    tags = ['nhl','staging', 'game_id']
+    tags = ['nhl','staging', 'game_id'],
+    post_hook = [
+        "create index if not exists idx_games_pbp on {{ this }} (game_id, event_id)",
+        "create index if not exists idx_pbp_game_date on {{ this }} (game_date, game_id)"
+    ]
     )
 }}
 

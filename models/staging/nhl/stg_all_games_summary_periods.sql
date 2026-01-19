@@ -2,7 +2,10 @@
   config(
     materialized = 'incremental',
     unique_key = ['game_id', 'period_number'],
-    tags = ['nhl', 'staging']
+    tags = ['nhl', 'staging'],
+    post_hook = [
+        "create index if not exists idx_games_summary_periods on {{ this }} (game_id, period_number)"
+    ]
   )
 }}
 
