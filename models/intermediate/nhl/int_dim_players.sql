@@ -13,19 +13,21 @@ with source as (
         ) as rn
     from {{ ref('stg_all_players') }}
 ),
+
 players as (
-    select 
-    player_id,
-    player_name
-    from {{ref ('stg_all_games_details_goalies')}}
-    group by 1,2
-    union 
-    select 
-    player_id,
-    player_name
-    from {{ref ('stg_all_games_details_skaters')}}
+    select
+        player_id,
+        player_name
+    from {{ ref ('stg_all_games_details_goalies') }}
+    group by 1, 2
+    union
+    select
+        player_id,
+        player_name
+    from {{ ref ('stg_all_games_details_skaters') }}
     group by 1, 2
 ),
+
 player_info as (
     select
         t1.player_id,
@@ -50,9 +52,9 @@ player_info as (
         t1.height_inches,
         t1.weight_kilogram,
         t1.weight_pounds
-    from source t1 
-    left join players t2
-    on t1.player_id = t2.player_id
+    from source as t1
+    left join players as t2
+        on t1.player_id = t2.player_id
     where rn = 1
 )
 

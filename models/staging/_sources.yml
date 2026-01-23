@@ -32,3 +32,9 @@ sources:
       description: "Todos eventos de um jogo. Atualizar diariamente, cruzando com nhl_raw_all_games_summary."
     - name: hockeyfights_raw_all_fights
       description: "Todas as brigas entre 1986 e última temporada completa"
+    - name: vide_raw_home_featured
+      description: "Scraping diário dos livros em destaque na Vide"
+    - name: vide_raw_all_books_legacy
+      description: "Scraping legado em Novembro de 2024"
+    - name: vide_raw_category_pages
+      description: "Scraping paginas semanalmente"

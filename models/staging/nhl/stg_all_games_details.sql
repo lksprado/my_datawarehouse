@@ -31,7 +31,8 @@ game_details as (
         game_outcome_last_period,
         game_outcome_total_periods,
         special_event_name,
-        (game_start_timestamp_utc::timestamptz AT TIME ZONE 'UTC')::timestamp as game_date_timestamp_utc,
+        (game_start_timestamp_utc::timestamptz at time zone 'UTC')::timestamp
+            as game_date_timestamp_utc,
         game_schedule_state,
         -- Campos específicos do game
         (payload -> 'awayTeam' ->> 'id')::int as away_team_id,

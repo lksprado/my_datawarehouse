@@ -169,8 +169,6 @@ final as (
         gp.away_goals,
         gp.home_shots,
         gp.away_shots,
-        coalesce(gea.home_penalties,0) as home_penalties,
-        coalesce(gea.away_penalties,0) as away_penalties,
         gea.home_hits,
         gea.away_hits,
         gea.home_giveaways,
@@ -184,7 +182,9 @@ final as (
         gea.home_faceoff_won,
         gea.away_faceoff_won,
         gea.home_failed_shot_attempt,
-        gea.away_failed_shot_attempt
+        gea.away_failed_shot_attempt,
+        coalesce(gea.home_penalties, 0) as home_penalties,
+        coalesce(gea.away_penalties, 0) as away_penalties
     from game_periods as gp
     left join game_events_agg as gea
         on gp.game_id = gea.game_id and gp.period_number = gea.period_number

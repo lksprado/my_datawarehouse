@@ -1,0 +1,22 @@
+
+version: 2
+
+models:
+  - name: int_dim_author
+    description: "ID de autores"
+    columns:
+      - name: author_id
+        tests:
+          - unique
+          - not_null
+      - name: book_author
+  - name: int_dim_books
+    description: "ID de livros e categoria"
+    columns:
+      - name: book_id
+        tests:
+          - unique
+          - not_null
+      - name: book_name
+  - name: int_fct_book_prices
+    description: "Livros"

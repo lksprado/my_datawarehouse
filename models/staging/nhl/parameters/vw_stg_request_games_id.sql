@@ -61,16 +61,18 @@ final as (
         coalesce(pbp.has_play_by_play, false) as has_play_by_play,
 
         -- flag de prontidão geral
-        coalesce(coalesce(gd.has_games_details, false)
-        and coalesce(gsd.has_games_summary_details, false)
-        and coalesce(pbp.has_play_by_play, false), false) as is_fully_synced
+        coalesce(
+            coalesce(gd.has_games_details, false)
+            and coalesce(gsd.has_games_summary_details, false)
+            and coalesce(pbp.has_play_by_play, false), false
+        ) as is_fully_synced
 
     from games_happened as gh
-    left join games_details gd
+    left join games_details as gd
         on gh.game_id = gd.game_id
-    left join games_summary_details gsd
+    left join games_summary_details as gsd
         on gh.game_id = gsd.game_id
-    left join play_by_play pbp
+    left join play_by_play as pbp
         on gh.game_id = pbp.game_id
 )
 

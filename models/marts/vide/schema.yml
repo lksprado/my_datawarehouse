@@ -1,0 +1,17 @@
+
+version: 2
+
+models:
+  - name: mrt_book_price_history
+    description: "Histórico de preços"
+    columns:
+      - name: created_at as date_price
+      - name: book_id
+      - name: author_id
+      - name: author_name
+      - name: book_name
+      - name: book_category
+      - name: book_price_old
+      - name: book_price_new
+      - name: book_discount
+      - name: book_price_new_order

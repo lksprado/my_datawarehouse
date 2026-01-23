@@ -36,14 +36,16 @@ renamed as (
         vote_count::int as vote_count
     from source
 ),
+
 dedup as (
     select
-    row_number() over (partition by fight_id) as rn,
-    *
+        *,
+        row_number() over (partition by fight_id) as rn
     from renamed
 ),
+
 final as (
-    select 
+    select
         fight_id,
         fight_desc,
         season_id,
@@ -52,23 +54,26 @@ final as (
         player_2_name,
         player_1_team,
         player_2_team,
-        case 
-            when team_1_code like 'MON' then 'MTL'
-            WHEN team_1_code LIKE 'WAS' then 'WSH'
-            when team_1_code LIKE 'CAL' then 'CGY'
-        ELSE team_1_code end as team_1_code,
-        case 
-            when team_2_code like 'MON' then 'MTL'
-            WHEN team_2_code LIKE 'WAS' then 'WSH'
-            WHEN team_2_code LIKE 'CAL' THEN 'CGY'
-        ELSE team_2_code end as team_2_code,
         game_date,
         period,
         time_in_period,
         fight_winner,
         rating,
-        vote_count
-    from dedup 
+        vote_count,
+        case
+            when team_1_code like 'MON' then 'MTL'
+            when team_1_code like 'WAS' then 'WSH'
+            when team_1_code like 'CAL' then 'CGY'
+            else team_1_code
+        end as team_1_code,
+        case
+            when team_2_code like 'MON' then 'MTL'
+            when team_2_code like 'WAS' then 'WSH'
+            when team_2_code like 'CAL' then 'CGY'
+            else team_2_code
+        end as team_2_code
+    from dedup
     where rn = 1
 )
+
 select * from final
