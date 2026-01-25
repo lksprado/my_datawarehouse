@@ -12,6 +12,7 @@ with source as (
             partition by player_id
         ) as rn
     from {{ ref('stg_all_players') }}
+    where season_type = 'regular'
 ),
 
 players as (
@@ -58,4 +59,4 @@ player_info as (
     where rn = 1
 )
 
-select * from player_info
+select distinct * from player_info
