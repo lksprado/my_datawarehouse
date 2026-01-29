@@ -32,9 +32,6 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   my_datawarehouse:
     # Config indicated by + and applies to all files under models/example/
-    sources:
-      +materialized: table
-      +schema: staging
     staging:
       +materialized: table
       +schema: staging

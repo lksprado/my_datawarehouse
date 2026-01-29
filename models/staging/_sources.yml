@@ -38,3 +38,5 @@ sources:
       description: "Scraping legado em Novembro de 2024"
     - name: vide_raw_category_pages
       description: "Scraping paginas semanalmente"
+    - name: minha_inflacao
+      description: "Dados históricos do site Minha Inflação"
