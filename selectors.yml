@@ -17,3 +17,9 @@ selectors:
         - method: path
           value: models/staging/vide
           children: True
+  - name: inflation
+    definition:
+      union:
+        - method: path
+          value: models/staging/inflation
+          children: True
