@@ -1,0 +1,12 @@
+
+version: 2
+
+models:
+  - name: int_dim_products
+    description: "Produtos Atacadao Denormalizado"
+    columns:
+      - name: sku
+        description: "The unique key for this table"
+        data_tests:
+          - unique
+          - not_null

@@ -10,7 +10,7 @@ source as (
     select * from {{ source('raw', 'minha_inflacao') }}
 ),
 units as (
-    select * from {{ ref('stg_eph_quantidade') }}
+    select * from {{ ref('eph_minha_inflacao') }}
 ),
 renamed as (
     select 

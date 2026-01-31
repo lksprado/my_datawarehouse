@@ -40,3 +40,7 @@ sources:
       description: "Scraping paginas semanalmente"
     - name: minha_inflacao
       description: "Dados históricos do site Minha Inflação"
+    - name: atacadao_raw
+      description: "Dados atualizados do novo Scraper Atacadao"
+    - name: atacadao_historico
+      description: "Dados legados do antigo Scraper do Atacadao"
