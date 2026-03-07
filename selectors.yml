@@ -9,7 +9,7 @@ selectors:
       method: path
       value: models/staging/nhl
       children: True
-  - name: vide
+  - name: livros
     definition:
       method: path
       value: models/staging/livros
