@@ -1,25 +1,21 @@
 selectors:
   - name: energia
     definition:
-      union:
-        - method: path
-          value: models/staging/solar_weather_project
-          children: True
+      method: path
+      value: models/staging/solar_weather_project
+      children: True
   - name: nhl
     definition:
-      union:
-        - method: path
-          value: models/staging/nhl
-          children: True
+      method: path
+      value: models/staging/nhl
+      children: True
   - name: vide
     definition:
-      union:
-        - method: path
-          value: models/staging/vide
-          children: True
+      method: path
+      value: models/staging/vide
+      children: True
   - name: inflation
     definition:
-      union:
-        - method: path
-          value: models/staging/inflation
-          children: True
+      method: path
+      value: models/staging/inflation
+      children: True
