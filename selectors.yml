@@ -12,7 +12,7 @@ selectors:
   - name: vide
     definition:
       method: path
-      value: models/staging/vide
+      value: models/staging/livros
       children: True
   - name: inflation
     definition:
