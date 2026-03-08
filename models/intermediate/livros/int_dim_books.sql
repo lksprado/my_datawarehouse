@@ -7,14 +7,17 @@
 with
 legado as (
     select * from {{ ref('stg_vide_all_books_legacy') }}
+    where book_name is not null
 ),
 
 home as (
     select * from {{ ref('stg_vide_home_featured') }}
+    where book_name is not null
 ),
 
 categorias as (
     select * from {{ ref('stg_vide_category_pages') }}
+    where book_name is not null
 ),
 
 unioned as (
@@ -37,6 +40,13 @@ unioned as (
     from categorias
     order by book_category
 ),
+unioned_dedup as (
+    select 
+        book_id,
+        book_name
+    from unioned 
+    group by 1,2
+),
 
 -- conta quantas vezes cada categoria aparece por livro
 category_counts as (
@@ -47,10 +57,7 @@ category_counts as (
         count(*) as category_count
     from unioned
     where book_category is not null
-    group by
-        book_id,
-        book_name,
-        book_category
+    group by 1,2,3
 ),
 
 -- rankeia categorias por frequência (e desempata de forma estável)
@@ -67,8 +74,10 @@ ranked as (
 )
 
 select
-    book_id,
-    book_name,
-    book_category
-from ranked
-where rn = 1
+    d.book_id,
+    d.book_name,
+    r.book_category    -- NULL para livros sem categoria
+from unioned_dedup d
+left join ranked r
+    on r.book_id = d.book_id
+    and r.rn = 1

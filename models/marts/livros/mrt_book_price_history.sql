@@ -28,7 +28,10 @@ final as (
         t1.book_price_old,
         t1.book_price_new,
         t1.book_discount,
-        t1.book_price_new_order
+        t1.extraction_order,
+        t1.prev_price,
+        t1.is_price_drop,
+        t1.is_record_discount
     from prices as t1
     left join author as t2
         on t1.author_id = t2.author_id
@@ -38,4 +41,4 @@ final as (
 )
 
 select * from final
-order by book_id asc, book_price_new_order asc
+order by book_id asc, extraction_order asc

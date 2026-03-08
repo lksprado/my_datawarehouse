@@ -37,8 +37,8 @@ final as (
     select
         {{ dbt_utils.generate_surrogate_key(['book_name_clean', 'book_author_clean']) }} as book_id,
         {{ dbt_utils.generate_surrogate_key(['book_author_clean']) }} as author_id,
-        book_name,
-        book_author,
+        lower(book_name) as book_name,
+        lower(book_author) as book_author,
         book_category,
         book_price_old,
         book_price_new,

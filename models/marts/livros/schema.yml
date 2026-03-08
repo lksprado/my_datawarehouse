@@ -14,4 +14,8 @@ models:
       - name: book_price_old
       - name: book_price_new
       - name: book_discount
-      - name: book_price_new_order
+      - name: extraction_order
+      - name: prev_price
+      - name: max_discount_so_far
+      - name: is_price_drop
+      - name: is_record_discount

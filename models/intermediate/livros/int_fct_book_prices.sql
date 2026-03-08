@@ -76,9 +76,51 @@ final as (
         row_number() over (
             partition by book_id
             order by created_at asc
-        ) as book_price_new_order
+        ) as extraction_order,
+
+        -- última extração de cada livro
+        max(created_at) over (
+            partition by book_id
+        ) as last_extraction_at,
+
+        lag(book_price_new) over (
+            partition by book_id
+            order by created_at asc
+        ) as prev_price,
+
+        -- maior desconto ANTES do registro atual (sem incluir o current row)
+        max(book_discount) over (
+            partition by book_id
+            order by created_at asc
+            rows between unbounded preceding and 1 preceding
+        ) as max_discount_before
     from dedup
+),
+
+final_with_flags as (
+    select
+        *,
+
+        -- só sinaliza queda de preço se for a extração mais recente
+        case
+            when created_at = last_extraction_at
+             and book_price_new is not null
+             and prev_price is not null
+             and book_price_new < prev_price
+            then true
+            else false
+        end as is_price_drop,
+
+        case
+            when book_discount is not null
+            and extraction_order > 1
+            and book_discount > coalesce(max_discount_before, 0)
+            then true
+            else false
+        end as is_record_discount
+
+    from final
 )
 
-select * from final
+select * from final_with_flags
 order by created_at desc, book_id desc
