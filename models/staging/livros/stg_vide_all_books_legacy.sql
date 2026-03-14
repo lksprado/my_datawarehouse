@@ -87,7 +87,7 @@ final as (
     select
         {{ dbt_utils.generate_surrogate_key(['book_name_clean', 'book_author_clean']) }} as book_id,
         {{ dbt_utils.generate_surrogate_key(['book_author_clean']) }} as author_id,
-        lower(book_name) as book_name,
+        replace(regexp_replace(public.unaccent(lower(book_name)), '[^a-z0-9 ]', '', 'g'), '  ',' ') as book_name,
         lower(book_author) as book_author,
         category as book_category,
         book_price_old,

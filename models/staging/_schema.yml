@@ -1,52 +1,140 @@
-
 version: 2
 
 models:
   - name: stg_solar_daily_energy
-    description: "Energia solar diario"
+    description: "Medições diárias de geração de energia solar, com indicadores de duração, total, pico e CO2."
     columns:
       - name: dt
-        description: "The unique key for this table"
+        description: "Data de referência da medição diária de energia solar."
         data_tests:
           - unique
           - not_null
+
   - name: stg_solar_hourly_energy
-    description: "Energia solar por hora"
+    description: "Série horária de geração de energia solar em kWh."
     columns:
       - name: dt_hora
-        description: "The unique key for this table"
+        description: "Data e hora da medição de geração de energia solar."
         data_tests:
           - unique
           - not_null
+
   - name: stg_weather_daily
-    description: "A starter dbt model"
+    description: "Condições climáticas diárias com métricas de temperatura, umidade, vento, pressão e precipitação."
     columns:
       - name: dt
-        description: "The unique key for this table"
+        description: "Data de referência das métricas climáticas diárias."
         data_tests:
           - unique
           - not_null
+
+  - name: eph_minha_inflacao
+    description: "Modelo ephemeral de padronização de unidades e quantidades dos produtos da base Minha Inflação."
+
+  - name: stg_atacadao_historico
+    description: "Base histórica do Atacadão com extração de unidade, tipo de quantidade e valor numérico padronizável."
+
+  - name: stg_atacadao_novo
+    description: "Base atual do scraper do Atacadão com parsing de unidade no nome do produto e classificação de quantidade."
+
+  - name: stg_atacadao
+    description: "Consolidação do histórico e da base nova do Atacadão com normalização final de unidades e quantidades."
+
+  - name: stg_minha_inflacao
+    description: "Base tratada da Minha Inflação com chave de produto, categoria, preços e variações mensais."
+
+  - name: stg_vide_all_books_legacy
+    description: "Catálogo legado de livros da Vide com autor, categoria, preços e desconto calculado."
+
+  - name: stg_vide_category_pages
+    description: "Livros coletados das páginas de categoria da Vide com categoria inferida pelo arquivo de origem."
+
+  - name: stg_vide_home_featured
+    description: "Livros em destaque na home da Vide com autor, preços e desconto calculado por coleta diária."
+
+  - name: vw_stg_request_seasons_id
+    description: "Parâmetros de temporadas NHL, identificando a temporada corrente com base no maior season_id."
+
+  - name: vw_stg_request_players_id
+    description: "Parâmetros de jogadores NHL da temporada corrente, derivados de estatísticas de clube para goalies e skaters."
+
+  - name: vw_stg_request_players_seasons_gametypes_id
+    description: "Parâmetros combinando player_id com temporada e tipo de jogo para orquestração de coletas de jogadores."
+
+  - name: vw_stg_request_teams_seasons_gametypes_id
+    description: "Parâmetros de times NHL por temporada e tipo de jogo, filtrando temporada mais recente e jogos regulares/playoffs."
+
+  - name: vw_stg_request_games_id
+    description: "Parâmetros de jogos NHL ainda não totalmente sincronizados entre detalhes, summary_details e play_by_play."
+
+  - name: stg_base_all_club_stats
+    description: "Base ephemeral com payload bruto de estatísticas por clube, expondo season_id e game_type_id."
+
+  - name: stg_all_club_stats_goalies
+    description: "Estatísticas agregadas de goleiros por temporada e tipo de jogo, derivadas do payload de club stats."
+
+  - name: stg_all_club_stats_skaters
+    description: "Estatísticas agregadas de skaters por temporada e tipo de jogo, derivadas do payload de club stats."
+
+  - name: stg_base_all_games_details
+    description: "Base ephemeral de detalhes de jogos NHL com campos comuns já parseados do payload bruto."
+
+  - name: stg_all_games_details
+    description: "Detalhes por jogo da NHL com metadados da partida e informações dos times mandante e visitante."
+    columns:
+      - name: game_id
+        description: "Identificador único do jogo na NHL."
+        data_tests:
+          - unique
+          - not_null
+
+  - name: stg_all_games_details_goalies
+    description: "Estatísticas por jogo de goleiros (mandante e visitante), com métricas de saves e gols sofridos."
+
+  - name: stg_all_games_details_skaters
+    description: "Estatísticas por jogo de skaters (defense/forward, home/away), com gols, assists, hits e TOI."
+
   - name: stg_all_games_summary
-    description: "A starter dbt model"
+    description: "Resumo dos jogos da NHL, incluindo placar, times, status do jogo e informações de calendário."
     columns:
       - name: game_id
-        description: "The unique key for this table"
+        description: "Identificador único do jogo na NHL."
         data_tests:
           - unique
           - not_null
+
+  - name: stg_base_all_games_summary_details
+    description: "Base ephemeral dos summary details por jogo, com game_id extraído do source_filename."
+
   - name: stg_all_games_summary_details
-    description: "A starter dbt model"
+    description: "Estatísticas consolidadas por jogo da NHL, como SOG, faceoff, power play, PIM, hits e takeaways."
     columns:
       - name: game_id
-        description: "The unique key for this table"
+        description: "Identificador único do jogo na NHL, usado para ligação com o resumo de jogos."
         data_tests:
           - unique
           - not_null
+
+  - name: stg_all_games_summary_periods
+    description: "Quebra por período das estatísticas de jogo, unindo gols e chutes por período de cada partida."
+
+  - name: stg_all_play_by_play
+    description: "Eventos play-by-play da NHL por jogo e evento, com contexto temporal, espacial e tipo da jogada."
+
+  - name: stg_all_player_game_log
+    description: "Log de jogos por jogador na NHL, com estatísticas por partida e ordenação sequencial na temporada."
+
+  - name: stg_all_players
+    description: "Dimensão de jogadores NHL com dados cadastrais e estatísticas de carreira para temporada regular e playoffs."
+
+  - name: stg_all_teams
+    description: "Dimensão de times NHL com team_id, franchise_id, sigla e nome completo."
+
   - name: stg_all_hockeyfights
-    description: "A starter dbt model"
+    description: "Base tratada de brigas da NHL/HockeyFights, com jogadores, times, data, período e avaliação do confronto."
     columns:
       - name: fight_id
-        description: "The unique key for this table"
+        description: "Identificador único da briga, gerado a partir da descrição, data e horário."
         data_tests:
           - unique
           - not_null
