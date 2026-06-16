@@ -35,9 +35,13 @@ models:
     staging:
       +materialized: table
       +schema: staging
+      nhl:
+        +enabled: false
     intermediate:
       +materialized: view
       +schema: intermediate
+      nhl:
+        +enabled: false
     marts:
       +materialized: materialized_view
       +schema: marts
