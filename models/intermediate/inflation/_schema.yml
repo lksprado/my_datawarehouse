@@ -1,12 +1,18 @@
-
 version: 2
 
 models:
   - name: int_dim_products
-    description: "Produtos Atacadao Denormalizado"
+    description: "Dimensão conformed de produtos do Atacadão com normalização de nome, marca, unidade e quantidade."
     columns:
       - name: sku
-        description: "The unique key for this table"
+        description: "Identificador único do produto."
         data_tests:
           - unique
+          - not_null
+
+  - name: int_fct_products
+    description: "Preços históricos de produtos do Atacadão por data de extração."
+    columns:
+      - name: sku
+        data_tests:
           - not_null

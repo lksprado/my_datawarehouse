@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: stg_solar_daily_energy
+    description: "Medições diárias de geração de energia solar, com indicadores de duração, total, pico e CO2."
+    columns:
+      - name: dt
+        description: "Data de referência da medição diária de energia solar."
+        data_tests:
+          - unique
+          - not_null
+
+  - name: stg_solar_hourly_energy
+    description: "Série horária de geração de energia solar em kWh."
+    columns:
+      - name: dt_hora
+        description: "Data e hora da medição de geração de energia solar."
+        data_tests:
+          - unique
+          - not_null

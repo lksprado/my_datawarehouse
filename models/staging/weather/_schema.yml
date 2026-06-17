@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: stg_weather_daily
+    description: "Condições climáticas diárias com métricas de temperatura, umidade, vento, pressão e precipitação."
+    columns:
+      - name: dt
+        description: "Data de referência das métricas climáticas diárias."
+        data_tests:
+          - unique
+          - not_null

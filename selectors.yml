@@ -1,9 +1,13 @@
 selectors:
   - name: energia
     definition:
-      method: path
-      value: models/staging/solar_weather_project
-      children: True
+      union:
+        - method: path
+          value: models/staging/solar
+          children: true
+        - method: path
+          value: models/staging/weather
+          children: true
   - name: nhl
     definition:
       method: path
