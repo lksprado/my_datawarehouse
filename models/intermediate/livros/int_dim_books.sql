@@ -38,7 +38,6 @@ unioned as (
         book_name,
         book_category
     from categorias
-    order by book_category
 ),
 unioned_dedup as (
     select 

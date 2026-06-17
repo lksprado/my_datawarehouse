@@ -43,12 +43,7 @@ pbp as (
             when zone_code = 'D' then 'Defensive'
         end as event_zone
     from {{ ref('stg_all_play_by_play') }}
-),
-
-final as (
-    select *
-    from pbp
 )
 
-select * from final
+select * from pbp
 

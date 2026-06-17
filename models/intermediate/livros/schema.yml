@@ -9,7 +9,8 @@ models:
         tests:
           - unique
           - not_null
-      - name: book_author
+      - name: author_name
+        description: "Nome do autor"
   - name: int_dim_books
     description: "ID de livros e categoria"
     columns:

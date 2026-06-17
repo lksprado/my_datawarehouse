@@ -61,8 +61,7 @@ regular as (
         'regular' as season_type
     from source
     where
-        1 = 1
-        and payload is not null
+        payload is not null
         and payload <> 'null'
 ),
 
@@ -111,9 +110,7 @@ playoffs as (
         'playoffs' as season_type
     from source
     where
-        1 = 1
-        {# and payload not like 'https://api-web.nhle.com/v1/player/%/landing' #}
-        and payload is not null
+        payload is not null
         and payload <> 'null'
 ),
 
