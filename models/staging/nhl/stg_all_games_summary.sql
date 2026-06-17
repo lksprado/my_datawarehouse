@@ -1,7 +1,6 @@
 {{
   config(
     materialized = 'table',
-    unique_key='game_id',
     tags = ['nhl','staging', 'game_id'],
     post_hook = [
         "create index if not exists idx_games_summary on {{ this }} (game_id)"
@@ -37,17 +36,7 @@ renamed as (
         (payload ->> 'gameDate')::date < current_date as has_happened_by_time,
         (payload ->> 'gameStateId')::int = 7 as has_happened_by_status
     from source
-    where
-        1 = 1
-        and (payload ->> 'gameScheduleStateId')::int = 1
-    order by (payload ->> 'id')::int desc
+    where (payload ->> 'gameScheduleStateId')::int = 1
 )
 
 select * from renamed
-{% if is_incremental() %}
-where game_date >= dateadd(
-  day,
-  -3,
-  (select max(game_date) from {{ this }})
-)
-{% endif %}

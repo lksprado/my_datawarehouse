@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: stg_vide_all_books_legacy
+    description: "Catálogo legado de livros da Vide com autor, categoria, preços e desconto calculado."
+
+  - name: stg_vide_category_pages
+    description: "Livros coletados das páginas de categoria da Vide com categoria inferida pelo arquivo de origem."
+
+  - name: stg_vide_home_featured
+    description: "Livros em destaque na home da Vide com autor, preços e desconto calculado por coleta diária."

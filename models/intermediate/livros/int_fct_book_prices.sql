@@ -123,4 +123,3 @@ final_with_flags as (
 )
 
 select * from final_with_flags
-order by created_at desc, book_id desc

@@ -38,26 +38,26 @@ unioned as (
         book_name,
         book_category
     from categorias
-    order by book_category
 ),
+
+-- um book_name estável por book_id (desempate determinístico via min)
 unioned_dedup as (
-    select 
+    select
         book_id,
-        book_name
-    from unioned 
-    group by 1,2
+        min(book_name) as book_name
+    from unioned
+    group by book_id
 ),
 
 -- conta quantas vezes cada categoria aparece por livro
 category_counts as (
     select
         book_id,
-        book_name,
         book_category,
         count(*) as category_count
     from unioned
     where book_category is not null
-    group by 1,2,3
+    group by 1, 2
 ),
 
 -- rankeia categorias por frequência (e desempata de forma estável)

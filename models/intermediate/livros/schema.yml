@@ -2,21 +2,35 @@
 version: 2
 
 models:
-  - name: int_dim_author
-    description: "ID de autores"
+  - name: int_dim_authors
+    description: "Dimensão de autores da Vide Editorial, deduplicada por author_id."
     columns:
       - name: author_id
-        tests:
+        data_tests:
           - unique
           - not_null
-      - name: book_author
+      - name: author_name
+        description: "Nome do autor."
   - name: int_dim_books
-    description: "ID de livros e categoria"
+    description: "Dimensão de livros da Vide Editorial com categoria mais frequente por livro."
     columns:
       - name: book_id
-        tests:
+        data_tests:
           - unique
           - not_null
       - name: book_name
+        description: "Nome do livro."
+      - name: book_category
+        description: "Categoria mais frequente do livro entre as fontes."
   - name: int_fct_book_prices
-    description: "Livros"
+    description: "Fato de preços de livros com histórico de extrações, flags de queda de preço e desconto recorde."
+    columns:
+      - name: book_id
+        data_tests:
+          - not_null
+      - name: book_price_new
+        description: "Preço atual do livro na extração."
+      - name: is_price_drop
+        description: "True se o preço caiu na extração mais recente."
+      - name: is_record_discount
+        description: "True se o desconto é o maior já registrado para o livro."

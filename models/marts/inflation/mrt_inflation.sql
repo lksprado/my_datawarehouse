@@ -1,6 +1,6 @@
 {{
   config(
-    tags = ['livros','marts'],
+    tags = ['inflacao','marts'],
     )
 }}
 
@@ -12,22 +12,22 @@ fct as (
     select * from {{ ref('int_fct_products') }}
 ),
 final as (
-    select 
-    t1.created_at,
-    t1.sku,
-    t2.product_name,
-    t2.category,
-    t2.brand_name,
-    t2.product_unity,
-    t2.unit_normalized,
-    t2.quantity_type,
-    t2.quantity_value_normalized,
-    t1.high_price,
-    t1.low_price
+    select
+        fct.created_at,
+        fct.sku,
+        dim.product_name,
+        dim.category,
+        dim.brand_name,
+        dim.product_unity,
+        dim.unit_normalized,
+        dim.quantity_type,
+        dim.quantity_value_normalized,
+        fct.high_price,
+        fct.low_price
     from 
-    fct t1 
-    inner join dim t2
-    on t1.sku = t2.sku
+    fct
+    inner join dim
+        on fct.sku = dim.sku
 )
 select * from final
 order by 

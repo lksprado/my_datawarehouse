@@ -1,3 +1,9 @@
+{{
+  config(
+    tags = ['energia', 'marts'],
+  )
+}}
+
 with
 tab_energia_hora as (
     select *

@@ -5,7 +5,7 @@ models:
   - name: mrt_book_price_history
     description: "Histórico de preços"
     columns:
-      - name: created_at as date_price
+      - name: date_price
       - name: book_id
       - name: author_id
       - name: author_name
@@ -16,6 +16,5 @@ models:
       - name: book_discount
       - name: extraction_order
       - name: prev_price
-      - name: max_discount_so_far
       - name: is_price_drop
       - name: is_record_discount

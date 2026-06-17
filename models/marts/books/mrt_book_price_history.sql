@@ -6,7 +6,7 @@
 
 with
 author as (
-    select * from {{ ref('int_dim_author') }}
+    select * from {{ ref('int_dim_authors') }}
 ),
 
 books as (

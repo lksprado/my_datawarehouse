@@ -1,3 +1,9 @@
+{{
+  config(
+    tags = ['energia', 'marts'],
+  )
+}}
+
 with
 tab_energia as (
     select *
@@ -29,7 +35,7 @@ final as (
     from tab_energia as t1
     inner join tab_clima as t2
         on t1.dt = t2.dt
-    where t1.dt > date '2021-09-16'
+    where t1.dt > date '2021-09-16'  -- data de instalação do sistema solar
 )
 
 select * from final

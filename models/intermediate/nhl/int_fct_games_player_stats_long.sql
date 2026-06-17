@@ -18,20 +18,16 @@ players_stats as (
         sum(shots_against) as shots_against
     from {{ ref('stg_all_player_game_log') }}
     group by game_id, home_road_flag
-),
-
-final as (
-    select
-        game_id,
-        team_side,
-        points,
-        assists,
-        powerplay_goals,
-        powerplay_points,
-        shorthanded_goals,
-        shots_against
-    from players_stats
 )
 
-select * from final
+select
+    game_id,
+    team_side,
+    points,
+    assists,
+    powerplay_goals,
+    powerplay_points,
+    shorthanded_goals,
+    shots_against
+from players_stats
 
