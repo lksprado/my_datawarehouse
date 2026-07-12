@@ -44,3 +44,24 @@ sources:
       description: "Dados atualizados do novo Scraper Atacadao"
     - name: atacadao_historico
       description: "Dados legados do antigo Scraper do Atacadao"
+    
+    - name: acoes
+      description: "Portfolio de acões na B3"
+    - name: bdr
+      description: "Portfolio de BDR na B3"
+    - name: renda_fixa
+      description: "Portfolio de Renda Fixa na B3"
+    - name: etf
+      description: "Portfolio de ETF na B3"
+    - name: fundos
+      description: "Portfolio de Fundos na B3"
+    - name: negociacoes
+      description: "Negociacoes de ativos B3"
+    - name: proventos
+      description: "Proventos recebidos"
+    - name: tesouro_direto
+      description: "Portfolio de Tesouro Direto na B3"
+    - name: avenue_current
+      description: "Portfolio de ativos em USD em relatorio atual na Avenue"
+    - name: avenue_legacy
+      description: "Portfolio de ativos em USD em relatorio legado na Avenue"
