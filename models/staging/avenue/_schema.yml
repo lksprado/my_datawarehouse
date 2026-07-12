@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: stg_avenue_current
+    description: "Base ephemeral das posições atuais da Avenue, com normalização de período, classe de ativo, descrição e valor de mercado."
+
+  - name: stg_avenue_legacy
+    description: "Base ephemeral das posições legadas da Avenue, com o mesmo tratamento da base atual."
+
+  - name: stg_avenue
+    description: "Consolidação (union) das posições atuais e legadas da Avenue, ordenada por início do período."

@@ -8,9 +8,9 @@
 WITH
 source AS (
     SELECT
+        *,
         SPLIT_PART(source_path, '/', -2) AS mes_base,
-        SPLIT_PART(source_path, '/', -3) AS pessoa,
-        *
+        SPLIT_PART(source_path, '/', -3) AS pessoa
     FROM {{ source('raw' ,'proventos') }}
 ),
 

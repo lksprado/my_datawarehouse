@@ -8,9 +8,9 @@
 WITH
 source AS (
     SELECT
+        *,
         SPLIT_PART(source_path, '/', -2) AS mes_base,
-        SPLIT_PART(source_path, '/', -3) AS pessoa,
-        *
+        SPLIT_PART(source_path, '/', -3) AS pessoa
     FROM {{ source('raw' ,'bdr') }}
 ),
 
@@ -36,7 +36,7 @@ renamed AS (
         quantidade::INT                                                             AS quantidade,
         quantidade_disponivel::INT                                                  AS quantidade_disponivel,
         NULLIF(REGEXP_REPLACE(quantidade_indisponivel, '[^0-9]', '', 'g'), '')::INT AS quantidade_indisponivel,
-        NULLIF(motivo,'-')                                                          AS motivo_indisponibilidade,
+        NULLIF(motivo, '-')                                                          AS motivo_indisponibilidade,
         preco_de_fechamento                                                         AS vlr_fechamento,
         valor_atualizado                                                            AS vlr_atualizado
     FROM source

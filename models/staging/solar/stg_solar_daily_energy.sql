@@ -1,14 +1,14 @@
-with
-source as (select * from {{ source('raw', 'solar_daily_energy') }}),
+WITH
+source AS (SELECT * FROM {{ source('raw', 'solar_daily_energy') }}),
 
-renamed as (
-    select
-        date::date as dt,
-        duration::int as duracao_geracao_horas,
-        total::float as total_kwh,
-        co2::float,
-        max::float as max_kwh
-    from source
+renamed AS (
+    SELECT
+        date::DATE    AS dt,
+        duration::INT AS duracao_geracao_horas,
+        total::FLOAT  AS total_kwh,
+        co2::FLOAT,
+        max::FLOAT    AS max_kwh
+    FROM source
 )
 
-select * from renamed
+SELECT * FROM renamed

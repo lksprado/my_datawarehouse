@@ -4,10 +4,10 @@
   )
 }}
 
-with
-tab_energia_hora as (
-    select *
-    from {{ ref('stg_solar_hourly_energy') }}
+WITH
+tab_energia_hora AS (
+    SELECT *
+    FROM {{ ref('stg_solar_hourly_energy') }}
 )
 
-select * from tab_energia_hora
+SELECT * FROM tab_energia_hora

@@ -5,17 +5,18 @@
   )
 }}
 
-with 
-source as (
-    select * from {{ ref('stg_atacadao') }}
+WITH
+source AS (
+    SELECT * FROM {{ ref('stg_atacadao') }}
 ),
-final as (
-    select 
-    distinct
-    created_at,
-    sku,
-    high_price,
-    low_price
-    from source
+
+final AS (
+    SELECT DISTINCT
+        created_at,
+        sku,
+        high_price,
+        low_price
+    FROM source
 )
-select * from final 
+
+SELECT * FROM final

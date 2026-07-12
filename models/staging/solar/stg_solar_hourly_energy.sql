@@ -1,11 +1,11 @@
-with
-source as (select * from {{ source('raw', 'solar_hourly_energy') }}),
+WITH
+source AS (SELECT * FROM {{ source('raw', 'solar_hourly_energy') }}),
 
-renamed as (
-    select
-        datetime::timestamp as dt_hora,
-        energy::float as kwh
-    from source
+renamed AS (
+    SELECT
+        datetime::TIMESTAMP AS dt_hora,
+        energy::FLOAT       AS kwh
+    FROM source
 )
 
-select * from renamed
+SELECT * FROM renamed

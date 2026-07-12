@@ -4,80 +4,80 @@
     )
 }}
 
-with
-legado as (
-    select * from {{ ref('stg_vide_all_books_legacy') }}
-    where book_name is not null
+WITH
+legado AS (
+    SELECT * FROM {{ ref('stg_vide_all_books_legacy') }}
+    WHERE book_name IS NOT NULL
 ),
 
-home as (
-    select * from {{ ref('stg_vide_home_featured') }}
-    where book_name is not null
+home AS (
+    SELECT * FROM {{ ref('stg_vide_home_featured') }}
+    WHERE book_name IS NOT NULL
 ),
 
-categorias as (
-    select * from {{ ref('stg_vide_category_pages') }}
-    where book_name is not null
+categorias AS (
+    SELECT * FROM {{ ref('stg_vide_category_pages') }}
+    WHERE book_name IS NOT NULL
 ),
 
-unioned as (
-    select
+unioned AS (
+    SELECT
         book_id,
         book_name,
         book_category
-    from legado
-    union all
-    select
+    FROM legado
+    UNION ALL
+    SELECT
         book_id,
         book_name,
-        null as book_category
-    from home
-    union all
-    select
+        NULL AS book_category
+    FROM home
+    UNION ALL
+    SELECT
         book_id,
         book_name,
         book_category
-    from categorias
+    FROM categorias
 ),
 
 -- um book_name estável por book_id (desempate determinístico via min)
-unioned_dedup as (
-    select
+unioned_dedup AS (
+    SELECT
         book_id,
-        min(book_name) as book_name
-    from unioned
-    group by book_id
+        MIN(book_name) AS book_name
+    FROM unioned
+    GROUP BY book_id
 ),
 
 -- conta quantas vezes cada categoria aparece por livro
-category_counts as (
-    select
+category_counts AS (
+    SELECT
         book_id,
         book_category,
-        count(*) as category_count
-    from unioned
-    where book_category is not null
-    group by 1, 2
+        COUNT(*) AS category_count
+    FROM unioned
+    WHERE book_category IS NOT NULL
+    GROUP BY 1, 2
 ),
 
 -- rankeia categorias por frequência (e desempata de forma estável)
-ranked as (
-    select
+ranked AS (
+    SELECT
         *,
-        row_number() over (
-            partition by book_id
-            order by
-                category_count desc,      -- mais frequente primeiro
-                book_category asc         -- desempate determinístico
-        ) as rn
-    from category_counts
+        ROW_NUMBER() OVER (
+            PARTITION BY book_id
+            ORDER BY
+                category_count DESC,      -- mais frequente primeiro
+                book_category ASC         -- desempate determinístico
+        ) AS rn
+    FROM category_counts
 )
 
-select
+SELECT
     d.book_id,
     d.book_name,
     r.book_category    -- NULL para livros sem categoria
-from unioned_dedup d
-left join ranked r
-    on r.book_id = d.book_id
-    and r.rn = 1
+FROM unioned_dedup AS d
+LEFT JOIN ranked AS r
+    ON d.book_id = r.book_id
+    AND r.rn = 1

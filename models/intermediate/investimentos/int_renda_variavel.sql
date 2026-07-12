@@ -5,97 +5,107 @@
 }}
 
 WITH
-usd as (
-    select 
-    data_referencia,
-    vlr_usd
-    from {{ ref('stg_usd')}}
+usd AS (
+    SELECT
+        data_referencia,
+        vlr_usd
+    FROM {{ ref('stg_usd') }}
 ),
-avenue as (
-    select 
-    period_start as mes_base,
-    pessoa,
-    'AVENUE' as instituicao,
-    'FUNDO' as tipo_investimento,
-    symbol_cusip as ticker,
-    (market_value::INT * vlr_usd)::INT as vlr_atualizado
-    from {{ ref('stg_avenue')}}
-    inner join {{ ref('stg_usd') }}
-    on period_end = data_referencia
-    where (asset_class = 'EQUITIES' OR asset_class = 'CASH')
-    and symbol_cusip NOT IN ('GOVT','TFLO')
+
+avenue AS (
+    SELECT
+        period_start                       AS mes_base,
+        pessoa,
+        'AVENUE'                           AS instituicao,
+        'FUNDO'                            AS tipo_investimento,
+        symbol_cusip                       AS ticker,
+        (market_value::INT * vlr_usd)::INT AS vlr_atualizado
+    FROM {{ ref('stg_avenue') }}
+    INNER JOIN {{ ref('stg_usd') }}
+        ON period_end = data_referencia
+    WHERE
+        (asset_class = 'EQUITIES' OR asset_class = 'CASH')
+        AND symbol_cusip NOT IN ('GOVT', 'TFLO')
 ),
-acoes as (
-    select
-    mes_base,
-    pessoa,
-    instituicao,
-    'ACAO' as tipo_investimento,
-    ticker,
-    vlr_atualizado
-    from {{ ref('stg_acoes') }}
-),
-bdr as (
-    select
-    mes_base,
-    pessoa,
-    instituicao,
-    'ACAO' as tipo_investimento,
-    ticker,
-    vlr_atualizado
-    from {{ ref('stg_acoes') }}
-),
-etf as (
-    select 
-    mes_base,
-    pessoa,
-    instituicao,
-    'FUNDO' as tipo_investimento,
-    ticker,
-    vlr_atualizado
-    from {{ ref('stg_etf') }}
-),
-fundos as (
-    select 
-    mes_base,
-    pessoa,
-    instituicao,
-    'FUNDO' as tipo_investimento,
-    ticker,
-    vlr_atualizado
-    from {{ ref('stg_fundos') }}
-),
-unioned as (
-    select * from avenue
-    union all
-    select * from acoes
-    union all 
-    select * from etf
-    union all 
-    select * from fundos
-    union all 
-    select * from bdr
-),
-final as (
-    select
+
+acoes AS (
+    SELECT
         mes_base,
         pessoa,
-        CASE 
-            WHEN instituicao = 'BANCO DAYCOVAL S/A' then 'DAYCOVAL'
-            WHEN instituicao = 'NU INVESTIMENTOS S.A. - CTVM' then 'NUBANK'
-            WHEN instituicao = 'EASYNVEST - TITULO CV S/A' then 'NUBANK'
-            WHEN instituicao = 'NU INVEST CORRETORA DE VALORES S.A.' then 'NUBANK'
-            WHEN instituicao = 'BANCO BRADESCO S/A' then 'BRADESCO'
-            WHEN instituicao = 'ITAU UNIBANCO S.A.' then 'ITAU'
-            WHEN instituicao = 'BANCO SOFISA S/A' then 'SOFISA'
-            WHEN instituicao = 'AVENUE' then 'AVENUE'
+        instituicao,
+        'ACAO' AS tipo_investimento,
+        ticker,
+        vlr_atualizado
+    FROM {{ ref('stg_acoes') }}
+),
+
+bdr AS (
+    SELECT
+        mes_base,
+        pessoa,
+        instituicao,
+        'ACAO' AS tipo_investimento,
+        ticker,
+        vlr_atualizado
+    FROM {{ ref('stg_acoes') }}
+),
+
+etf AS (
+    SELECT
+        mes_base,
+        pessoa,
+        instituicao,
+        'FUNDO' AS tipo_investimento,
+        ticker,
+        vlr_atualizado
+    FROM {{ ref('stg_etf') }}
+),
+
+fundos AS (
+    SELECT
+        mes_base,
+        pessoa,
+        instituicao,
+        'FUNDO' AS tipo_investimento,
+        ticker,
+        vlr_atualizado
+    FROM {{ ref('stg_fundos') }}
+),
+
+unioned AS (
+    SELECT * FROM avenue
+    UNION ALL
+    SELECT * FROM acoes
+    UNION ALL
+    SELECT * FROM etf
+    UNION ALL
+    SELECT * FROM fundos
+    UNION ALL
+    SELECT * FROM bdr
+),
+
+final AS (
+    SELECT
+        mes_base,
+        pessoa,
+        CASE
+            WHEN instituicao = 'BANCO DAYCOVAL S/A' THEN 'DAYCOVAL'
+            WHEN instituicao = 'NU INVESTIMENTOS S.A. - CTVM' THEN 'NUBANK'
+            WHEN instituicao = 'EASYNVEST - TITULO CV S/A' THEN 'NUBANK'
+            WHEN instituicao = 'NU INVEST CORRETORA DE VALORES S.A.' THEN 'NUBANK'
+            WHEN instituicao = 'BANCO BRADESCO S/A' THEN 'BRADESCO'
+            WHEN instituicao = 'ITAU UNIBANCO S.A.' THEN 'ITAU'
+            WHEN instituicao = 'BANCO SOFISA S/A' THEN 'SOFISA'
+            WHEN instituicao = 'AVENUE' THEN 'AVENUE'
             ELSE 'DESCONHECIDO'
-        END AS instituicao,
-        'RENDA VARIAVEL' as categoria_investimento,
+        END                      AS instituicao,
+        'RENDA VARIAVEL'         AS categoria_investimento,
         tipo_investimento,
-        ticker as investimento,
-        sum(vlr_atualizado)::int as vlr_atualizado
-    from unioned
-    group by 1,2,3,4,5,6
+        ticker                   AS investimento,
+        SUM(vlr_atualizado)::INT AS vlr_atualizado
+    FROM unioned
+    GROUP BY 1, 2, 3, 4, 5, 6
 )
-select * from final order by mes_base
+
+SELECT * FROM final
+ORDER BY mes_base

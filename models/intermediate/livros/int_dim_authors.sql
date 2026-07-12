@@ -4,45 +4,45 @@
     )
 }}
 
-with
-legado as (
-    select * from {{ ref('stg_vide_all_books_legacy') }}
+WITH
+legado AS (
+    SELECT * FROM {{ ref('stg_vide_all_books_legacy') }}
 ),
 
-home as (
-    select * from {{ ref('stg_vide_home_featured') }}
+home AS (
+    SELECT * FROM {{ ref('stg_vide_home_featured') }}
 ),
 
-categorias as (
-    select * from {{ ref('stg_vide_category_pages') }}
+categorias AS (
+    SELECT * FROM {{ ref('stg_vide_category_pages') }}
 ),
 
-unioned as (
-    select
+unioned AS (
+    SELECT
         author_id,
         book_author
-    from legado
-    union
-    select
+    FROM legado
+    UNION
+    SELECT
         author_id,
         book_author
-    from home
-    union
-    select
+    FROM home
+    UNION
+    SELECT
         author_id,
         book_author
-    from categorias
+    FROM categorias
 ),
 
-final as (
-    select
+final AS (
+    SELECT
         *,
-        row_number() over (partition by author_id order by book_author) as rn
-    from unioned
+        ROW_NUMBER() OVER (PARTITION BY author_id ORDER BY book_author) AS rn
+    FROM unioned
 )
 
-select
+SELECT
     author_id,
-    book_author as author_name
-from final
-where rn = 1
+    book_author AS author_name
+FROM final
+WHERE rn = 1

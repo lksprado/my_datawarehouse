@@ -4,19 +4,19 @@
   )
 }}
 
-with
-tab_energia as (
-    select *
-    from {{ ref('stg_solar_daily_energy') }}
+WITH
+tab_energia AS (
+    SELECT *
+    FROM {{ ref('stg_solar_daily_energy') }}
 ),
 
-tab_clima as (
-    select *
-    from {{ ref('stg_weather_daily') }}
+tab_clima AS (
+    SELECT *
+    FROM {{ ref('stg_weather_daily') }}
 ),
 
-final as (
-    select
+final AS (
+    SELECT
         t1.dt,
         t1.duracao_geracao_horas,
         t1.total_kwh,
@@ -32,10 +32,10 @@ final as (
         t2.pressao_tarde,
         t2.velocidade_vento_max,
         t2.direcao_vento_max
-    from tab_energia as t1
-    inner join tab_clima as t2
-        on t1.dt = t2.dt
-    where t1.dt > date '2021-09-16'  -- data de instalação do sistema solar
+    FROM tab_energia AS t1
+    INNER JOIN tab_clima AS t2
+        ON t1.dt = t2.dt
+    WHERE t1.dt > DATE '2021-09-16'  -- data de instalação do sistema solar
 )
 
-select * from final
+SELECT * FROM final

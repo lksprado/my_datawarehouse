@@ -5,16 +5,20 @@
   )
 }}
 
-with
-source_legacy as (
-    select * from {{ ref('stg_avenue_legacy')}}
+WITH
+source_legacy AS (
+    SELECT * FROM {{ ref('stg_avenue_legacy') }}
 ),
-source_current as (
-    select * from {{ ref('stg_avenue_current')}}
+
+source_current AS (
+    SELECT * FROM {{ ref('stg_avenue_current') }}
 ),
-unioned as (
-    select * from source_current
-    union all
-    select * from source_legacy
+
+unioned AS (
+    SELECT * FROM source_current
+    UNION ALL
+    SELECT * FROM source_legacy
 )
-select * from unioned order by period_start
+
+SELECT * FROM unioned
+ORDER BY period_start

@@ -1,0 +1,5 @@
+version: 2
+
+models:
+  - name: mrt_inflation
+    description: "Histórico de preços de produtos do Atacadão por data de extração, cruzando a dimensão de produtos com o fato de preços (unidade e quantidade normalizadas, preços máximo e mínimo)."

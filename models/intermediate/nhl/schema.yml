@@ -1,7 +1,11 @@
 version: 2
 
 models:
+  - name: int_eph_players_games
+    description: "Base ephemeral relacionando jogadores, jogos e times a partir do log de jogos por jogador."
+
   - name: int_dim_games
+    description: "Dimensão de jogos da NHL, combinando resumo e detalhes da partida (temporada, data, times e placar)."
     columns:
       - name: game_id
         tests:
@@ -9,6 +13,7 @@ models:
           - not_null
 
   - name: int_dim_players
+    description: "Dimensão de jogadores da NHL com dados cadastrais consolidados."
     columns:
       - name: player_id
         tests:
@@ -16,6 +21,7 @@ models:
         - not_null
 
   - name: int_dim_teams
+    description: "Dimensão de times da NHL com identificadores, códigos, nomes e logos."
     columns:
       - name: team_id
         tests:
@@ -23,6 +29,7 @@ models:
         - not_null
 
   - name: int_fct_games_events
+    description: "Fato de eventos play-by-play por jogo, com tipo de evento, tempo, período e coordenadas da jogada."
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -31,6 +38,7 @@ models:
               - event_id
 
   - name: int_fct_games_periods_events
+    description: "Fato de eventos de jogo agregados por partida e período."
     columns:
       - name: game_id
     tests:
@@ -41,6 +49,7 @@ models:
               - period_number
 
   - name: int_fct_games_periods_fights
+    description: "Fato de brigas por jogo e período, contadas a partir dos eventos de penalidade 'fighting'."
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -49,6 +58,7 @@ models:
               - period_number
 
   - name: int_fct_games_team_stats_long
+    description: "Fato de estatísticas de times por jogo em formato longo (uma linha por time)."
     columns:
       - name: game_id
       - name: season_id
@@ -56,6 +66,7 @@ models:
       - name: team_id
 
   - name: int_fct_games_team_stats_wide
+    description: "Fato de estatísticas de times por jogo em formato largo (uma linha por jogo, com mandante e visitante)."
     columns:
       - name: game_id
         tests:
@@ -63,9 +74,11 @@ models:
           - not_null
 
   - name: int_fct_games_player_stats_long
+    description: "Fato de estatísticas de jogadores agregadas por jogo e lado do time (mandante/visitante)."
     columns:
       - name: game_id
   - name: int_fct_games_fights
+    description: "Fato de brigas por jogo, com jogadores e times envolvidos."
     columns:
       - name: game_id
         tests:

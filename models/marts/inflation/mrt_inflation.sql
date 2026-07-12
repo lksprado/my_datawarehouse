@@ -4,15 +4,17 @@
     )
 }}
 
-with
-dim as (
-    select * from {{ ref('int_dim_products') }}
+WITH
+dim AS (
+    SELECT * FROM {{ ref('int_dim_products') }}
 ),
-fct as (
-    select * from {{ ref('int_fct_products') }}
+
+fct AS (
+    SELECT * FROM {{ ref('int_fct_products') }}
 ),
-final as (
-    select
+
+final AS (
+    SELECT
         fct.created_at,
         fct.sku,
         dim.product_name,
@@ -24,12 +26,13 @@ final as (
         dim.quantity_value_normalized,
         fct.high_price,
         fct.low_price
-    from 
-    fct
-    inner join dim
-        on fct.sku = dim.sku
+    FROM
+        fct
+    INNER JOIN dim
+        ON fct.sku = dim.sku
 )
-select * from final
-order by 
-created_at asc,
-sku desc
+
+SELECT * FROM final
+ORDER BY
+    created_at ASC,
+    sku DESC

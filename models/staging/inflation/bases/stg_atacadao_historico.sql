@@ -1,60 +1,62 @@
 {{
   config(
-    materialized = 'table',
+    materialized = 'ephemeral',
     tags = ['inflacao', 'staging'],
   )
 }}
 
-with 
-source as (
-    select * from {{ source('raw', 'atacadao_historico')}}
+WITH
+source AS (
+    SELECT * FROM {{ source('raw', 'atacadao_historico') }}
 ),
-renamed as (
-    select
-    date_scrapped as created_at,
-    sku,
-    category,
-    product_name,
-    lower(CASE
-        WHEN regexp_count(product_name, ' com ') = 1
-            THEN split_part(product_name, ' com ', 2)
 
-        WHEN regexp_count(product_name, ' com ') >= 2
-            THEN split_part(product_name, ' com ', 3)
+renamed AS (
+    SELECT
+        date_scrapped AS created_at,
+        sku,
+        category,
+        product_name,
+        brand_name,
+        high_price,
+        low_price,
+        LOWER(CASE
+            WHEN REGEXP_COUNT(product_name, ' com ') = 1
+                THEN SPLIT_PART(product_name, ' com ', 2)
 
-        ELSE NULL
-    END) AS product_unity,
-    brand_name,
-    high_price,
-    low_price
-    from source
+            WHEN REGEXP_COUNT(product_name, ' com ') >= 2
+                THEN SPLIT_PART(product_name, ' com ', 3)
+        END)          AS product_unity
+    FROM source
 ),
-units as (
-    select
-    *,
-    case
+
+units AS (
+    SELECT
+        *,
+        CASE
         -- PESO
-        when product_unity ~* '(kg|quilo|g|grama|g\\b)' then 'weight'
-        -- VOLUME
-        when product_unity ~* '(litro|l|l\\b|ml)' then 'volume'
-        -- UNIDADE / EMBALAGEM CONTÁVEL
-        when product_unity ~* '(un)' then 'unit'
-        else 'unknown'
-    end as quantity_type,
+            WHEN product_unity ~* '(kg|quilo|g|grama|g\\b)' THEN 'weight'
+            -- VOLUME
+            WHEN product_unity ~* '(litro|l|l\\b|ml)' THEN 'volume'
+            -- UNIDADE / EMBALAGEM CONTÁVEL
+            WHEN product_unity ~* '(un)' THEN 'unit'
+            ELSE 'unknown'
+        END AS quantity_type,
         -- VALOR NUMÉRICO BRUTO
-    case
-        when product_unity ~* '^(kg|quilo|litro|l|ml)$' then 1::numeric
+        CASE
+            WHEN product_unity ~* '^(kg|quilo|litro|l|ml)$' THEN 1::NUMERIC
 
-        when product_unity ~* '[0-9]' then
-            replace(
-                regexp_replace(product_unity, '[^0-9.,]', '', 'g'),
-                ',',
-                '.'
-            )::numeric
+            WHEN product_unity ~* '[0-9]'
+                THEN
+                    REPLACE(
+                        REGEXP_REPLACE(product_unity, '[^0-9.,]', '', 'g'),
+                        ',',
+                        '.'
+                    )::NUMERIC
 
-        else 1
-    end as quantity_value_raw
-    from renamed
-    where lower(category) in ('bebidas','carnes, aves e peixes','frios e congelados', 'hortifrúti', 'limpeza', 'mercearia', 'padaria e matinais')
+            ELSE 1
+        END AS quantity_value_raw
+    FROM renamed
+    WHERE LOWER(category) IN ('bebidas', 'carnes, aves e peixes', 'frios e congelados', 'hortifrúti', 'limpeza', 'mercearia', 'padaria e matinais')
 )
-select * from units
+
+SELECT * FROM units

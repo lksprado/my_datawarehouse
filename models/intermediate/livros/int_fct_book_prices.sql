@@ -4,122 +4,114 @@
     )
 }}
 
-with
-legado as (
-    select * from {{ ref('stg_vide_all_books_legacy') }}
+WITH
+legado AS (
+    SELECT * FROM {{ ref('stg_vide_all_books_legacy') }}
 ),
 
-home as (
-    select * from {{ ref('stg_vide_home_featured') }}
+home AS (
+    SELECT * FROM {{ ref('stg_vide_home_featured') }}
 ),
 
-categorias as (
-    select * from {{ ref('stg_vide_category_pages') }}
+categorias AS (
+    SELECT * FROM {{ ref('stg_vide_category_pages') }}
 ),
 
-unioned as (
-    select
+unioned AS (
+    SELECT
         created_at,
         book_id,
         author_id,
         book_price_old,
         book_price_new,
         book_discount
-    from legado
-    union all
-    select
+    FROM legado
+    UNION ALL
+    SELECT
         created_at,
         book_id,
         author_id,
         book_price_old,
         book_price_new,
         book_discount
-    from home
-    union all
-    select
+    FROM home
+    UNION ALL
+    SELECT
         created_at,
         book_id,
         author_id,
         book_price_old,
         book_price_new,
         book_discount
-    from categorias
+    FROM categorias
 ),
 
-dedup as (
-    select *
-    from (
-        select
+dedup AS (
+    SELECT *
+    FROM (
+        SELECT
             created_at,
             book_id,
             author_id,
             book_price_old,
             book_price_new,
             book_discount,
-            row_number() over (
-                partition by book_id, book_price_new
-                order by created_at desc
-            ) as rn_price
-        from unioned
-    ) as t
-    where rn_price = 1
+            ROW_NUMBER() OVER (
+                PARTITION BY book_id, book_price_new
+                ORDER BY created_at DESC
+            ) AS rn_price
+        FROM unioned
+    ) AS t
+    WHERE rn_price = 1
 ),
 
-final as (
-    select
+final AS (
+    SELECT
         created_at,
         book_id,
         author_id,
         book_price_old,
         book_price_new,
         book_discount,
-        row_number() over (
-            partition by book_id
-            order by created_at asc
-        ) as extraction_order,
+        ROW_NUMBER() OVER (
+            PARTITION BY book_id
+            ORDER BY created_at ASC
+        ) AS extraction_order,
 
         -- última extração de cada livro
-        max(created_at) over (
-            partition by book_id
-        ) as last_extraction_at,
+        MAX(created_at) OVER (
+            PARTITION BY book_id
+        ) AS last_extraction_at,
 
-        lag(book_price_new) over (
-            partition by book_id
-            order by created_at asc
-        ) as prev_price,
+        LAG(book_price_new) OVER (
+            PARTITION BY book_id
+            ORDER BY created_at ASC
+        ) AS prev_price,
 
         -- maior desconto ANTES do registro atual (sem incluir o current row)
-        max(book_discount) over (
-            partition by book_id
-            order by created_at asc
-            rows between unbounded preceding and 1 preceding
-        ) as max_discount_before
-    from dedup
+        MAX(book_discount) OVER (
+            PARTITION BY book_id
+            ORDER BY created_at ASC
+            ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+        ) AS max_discount_before
+    FROM dedup
 ),
 
-final_with_flags as (
-    select
+final_with_flags AS (
+    SELECT
         *,
 
         -- só sinaliza queda de preço se for a extração mais recente
-        case
-            when created_at = last_extraction_at
-             and book_price_new is not null
-             and prev_price is not null
-             and book_price_new < prev_price
-            then true
-            else false
-        end as is_price_drop,
+        COALESCE(created_at = last_extraction_at
+        AND book_price_new IS NOT NULL
+        AND prev_price IS NOT NULL
+        AND book_price_new < prev_price, FALSE)                      AS is_price_drop,
 
-        case
-            when book_discount is not null
-            and extraction_order > 1
-            and book_discount > coalesce(max_discount_before, 0)
-            then true
-            else false
-        end as is_record_discount
+        COALESCE(book_discount IS NOT NULL
+        AND extraction_order > 1
+        AND book_discount > COALESCE(max_discount_before, 0), FALSE) AS is_record_discount
 
-    from final
+    FROM final
 )
 
-select * from final_with_flags
+SELECT * FROM final_with_flags

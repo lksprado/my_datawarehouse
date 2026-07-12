@@ -5,49 +5,54 @@
   )
 }}
 
-with
-source_1 as (
-    select * from {{ref('stg_atacadao_historico') }}
+WITH
+source_1 AS (
+    SELECT * FROM {{ ref('stg_atacadao_historico') }}
 ),
-source_2 as (
-    select * from {{ref('stg_atacadao_novo') }}
-),
-unioned as (
-    select * from source_1 
-    union all
-    select * from source_2 
-),
-renamed as (
-  select
-    *,
-    -- pega só as letras: "300g" -> "g", "500ml" -> "ml", "1,5l" -> "l"
-    regexp_replace(lower(product_unity), '[0-9.,\s]', '', 'g') as unit_raw,
 
-    case
-      when regexp_replace(lower(product_unity), '[0-9.,\s]', '', 'g') in ('kg','quilo','quilos') then 'kg'
-      when regexp_replace(lower(product_unity), '[0-9.,\s]', '', 'g') in ('g','grama','gramas') then 'g'
-      when regexp_replace(lower(product_unity), '[0-9.,\s]', '', 'g') in ('ml') then 'ml'
-      when regexp_replace(lower(product_unity), '[0-9.,\s]', '', 'g') in ('l','litro','litros') then 'l'
-      when regexp_replace(lower(product_unity), '[0-9.,\s]', '', 'g') in ('un','uni','unid','unidade','unidades', 'rolos', 'dúzias', 'folhas') then 'un'
-      else null
-    end as unit_normalized
-  from unioned
-  
+source_2 AS (
+    SELECT * FROM {{ ref('stg_atacadao_novo') }}
+),
+
+unioned AS (
+    SELECT * FROM source_1
+    UNION ALL
+    SELECT * FROM source_2
+),
+
+renamed AS (
+    SELECT
+        *,
+        -- pega só as letras: "300g" -> "g", "500ml" -> "ml", "1,5l" -> "l"
+        REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') AS unit_raw,
+
+        CASE
+            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('kg', 'quilo', 'quilos') THEN 'kg'
+            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('g', 'grama', 'gramas') THEN 'g'
+            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('ml') THEN 'ml'
+            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('l', 'litro', 'litros') THEN 'l'
+            WHEN REGEXP_REPLACE(LOWER(product_unity), '[0-9.,\s]', '', 'g') IN ('un', 'uni', 'unid', 'unidade', 'unidades', 'rolos', 'dúzias', 'folhas') THEN 'un'
+        END                                                        AS unit_normalized
+    FROM unioned
+
 )
-select *,
-case
-    when quantity_type = 'volume' and unit_normalized = 'ml'
-        then quantity_value_raw / 1000
-    when quantity_type = 'volume' and unit_normalized = 'l'
-        then quantity_value_raw
-    when quantity_type = 'weight' and unit_normalized = 'g'
-        then quantity_value_raw / 1000
-    when quantity_type = 'weight' and unit_normalized = 'kg'
-        then quantity_value_raw
-    when quantity_type = 'unit'
-        then quantity_value_raw
-end
- as quantity_value_normalized
 
+SELECT
+    *,
+    CASE
+        WHEN quantity_type = 'volume' AND unit_normalized = 'ml'
+            THEN quantity_value_raw / 1000
+        WHEN quantity_type = 'volume' AND unit_normalized = 'l'
+            THEN quantity_value_raw
+        WHEN quantity_type = 'weight' AND unit_normalized = 'g'
+            THEN quantity_value_raw / 1000
+        WHEN quantity_type = 'weight' AND unit_normalized = 'kg'
+            THEN quantity_value_raw
+        WHEN quantity_type = 'unit'
+            THEN quantity_value_raw
+    END
+        AS quantity_value_normalized
 
-from renamed where unit_normalized is not null order by created_at
+FROM renamed
+WHERE unit_normalized IS NOT NULL
+ORDER BY created_at

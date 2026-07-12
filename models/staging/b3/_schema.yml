@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: stg_acoes
+    description: "Posições de ações na B3 por pessoa e mês-base, com ticker, CNPJ da empresa, quantidades e valores de fechamento/atualizado."
+
+  - name: stg_bdr
+    description: "Posições de BDRs na B3 por pessoa e mês-base, com ticker, quantidades e valores de fechamento/atualizado."
+
+  - name: stg_etf
+    description: "Posições de ETFs na B3 por pessoa e mês-base, com ticker, CNPJ do fundo, quantidades e valores."
+
+  - name: stg_fundos
+    description: "Posições de fundos de investimento na B3 por pessoa e mês-base, com CNPJ, quantidades e valores."
+
+  - name: stg_proventos
+    description: "Proventos recebidos na B3 por pessoa, com data de pagamento, tipo de evento, quantidade, preço unitário e valor líquido."
+
+  - name: stg_renda_fixa
+    description: "Posições de renda fixa na B3 por pessoa e mês-base, com emissor, indexador, vencimento e valores atualizados (MtM e curva), incluindo backfill Daycoval."
+
+  - name: stg_tesouro_direto
+    description: "Posições de Tesouro Direto por pessoa e mês-base, com código ISIN, indexador, vencimento e valores aplicado, bruto, líquido e atualizado."

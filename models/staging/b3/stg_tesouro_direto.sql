@@ -8,9 +8,9 @@
 WITH
 source AS (
     SELECT
+        *,
         SPLIT_PART(source_path, '/', -2) AS mes_base,
-        SPLIT_PART(source_path, '/', -3) AS pessoa,
-        *
+        SPLIT_PART(source_path, '/', -3) AS pessoa
     FROM {{ source('raw' ,'tesouro_direto') }}
 ),
 
@@ -37,10 +37,10 @@ renamed AS (
         quantidade_disponivel,
         quantidade_indisponivel,
         NULLIF(motivo, '-')                        AS motivo_indisponibilidade,
-        valor_aplicado::NUMERIC(18,2) AS vlr_aplicado,
-        valor_bruto::NUMERIC(18,2) AS vlr_bruto,
-        valor_liquido::NUMERIC(18,2) AS vlr_liquido,
-        valor_atualizado::NUMERIC(18,2) AS vlr_atualizado
+        valor_aplicado::NUMERIC(18, 2)              AS vlr_aplicado,
+        valor_bruto::NUMERIC(18, 2)                 AS vlr_bruto,
+        valor_liquido::NUMERIC(18, 2)               AS vlr_liquido,
+        valor_atualizado::NUMERIC(18, 2)            AS vlr_atualizado
     FROM source
 )
 

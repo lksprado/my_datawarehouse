@@ -4,22 +4,22 @@
     )
 }}
 
-with
-author as (
-    select * from {{ ref('int_dim_authors') }}
+WITH
+author AS (
+    SELECT * FROM {{ ref('int_dim_authors') }}
 ),
 
-books as (
-    select * from {{ ref('int_dim_books') }}
+books AS (
+    SELECT * FROM {{ ref('int_dim_books') }}
 ),
 
-prices as (
-    select * from {{ ref('int_fct_book_prices') }}
+prices AS (
+    SELECT * FROM {{ ref('int_fct_book_prices') }}
 ),
 
-final as (
-    select
-        t1.created_at as date_price,
+final AS (
+    SELECT
+        t1.created_at AS date_price,
         t1.book_id,
         t1.author_id,
         t2.author_name,
@@ -32,13 +32,13 @@ final as (
         t1.prev_price,
         t1.is_price_drop,
         t1.is_record_discount
-    from prices as t1
-    left join author as t2
-        on t1.author_id = t2.author_id
-    left join books as t3
-        on t1.book_id = t3.book_id
-    where t1.book_price_new is not null
+    FROM prices AS t1
+    LEFT JOIN author AS t2
+        ON t1.author_id = t2.author_id
+    LEFT JOIN books AS t3
+        ON t1.book_id = t3.book_id
+    WHERE t1.book_price_new IS NOT NULL
 )
 
-select * from final
-order by book_id asc, extraction_order asc
+SELECT * FROM final
+ORDER BY book_id ASC, extraction_order ASC

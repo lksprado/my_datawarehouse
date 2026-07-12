@@ -5,53 +5,53 @@
   )
 }}
 
-with
-source as (
-    select * from {{ source('raw', 'vide_raw_all_books_legacy') }}
+WITH
+source AS (
+    SELECT * FROM {{ source('raw', 'vide_raw_all_books_legacy') }}
 ),
 
-renamed as (
-    select
+renamed AS (
+    SELECT
         book_name,
         book_author,
         book_category,
-        trim(replace(replace(replace(book_price_old, 'R$ ', ''), '.', ''), ',', '.'))::numeric(10, 2) as book_price_old,
-        trim(replace(replace(replace(book_price_new, 'R$ ', ''), '.', ''), ',', '.'))::numeric(10, 2) as book_price_new,
-        regexp_replace(public.unaccent(lower(book_name)), '[^a-z0-9]', '', 'g') as book_name_clean,
-        regexp_replace(public.unaccent(lower(book_author)), '[^a-z0-9]', '', 'g') as book_author_clean,
-        to_date(time, 'YYYY-MM-DD HH24:MI:SS') as created_at,
-        case
-            when book_category = 'Filósofos Brasileiros' then 'Filosofia'
-            when book_category = 'Literatura Estrangeira' then 'Filosofia'
-            when book_category = 'História do Brasil' then 'História'
-            when book_category = 'Filósofos' then 'Filosofia'
-            when book_category = 'Filosofia da História' then 'Filosofia'
-            when book_category = 'Filosofia Política' then 'Política'
-            when book_category = 'Ciências Sociais' then 'Ciências Sociais'
-            when book_category = 'Filosofia' then 'Filosofia'
-            when book_category = 'Filosofia Moderna e Contemporânea' then 'Filosofia'
-            when book_category = 'Literatura Brasileira' then 'Literatura'
-            when book_category = 'Lógica e Dialética' then 'Filosofia'
-            when book_category = 'Ensaios e Estudos Filosóficos' then 'Filosofia'
-            when book_category = 'Oratória e Retórica' then 'Filosofia'
-            when book_category = 'Ética e Filosofia Moral' then 'Filosofia'
-            when book_category = 'Literatura' then 'Literatura'
-            when book_category = 'Metafísica' then 'Filosofia'
-            when book_category = 'Biografias' then 'Biografias'
-            when book_category = 'História da Filosofia' then 'Filosofia'
-            when book_category = 'Auto-Ajuda' then 'Autoconhecimento'
-            when book_category = 'Introdução à Filosofia' then 'Filosofia'
-            when book_category = 'Ensino e estudo de línguas' then 'Filosofia'
-            when book_category = 'Literatura Portuguesa' then 'Literatura'
-            when book_category = 'Autoconhecimento' then 'Autoconhecimento'
-            when book_category = 'Antropologia' then 'Ciências Sociais'
-            when book_category = 'Filosofia Antiga' then 'Filosofia'
-            when book_category = 'História' then 'História'
-            when book_category = 'História da América Latina' then 'História'
-            when book_category = 'Sociologia' then 'Ciências Sociais'
-        end as category
-    from source
-    where book_category in (
+        TRIM(REPLACE(REPLACE(REPLACE(book_price_old, 'R$ ', ''), '.', ''), ',', '.'))::NUMERIC(10, 2) AS book_price_old,
+        TRIM(REPLACE(REPLACE(REPLACE(book_price_new, 'R$ ', ''), '.', ''), ',', '.'))::NUMERIC(10, 2) AS book_price_new,
+        REGEXP_REPLACE(public.unaccent(LOWER(book_name)), '[^a-z0-9]', '', 'g')                       AS book_name_clean,
+        REGEXP_REPLACE(public.unaccent(LOWER(book_author)), '[^a-z0-9]', '', 'g')                     AS book_author_clean,
+        TO_DATE(time, 'YYYY-MM-DD HH24:MI:SS')                                                        AS created_at,
+        CASE
+            WHEN book_category = 'Filósofos Brasileiros' THEN 'Filosofia'
+            WHEN book_category = 'Literatura Estrangeira' THEN 'Filosofia'
+            WHEN book_category = 'História do Brasil' THEN 'História'
+            WHEN book_category = 'Filósofos' THEN 'Filosofia'
+            WHEN book_category = 'Filosofia da História' THEN 'Filosofia'
+            WHEN book_category = 'Filosofia Política' THEN 'Política'
+            WHEN book_category = 'Ciências Sociais' THEN 'Ciências Sociais'
+            WHEN book_category = 'Filosofia' THEN 'Filosofia'
+            WHEN book_category = 'Filosofia Moderna e Contemporânea' THEN 'Filosofia'
+            WHEN book_category = 'Literatura Brasileira' THEN 'Literatura'
+            WHEN book_category = 'Lógica e Dialética' THEN 'Filosofia'
+            WHEN book_category = 'Ensaios e Estudos Filosóficos' THEN 'Filosofia'
+            WHEN book_category = 'Oratória e Retórica' THEN 'Filosofia'
+            WHEN book_category = 'Ética e Filosofia Moral' THEN 'Filosofia'
+            WHEN book_category = 'Literatura' THEN 'Literatura'
+            WHEN book_category = 'Metafísica' THEN 'Filosofia'
+            WHEN book_category = 'Biografias' THEN 'Biografias'
+            WHEN book_category = 'História da Filosofia' THEN 'Filosofia'
+            WHEN book_category = 'Auto-Ajuda' THEN 'Autoconhecimento'
+            WHEN book_category = 'Introdução à Filosofia' THEN 'Filosofia'
+            WHEN book_category = 'Ensino e estudo de línguas' THEN 'Filosofia'
+            WHEN book_category = 'Literatura Portuguesa' THEN 'Literatura'
+            WHEN book_category = 'Autoconhecimento' THEN 'Autoconhecimento'
+            WHEN book_category = 'Antropologia' THEN 'Ciências Sociais'
+            WHEN book_category = 'Filosofia Antiga' THEN 'Filosofia'
+            WHEN book_category = 'História' THEN 'História'
+            WHEN book_category = 'História da América Latina' THEN 'História'
+            WHEN book_category = 'Sociologia' THEN 'Ciências Sociais'
+        END                                                                                           AS category
+    FROM source
+    WHERE book_category IN (
         'Filósofos Brasileiros',
         'Literatura Estrangeira',
         'História do Brasil',
@@ -83,20 +83,18 @@ renamed as (
     )
 ),
 
-final as (
-    select
-        {{ dbt_utils.generate_surrogate_key(['book_name_clean', 'book_author_clean']) }} as book_id,
-        {{ dbt_utils.generate_surrogate_key(['book_author_clean']) }} as author_id,
-        replace(regexp_replace(public.unaccent(lower(book_name)), '[^a-z0-9 ]', '', 'g'), '  ',' ') as book_name,
-        lower(book_author) as book_author,
-        category as book_category,
+final AS (
+    SELECT
+        {{ dbt_utils.generate_surrogate_key(['book_name_clean', 'book_author_clean']) }}            AS book_id,
+        {{ dbt_utils.generate_surrogate_key(['book_author_clean']) }}                               AS author_id,
+        REPLACE(REGEXP_REPLACE(public.unaccent(LOWER(book_name)), '[^a-z0-9 ]', '', 'g'), '  ', ' ') AS book_name,
+        LOWER(book_author)                                                                          AS book_author,
+        category                                                                                    AS book_category,
         book_price_old,
         book_price_new,
-        ((book_price_new - book_price_old) / book_price_old)::numeric(6, 2) as book_discount,
+        ((book_price_new - book_price_old) / book_price_old)::NUMERIC(6, 2)                         AS book_discount,
         created_at
-    from renamed
+    FROM renamed
 )
 
-select * from final
-
-
+SELECT * FROM final

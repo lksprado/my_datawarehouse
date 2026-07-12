@@ -5,46 +5,46 @@
   )
 }}
 
-with
-source as (
-    select * from {{ source('raw', 'vide_raw_category_pages') }}
+WITH
+source AS (
+    SELECT * FROM {{ source('raw', 'vide_raw_category_pages') }}
 ),
 
-renamed as (
-    select
-        name as book_name,
-        author_name as book_author,
-        trim(replace(replace(replace(price_old, 'R$ ', ''), '.', ''), ',', '.'))::numeric(10, 2) as book_price_old,
-        trim(replace(replace(replace(price_new, 'R$ ', ''), '.', ''), ',', '.'))::numeric(10, 2) as book_price_new,
-        created_at::date as created_at,
-        regexp_replace(public.unaccent(lower(name)), '[^a-z0-9]', '', 'g') as book_name_clean,
-        regexp_replace(public.unaccent(lower(author_name)), '[^a-z0-9]', '', 'g')
-            as book_author_clean,
-        case
-            when source_filename like '%historia%' then 'História'
-            when source_filename like '%ciencias_sociais%' then 'Ciências Sociais'
-            when source_filename like '%filosofia%' then 'Filosofia'
-            when source_filename like '%biografias%' then 'Biografias'
-            when source_filename like '%literatura%' then 'Literatura'
-            when source_filename like '%autoconhecimento%' then 'Autoconhecimento'
-            when source_filename like '%economia%' then 'Economia'
-            when source_filename like '%politica%' then 'Política'
-        end as book_category
-    from source
+renamed AS (
+    SELECT
+        name                                                                                     AS book_name,
+        author_name                                                                              AS book_author,
+        TRIM(REPLACE(REPLACE(REPLACE(price_old, 'R$ ', ''), '.', ''), ',', '.'))::NUMERIC(10, 2) AS book_price_old,
+        TRIM(REPLACE(REPLACE(REPLACE(price_new, 'R$ ', ''), '.', ''), ',', '.'))::NUMERIC(10, 2) AS book_price_new,
+        created_at::DATE                                                                         AS created_at,
+        REGEXP_REPLACE(public.unaccent(LOWER(name)), '[^a-z0-9]', '', 'g')                       AS book_name_clean,
+        REGEXP_REPLACE(public.unaccent(LOWER(author_name)), '[^a-z0-9]', '', 'g')
+            AS book_author_clean,
+        CASE
+            WHEN source_filename LIKE '%historia%' THEN 'História'
+            WHEN source_filename LIKE '%ciencias_sociais%' THEN 'Ciências Sociais'
+            WHEN source_filename LIKE '%filosofia%' THEN 'Filosofia'
+            WHEN source_filename LIKE '%biografias%' THEN 'Biografias'
+            WHEN source_filename LIKE '%literatura%' THEN 'Literatura'
+            WHEN source_filename LIKE '%autoconhecimento%' THEN 'Autoconhecimento'
+            WHEN source_filename LIKE '%economia%' THEN 'Economia'
+            WHEN source_filename LIKE '%politica%' THEN 'Política'
+        END                                                                                      AS book_category
+    FROM source
 ),
 
-final as (
-    select
-        {{ dbt_utils.generate_surrogate_key(['book_name_clean', 'book_author_clean']) }} as book_id,
-        {{ dbt_utils.generate_surrogate_key(['book_author_clean']) }} as author_id,
-        replace(regexp_replace(public.unaccent(lower(book_name)), '[^a-z0-9 ]', '', 'g'), '  ',' ') as book_name,
-        lower(book_author) as book_author,
+final AS (
+    SELECT
+        {{ dbt_utils.generate_surrogate_key(['book_name_clean', 'book_author_clean']) }}            AS book_id,
+        {{ dbt_utils.generate_surrogate_key(['book_author_clean']) }}                               AS author_id,
+        REPLACE(REGEXP_REPLACE(public.unaccent(LOWER(book_name)), '[^a-z0-9 ]', '', 'g'), '  ', ' ') AS book_name,
+        LOWER(book_author)                                                                          AS book_author,
         book_category,
         book_price_old,
         book_price_new,
-        ((book_price_new - book_price_old) / book_price_old)::numeric(6, 2) as book_discount,
+        ((book_price_new - book_price_old) / book_price_old)::NUMERIC(6, 2)                         AS book_discount,
         created_at
-    from renamed
+    FROM renamed
 )
 
-select * from final
+SELECT * FROM final

@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: carteira_conjunta
+    description: "Carteira consolidada de investimentos por mês (renda fixa e renda variável), com instituição, categoria, tipo, indexador, vencimento e valor atualizado por pessoa."
+
+  - name: carteira_lucas_agregada
+    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de carteira_conjunta)."
+
+  - name: carteira_jessica_agregada
+    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de carteira_conjunta)."
