@@ -16,7 +16,9 @@ tab_energia_hora AS (
         t2.month_name       AS nome_mes,
         t2.month_name_short AS nome_mes_abreviado,
         t1.kwh
-    FROM {{ ref('stg_solar_hourly_energy') }}
+    FROM {{ ref('stg_solar_hourly_energy') }} t1
+    INNER JOIN {{ref('dim_datas')}} t2
+        ON t1.dt = t2.date_day
 )
 
 SELECT * FROM tab_energia_hora
