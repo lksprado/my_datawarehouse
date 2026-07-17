@@ -61,7 +61,20 @@ sources:
       description: "Proventos recebidos"
     - name: tesouro_direto
       description: "Portfolio de Tesouro Direto na B3"
-    - name: avenue_current
+    - name: assets
       description: "Portfolio de ativos em USD em relatorio atual na Avenue"
-    - name: avenue_legacy
-      description: "Portfolio de ativos em USD em relatorio legado na Avenue"
+    - name: jsc_consolidado
+      description: "Renda e despesas de Jéssica"
+    - name: luc_consolidado
+      description: "Renda e despesas de Lucas"
+    - name: jsc_contas
+      description: "Gastos por categoria em cartão de crédito e à vista"
+    - name: luc_contas
+      description: "Gastos por categoria em cartão de crédito e à vista"
+    - name: luz
+      description: "Consumo de energia elétrica"
+    - name: ativos
+      description: "Total de Ativos Financeiros"
+    - name: dividends_interest
+      description: "Dividendos e Impostos pagos"
+

@@ -18,6 +18,12 @@ tab_clima AS (
 final AS (
     SELECT
         t1.dt,
+        t3.day_of_month     AS dia_mes,
+        t3.day_of_year      AS dia_ano,
+        t3.week_of_year     AS semana,
+        t3.year_number      AS ano,
+        t3.month_name       AS nome_mes,
+        t3.month_name_short AS nome_mes_abreviado,
         t1.duracao_geracao_horas,
         t1.total_kwh,
         t1.max_kwh,
@@ -35,6 +41,8 @@ final AS (
     FROM tab_energia AS t1
     INNER JOIN tab_clima AS t2
         ON t1.dt = t2.dt
+    INNER JOIN {{ref('dim_datas')}} t3
+        ON t1.dt = t3.date_day
     WHERE t1.dt > DATE '2021-09-16'  -- data de instalação do sistema solar
 )
 

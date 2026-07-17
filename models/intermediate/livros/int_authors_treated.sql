@@ -43,6 +43,6 @@ final AS (
 
 SELECT
     author_id,
-    book_author AS author_name
+    COALESCE(NULLIF(book_author,''),'desconhecido') AS author_name
 FROM final
 WHERE rn = 1

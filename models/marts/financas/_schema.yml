@@ -9,3 +9,13 @@ models:
 
   - name: carteira_jessica_agregada
     description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de carteira_conjunta)."
+  - name: ativos_mom
+    description: "Variação Month over Month dos ativos"
+  - name: ativos
+    description: "Saldos das contas que contabiliza os ativos"
+  - name: consumo
+    description: "Consumo diário débito e crédito por dia"
+  - name: resultado
+    description: "Receita x Despesas e tipos de despesas"
+  - name: luz
+    description: "Dados da conta de Luz"

@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: stg_ativos
+    description: "Patrimônio e saldos por conta/instituição extraídos da planilha do Google, com valores limpos e normalizados, indicadores macroeconômicos (inflação, selic, curvas) e mês de referência."
+
+  - name: stg_jsc_consolidado
+    description: "Consolidação mensal de receitas e despesas por categoria da Jéssica, com valores limpos e meses de fatura e débito normalizados."
+
+  - name: stg_jsc_contas
+    description: "Lançamentos de contas da Jéssica detalhados por categoria, com valores normalizados e datas de fatura, débito e vencimento."
+
+  - name: stg_luc_consolidado
+    description: "Consolidação mensal de receitas e despesas por categoria do Lucas, com valores limpos e meses de fatura e débito normalizados."
+
+  - name: stg_luc_contas
+    description: "Lançamentos de contas do Lucas detalhados por categoria, com valores normalizados e datas de fatura, débito e vencimento."
+
+  - name: stg_luz
+    description: "Histórico mensal da conta de luz, com valor da fatura, consumo em kWh, dias faturados, consumo e preço por kWh e mês de referência."

@@ -1,13 +1,13 @@
 {{
   config(
-    materialized = 'ephemeral',
+    materialized = 'table',
     tags = ['investimentos', 'staging'],
   )
 }}
 
 WITH
 source AS (
-    SELECT * FROM {{ source('raw', 'avenue_current') }}
+    SELECT * FROM {{ source('raw', 'assets') }}
 ),
 
 renamed AS (

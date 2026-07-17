@@ -1,6 +1,6 @@
 {{
   config(
-    tags = ['investimentos', 'staging'],
+    tags = ['investimentos', 'intermediate'],
   )
 }}
 
@@ -23,7 +23,7 @@ avenue AS (
         NULL::DATE             AS data_emissao,
         NULL::DATE             AS data_vencimento,
         market_value * vlr_usd AS vlr_atualizado
-    FROM {{ ref('stg_avenue') }}
+    FROM {{ ref('stg_assets') }}
     INNER JOIN {{ ref('stg_usd') }}
         ON period_end = data_referencia
     WHERE asset_class = 'FIXED INCOME' AND pessoa <> 'lucas'

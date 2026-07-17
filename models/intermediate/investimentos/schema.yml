@@ -1,8 +1,0 @@
-version: 2
-
-models:
-  - name: int_renda_fixa
-    description: "Consolida posições de renda fixa (renda fixa B3, tesouro direto, Avenue e faltantes) por mês-base e pessoa, padronizando instituição e somando o valor atualizado."
-
-  - name: int_renda_variavel
-    description: "Consolida posições de renda variável (ações, BDRs, ETFs, fundos e Avenue) por mês-base e pessoa, padronizando instituição e somando o valor atualizado."

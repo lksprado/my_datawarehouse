@@ -1,6 +1,6 @@
 {{
   config(
-    tags = ['investimentos', 'staging'],
+    tags = ['investimentos', 'intermediate'],
   )
 }}
 
@@ -20,7 +20,7 @@ avenue AS (
         'FUNDO'                            AS tipo_investimento,
         symbol_cusip                       AS ticker,
         (market_value::INT * vlr_usd)::INT AS vlr_atualizado
-    FROM {{ ref('stg_avenue') }}
+    FROM {{ ref('stg_assets') }}
     INNER JOIN {{ ref('stg_usd') }}
         ON period_end = data_referencia
     WHERE

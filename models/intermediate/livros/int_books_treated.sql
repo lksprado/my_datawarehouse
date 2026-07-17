@@ -76,7 +76,7 @@ ranked AS (
 SELECT
     d.book_id,
     d.book_name,
-    r.book_category    -- NULL para livros sem categoria
+    COALESCE(r.book_category,'desconhecido') AS book_category
 FROM unioned_dedup AS d
 LEFT JOIN ranked AS r
     ON d.book_id = r.book_id

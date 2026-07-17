@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: int_ativos_agregado
+    description: "Consolida o patrimônio mensal a partir de stg_ativos, expondo patrimônio bruto e líquido, saldos por conta/instituição de Lucas e Jéssica e indicadores macroeconômicos (inflação, selic e curvas), ordenado por mês."
+
+  - name: int_consumo_consolidado
+    description: "Une os lançamentos de contas de Lucas e Jéssica (stg_luc_contas e stg_jsc_contas) num único fato de despesas por categoria, ordenado por mês de débito e pessoa."
+
+  - name: int_dre_consolidado
+    description: "Une a consolidação mensal de receitas e despesas de Lucas e Jéssica (stg_luc_consolidado e stg_jsc_consolidado) num único DRE por categoria, ordenado por mês de débito e pessoa."
+
+  - name: int_renda_fixa
+    description: "Consolida posições de renda fixa (renda fixa B3, tesouro direto, Avenue e faltantes) por mês-base e pessoa, padronizando instituição e somando o valor atualizado."
+
+  - name: int_renda_variavel
+    description: "Consolida posições de renda variável (ações, BDRs, ETFs, fundos e Avenue) por mês-base e pessoa, padronizando instituição e somando o valor atualizado."

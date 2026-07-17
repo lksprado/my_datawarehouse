@@ -1,7 +1,7 @@
 {{
   config(
     materialized = 'table',
-    tags = ['investimentos', 'staging'],
+    tags = ['investimentos', 'marts'],
   )
 }}
 
@@ -15,11 +15,11 @@
     ref('carteira_conjunta'),
     'instituicao',
     order_by = 'instituicao',
-    default = ['SOFISA', 'ITAU', 'NUBANK', 'AVENUE', 'DESCONHECIDO']
+    default = ['BRADESCO', 'NUBANK', 'DAYCOVAL','AVENUE', 'DESCONHECIDO']
 ) -%}
 
 SELECT
-    mes,
+    mes_final,
     {{ dbt_utils.pivot(
         'instituicao',
         instituicoes,
@@ -28,6 +28,6 @@ SELECT
         quote_identifiers = False
     ) }}
 FROM {{ ref('carteira_conjunta') }}
-WHERE pessoa = 'jessica'
-GROUP BY mes
-ORDER BY mes
+WHERE pessoa = 'lucas'
+GROUP BY mes_final
+ORDER BY mes_final

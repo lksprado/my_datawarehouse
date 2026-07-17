@@ -2,10 +2,17 @@
 version: 2
 
 models:
-  - name: mrt_book_price_history
+  - name: book_price_history
     description: "Histórico de preços"
     columns:
       - name: date_price
+      - name: day_of_month
+      - name: day_of_year
+      - name: week_of_year
+      - name: month_of_year
+      - name: month_name
+      - name: month_name_short
+      - name: quarter_of_year
       - name: book_id
       - name: author_id
       - name: author_name
@@ -18,3 +25,7 @@ models:
       - name: prev_price
       - name: is_price_drop
       - name: is_record_discount
+  - name: dim_authors
+    description: "Todos autores"
+  - name: dim_books
+    description: "Todos livros"
