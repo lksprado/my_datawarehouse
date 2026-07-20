@@ -22,15 +22,74 @@ models:
         description: "Nome do livro."
       - name: book_category
         description: "Categoria mais frequente do livro entre as fontes."
-  - name: int_books_pricing
-    description: "Fato de preços de livros com histórico de extrações, flags de queda de preço e desconto recorde."
+  - name: int_books_price_history
+    description: >
+      Histórico fiel de preços: uma observação por livro por dia, unindo as três
+      fontes de scraping. Quando as fontes divergem no mesmo dia mantém o menor
+      preço anunciado.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - book_id
+              - created_at
     columns:
       - name: book_id
         data_tests:
           - not_null
+      - name: created_at
+        description: "Data da observação."
+        data_tests:
+          - not_null
       - name: book_price_new
-        description: "Preço atual do livro na extração."
+        description: "Preço praticado na data da observação."
+        data_tests:
+          - not_null
+      - name: observation_order
+        description: "Ordem cronológica da observação dentro do livro, começando em 1."
+      - name: prev_price
+        description: "Preço na observação anterior do mesmo livro."
+      - name: prev_observed_at
+        description: "Data da observação anterior do mesmo livro."
+      - name: days_since_prev_observation
+        description: "Dias decorridos desde a observação anterior — expõe lacunas de coleta."
+      - name: price_change
+        description: "Variação absoluta em relação à observação anterior."
+      - name: min_price_before
+        description: "Menor preço observado para o livro antes desta linha."
+      - name: is_latest_observation
+        description: "True se esta é a observação mais recente do livro."
       - name: is_price_drop
-        description: "True se o preço caiu na extração mais recente."
-      - name: is_record_discount
-        description: "True se o desconto é o maior já registrado para o livro."
+        description: "True se o preço caiu em relação à observação anterior."
+      - name: is_price_increase
+        description: "True se o preço subiu em relação à observação anterior."
+      - name: is_record_low
+        description: "True se, no momento desta observação, o preço era o menor já registrado para o livro."
+
+  - name: int_books_price_current
+    description: >
+      Estado atual de cada livro — o último preço conhecido, venha da coleta do
+      dia ou da última varredura completa — com métricas de oportunidade.
+    columns:
+      - name: book_id
+        data_tests:
+          - unique
+          - not_null
+      - name: current_price
+        description: "Último preço conhecido do livro."
+        data_tests:
+          - not_null
+      - name: last_observed_at
+        description: "Data em que esse preço foi observado."
+      - name: days_since_last_observed
+        description: "Dias entre a última observação do livro e a data mais recente do dataset."
+      - name: is_stale_price
+        description: "True se o livro não é observado há mais de 7 dias."
+      - name: min_price_ever
+        description: "Menor preço já registrado para o livro em todo o histórico."
+      - name: pct_above_min_ever
+        description: "Quanto o preço atual está acima do mínimo histórico, em %."
+      - name: is_at_record_low
+        description: "True se o preço atual empata ou bate o mínimo histórico — a flag de oportunidade."
+      - name: is_new_record_low
+        description: "True se o recorde foi estabelecido justamente na última observação."

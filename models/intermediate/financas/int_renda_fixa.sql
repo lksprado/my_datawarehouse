@@ -97,6 +97,7 @@ final AS (
             WHEN instituicao = 'NUBANK' THEN 'NUBANK'
             WHEN instituicao = 'ITAU' THEN 'ITAU'
             WHEN instituicao = 'SOFISA' THEN 'SOFISA'
+            WHEN instituicao = 'BANCO DO BRASIL S/A' THEN 'BANCO DO BRASIL'
             ELSE 'DESCONHECIDO'
         END                      AS instituicao,
         'RENDA FIXA'             AS categoria_investimento,

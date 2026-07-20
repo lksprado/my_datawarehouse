@@ -3,7 +3,13 @@ version: 2
 
 models:
   - name: book_price_history
-    description: "Histórico de preços"
+    description: "Histórico de preços — uma linha por livro por dia observado."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - book_id
+              - date_price
     columns:
       - name: date_price
       - name: day_of_month
@@ -13,6 +19,7 @@ models:
       - name: month_name
       - name: month_name_short
       - name: quarter_of_year
+      - name: is_latest_extraction
       - name: book_id
       - name: author_id
       - name: author_name
@@ -23,8 +30,26 @@ models:
       - name: book_discount
       - name: extraction_order
       - name: prev_price
+      - name: prev_observed_at
+      - name: days_since_prev_observation
+      - name: price_change
+      - name: min_price_before
       - name: is_price_drop
+      - name: is_price_increase
       - name: is_record_discount
+  - name: book_price_current
+    description: "Um livro por linha com o último preço conhecido e métricas de oportunidade."
+    columns:
+      - name: book_id
+        data_tests:
+          - unique
+          - not_null
+      - name: current_price
+      - name: min_price_ever
+      - name: pct_above_min_ever
+      - name: is_at_record_low
+      - name: is_stale_price
+      - name: days_since_last_observed
   - name: dim_authors
     description: "Todos autores"
   - name: dim_books

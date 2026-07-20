@@ -97,6 +97,10 @@ final AS (
             WHEN instituicao = 'ITAU UNIBANCO S.A.' THEN 'ITAU'
             WHEN instituicao = 'BANCO SOFISA S/A' THEN 'SOFISA'
             WHEN instituicao = 'AVENUE' THEN 'AVENUE'
+            WHEN instituicao = 'NUBANK' THEN 'NUBANK'
+            WHEN instituicao = 'ITAU' THEN 'ITAU'
+            WHEN instituicao = 'SOFISA' THEN 'SOFISA'
+            WHEN instituicao = 'BANCO DO BRASIL S/A' THEN 'BANCO DO BRASIL'
             ELSE 'DESCONHECIDO'
         END                      AS instituicao,
         'RENDA VARIAVEL'         AS categoria_investimento,
