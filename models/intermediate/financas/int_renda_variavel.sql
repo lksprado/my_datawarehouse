@@ -47,7 +47,7 @@ bdr AS (
         'ACAO' AS tipo_investimento,
         ticker,
         vlr_atualizado
-    FROM {{ ref('stg_acoes') }}
+    FROM {{ ref('stg_bdr') }}
 ),
 
 etf AS (

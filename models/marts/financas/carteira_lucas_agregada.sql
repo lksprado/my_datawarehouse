@@ -39,7 +39,6 @@ final as (
     (bradesco+
     nubank+
     daycoval+
-    nubank+
     avenue) AS total_investido,
     bradesco,
     nubank,
