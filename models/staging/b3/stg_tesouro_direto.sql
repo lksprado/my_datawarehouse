@@ -1,7 +1,7 @@
 {{
   config(
     materialized = 'table',
-    tags = ['investimentos', 'staging'],
+    tags = ['financas', 'staging'],
   )
 }}
 
@@ -9,8 +9,13 @@ WITH
 source AS (
     SELECT
         *,
-        SPLIT_PART(source_path, '/', -2) AS mes_base,
-        SPLIT_PART(source_path, '/', -3) AS pessoa
+        substring(source_path FROM '(\d{4}-[a-zçãáéíóú]+)(?=\.xlsx$)') AS mes_base,
+        CASE 
+            WHEN source_path LIKE '%deusa%' THEN 'deusa'
+            WHEN source_path LIKE '%jessica%' THEN 'jessica'
+            WHEN source_path LIKE '%lucas%' THEN 'lucas'
+            ELSE 'desconhecido'
+        END                              AS pessoa
     FROM {{ source('raw' ,'tesouro_direto') }}
 ),
 

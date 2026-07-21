@@ -1,6 +1,6 @@
 {{
   config(
-    tags = ['investimentos', 'intermediate'],
+    tags = ['financas', 'intermediate'],
   )
 }}
 
@@ -106,6 +106,10 @@ final AS (
         indexador,
         data_emissao,
         data_vencimento,
+        CASE 
+            WHEN data_vencimento >= CURRENT_DATE THEN data_vencimento-CURRENT_DATE
+            ELSE NULL
+        END                      AS vencimento_em_dias,
         SUM(vlr_atualizado)::INT AS vlr_atualizado
     FROM unioned
     WHERE vlr_atualizado IS NOT NULL

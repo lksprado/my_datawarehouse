@@ -1,6 +1,6 @@
 {{
   config(
-    tags = ['investimentos', 'staging'],
+    tags = ['financas', 'staging'],
   )
 }}
 

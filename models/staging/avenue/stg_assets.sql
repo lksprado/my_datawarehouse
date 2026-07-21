@@ -1,7 +1,7 @@
 {{
   config(
     materialized = 'table',
-    tags = ['investimentos', 'staging'],
+    tags = ['financas', 'staging'],
   )
 }}
 
@@ -18,7 +18,7 @@ renamed AS (
         {{ clean_string("description", "upper") }} AS description,
         symbol_cusip,
         market_value::NUMERIC(18, 2)                AS market_value,
-        person                                     AS pessoa
+        person                                      AS pessoa
     FROM source
 ),
 

@@ -1,21 +1,31 @@
 {{
   config(
     materialized = 'table',
-    tags = ['investimentos', 'staging'],
+    tags = ['financas', 'staging'],
   )
 }}
 
 WITH
 source AS (
     SELECT
-        SPLIT_PART(source_path, '/', -2) AS mes_base,
-        SPLIT_PART(source_path, '/', -3) AS pessoa,
+        substring(source_path FROM '(\d{4}-[a-zçãáéíóú]+)(?=\.xlsx$)') AS mes_base,
+        CASE 
+            WHEN source_path LIKE '%deusa%' THEN 'deusa'
+            WHEN source_path LIKE '%jessica%' THEN 'jessica'
+            WHEN source_path LIKE '%lucas%' THEN 'lucas'
+            ELSE 'desconhecido'
+        END                              AS pessoa,
         *
     FROM {{ source('raw' ,'renda_fixa') }}
     UNION ALL
     SELECT
-        SPLIT_PART(source_path, '/', -2) AS mes_base,
-        SPLIT_PART(source_path, '/', -3) AS pessoa,
+        substring(source_path FROM '(\d{4}-[a-zçãáéíóú]+)(?=\.xlsx$)') AS mes_base,
+        CASE 
+            WHEN source_path LIKE '%deusa%' THEN 'deusa'
+            WHEN source_path LIKE '%jessica%' THEN 'jessica'
+            WHEN source_path LIKE '%lucas%' THEN 'lucas'
+            ELSE 'desconhecido'
+        END                              AS pessoa,
         produto,
         instituicao,
         emissor,
@@ -57,7 +67,7 @@ renamed AS (
         {{ clean_string("instituicao", "upper") }}                                             AS instituicao,
         {{ clean_string("emissor", "upper") }}                                                 AS emissor,
         codigo,
-        NULLIF({{ clean_string("indexador", "upper") }}, '-')                                 AS indexador,
+        NULLIF({{ clean_string("indexador", "upper") }}, '-')                                  AS indexador,
         {{ clean_string("tipo_de_regime", "upper") }}                                          AS tipo_de_regime,
         TO_DATE(data_de_emissao, 'dd/MM/yyyy')                                                 AS data_emissao,
         TO_DATE(vencimento, 'dd/MM/yyyy')                                                      AS data_vencimento,

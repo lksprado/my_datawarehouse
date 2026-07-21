@@ -1,6 +1,6 @@
 {{
   config(
-    tags = ['investimentos', 'intermediate'],
+    tags = ['financas', 'intermediate'],
   )
 }}
 

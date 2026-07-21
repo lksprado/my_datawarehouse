@@ -15,7 +15,7 @@
     ref('carteira_conjunta'),
     'instituicao',
     order_by = 'instituicao',
-    default = ['SOFISA', 'ITAU', 'NUBANK', 'AVENUE', 'DESCONHECIDO']
+    default = ['BRADESCO', 'NUBANK', 'BANCO DO BRASIL','AVENUE', 'DESCONHECIDO']
 ) -%}
 
 SELECT
@@ -28,6 +28,6 @@ SELECT
         quote_identifiers = False
     ) }}
 FROM {{ ref('carteira_conjunta') }}
-WHERE pessoa = 'jessica'
+WHERE pessoa = 'deusa'
 GROUP BY mes_final
 ORDER BY mes_final

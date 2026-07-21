@@ -66,14 +66,13 @@ final AS (
         t1.investimento,
         t1.indexador,
         t1.data_vencimento,
-        t1.vencimento_em_dias,
         t1.vlr_atualizado,
         t1.mes_base,
         t1.pessoa
     FROM unioned AS t1
     INNER JOIN datas AS t2
         ON t1.mes_base = t2.month_start_date
-    WHERE pessoa in ('lucas','jessica')
+    WHERE pessoa = 'deusa'
 )
 
 SELECT * FROM final
