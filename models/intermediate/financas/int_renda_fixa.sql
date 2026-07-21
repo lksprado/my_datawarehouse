@@ -35,9 +35,43 @@ rf AS (
         mes_base,
         pessoa,
         instituicao,
-        TRIM(REPLACE(REPLACE(REPLACE(emissor, 'S/A', ''), 'S.A.', ''),'S.A',''))                                                AS emissor,                       
+        TRIM(
+            REGEXP_REPLACE(
+                REGEXP_REPLACE(
+                    REGEXP_REPLACE(
+                        emissor,
+                        '\s+S(?:\.|/)?A\.?\s*$',
+                        '',
+                        'i'
+                    ),
+                    '[[:punct:]]+',
+                    ' ',
+                    'g'
+                ),
+                '\s+',
+                ' ',
+                'g'
+            )
+        ) as emissor,                   
         'TITULO PRIVADO'                                                                                                        AS tipo_investimento,
-        TRIM(REPLACE(REPLACE(REPLACE(produto, 'S/A', ''), 'S.A.', ''),'S.A','')) || ' - ' || EXTRACT(YEAR FROM data_vencimento) AS investimento,
+        TRIM(
+            REGEXP_REPLACE(
+                REGEXP_REPLACE(
+                    REGEXP_REPLACE(
+                        produto,
+                        '\s+S(?:\.|/)?A\.?\s*$',
+                        '',
+                        'i'
+                    ),
+                    '[[:punct:]]+',
+                    ' ',
+                    'g'
+                ),
+                '\s+',
+                ' ',
+                'g'
+            )
+        ) || ' - ' || EXTRACT(YEAR FROM data_vencimento) AS investimento,
         indexador,
         data_emissao,
         data_vencimento,
@@ -101,7 +135,7 @@ unioned AS (
     SELECT * FROM faltantes_deusa
 ),
 
-final AS (
+treated AS (
     SELECT
         mes_base,
         pessoa,
@@ -120,7 +154,13 @@ final AS (
             WHEN instituicao = 'BANCO DO BRASIL S/A' THEN 'BANCO DO BRASIL'
             ELSE 'DESCONHECIDO'
         END                      AS instituicao,
-        emissor,
+        CASE
+            WHEN emissor LIKE '%BANCO MAXIMA%' THEN 'BANCO MASTER'
+            WHEN emissor LIKE '%BANCO MASTER%' THEN 'BANCO MASTER'
+            WHEN emissor LIKE 'NU FINANCEIRA SA SOCIEDADE DE CREDITO FINANCIAMENTO E INVESTIMENTO' THEN 'NUBANK'
+            WHEN emissor LIKE 'NU FINANCEIRA SA SOCIEDADE CFI' THEN 'NUBANK'
+            ELSE emissor
+        END AS emissor,
         'RENDA FIXA'             AS categoria_investimento,
         tipo_investimento,
         investimento,
@@ -135,6 +175,25 @@ final AS (
     FROM unioned
     WHERE vlr_atualizado IS NOT NULL
     GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+),
+final as (
+    SELECT
+        t1.mes_base,
+        t1.pessoa,
+        t1.instituicao,
+        t1.emissor,
+        t2.conglomerado,
+        t1.categoria_investimento,
+        t1.tipo_investimento,
+        t1.investimento,
+        t1.indexador,
+        t1.data_emissao,
+        t1.data_vencimento,
+        t1.vencimento_em_dias,
+        t1.vlr_atualizado
+    FROM treated t1
+    LEFT JOIN {{ ref('stg_de_para_instituicoes_fgc') }} t2
+    ON t1.emissor = t2.instituicao
 )
 
 SELECT * FROM final
