@@ -17,7 +17,8 @@
     order_by = 'instituicao',
     default = ['BRADESCO', 'NUBANK', 'DAYCOVAL','AVENUE', 'DESCONHECIDO']
 ) -%}
-
+WITH
+agregrada AS (
 SELECT
     mes_final,
     {{ dbt_utils.pivot(
@@ -31,3 +32,19 @@ FROM {{ ref('carteira_conjunta') }}
 WHERE pessoa = 'lucas'
 GROUP BY mes_final
 ORDER BY mes_final
+),
+final as (
+  SELECT
+    mes_final,
+    (bradesco+
+    nubank+
+    daycoval+
+    nubank+
+    avenue) AS total_investido,
+    bradesco,
+    nubank,
+    daycoval,
+    avenue
+  FROM agregrada
+)
+SELECT * FROM final

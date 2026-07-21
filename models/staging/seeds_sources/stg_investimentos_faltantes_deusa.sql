@@ -7,7 +7,7 @@
 
 WITH
 seed AS (
-    SELECT * FROM {{ ref('investimentos_faltantes') }}
+    SELECT * FROM {{ ref('investimentos_faltantes_deusa') }}
 ),
 
 renamed AS (

@@ -17,6 +17,7 @@ avenue AS (
         period_start           AS mes_base,
         pessoa,
         'AVENUE'               AS instituicao,
+        NULL::TEXT             AS emissor,
         'TITULO PUBLICO'       AS tipo_investimento,
         description            AS investimento,
         NULL::TEXT             AS indexador,
@@ -34,12 +35,13 @@ rf AS (
         mes_base,
         pessoa,
         instituicao,
-        'TITULO PRIVADO'                                                                                      AS tipo_investimento,
-        REPLACE(REPLACE(TRIM(produto), 'S/A', ''), 'S.A.', '') || ' - ' || EXTRACT(YEAR FROM data_vencimento) AS investimento,
+        TRIM(REPLACE(REPLACE(REPLACE(emissor, 'S/A', ''), 'S.A.', ''),'S.A',''))                                                AS emissor,                       
+        'TITULO PRIVADO'                                                                                                        AS tipo_investimento,
+        TRIM(REPLACE(REPLACE(REPLACE(produto, 'S/A', ''), 'S.A.', ''),'S.A','')) || ' - ' || EXTRACT(YEAR FROM data_vencimento) AS investimento,
         indexador,
         data_emissao,
         data_vencimento,
-        COALESCE(vlr_atualizado_curva, vlr_atualizado_mtm)                                                    AS vlr_atualizado
+        COALESCE(vlr_atualizado_curva, vlr_atualizado_mtm)                                                                      AS vlr_atualizado
     FROM {{ ref('stg_renda_fixa') }}
 ),
 
@@ -48,6 +50,7 @@ td AS (
         mes_base,
         pessoa,
         instituicao,
+        NULL::TEXT       AS emissor,
         'TITULO PUBLICO' AS tipo_investimento,
         TRIM(produto)    AS investimento,
         indexador,
@@ -62,6 +65,7 @@ faltantes AS (
         mes_base,
         pessoa,
         instituicao,
+        NULL::TEXT AS emissor,
         tipo_investimento,
         investimento,
         indexador,
@@ -69,6 +73,20 @@ faltantes AS (
         data_vencimento,
         vlr_atualizado
     FROM {{ ref('stg_investimentos_faltantes') }}
+),
+faltantes_deusa AS (
+    SELECT
+        mes_base,
+        pessoa,
+        instituicao,
+        NULL::TEXT AS emissor,
+        tipo_investimento,
+        investimento,
+        indexador,
+        data_emissao,
+        data_vencimento,
+        vlr_atualizado
+    FROM {{ ref('stg_investimentos_faltantes_deusa') }}
 ),
 
 unioned AS (
@@ -79,6 +97,8 @@ unioned AS (
     SELECT * FROM td
     UNION ALL
     SELECT * FROM faltantes
+    UNION ALL
+    SELECT * FROM faltantes_deusa
 ),
 
 final AS (
@@ -100,6 +120,7 @@ final AS (
             WHEN instituicao = 'BANCO DO BRASIL S/A' THEN 'BANCO DO BRASIL'
             ELSE 'DESCONHECIDO'
         END                      AS instituicao,
+        emissor,
         'RENDA FIXA'             AS categoria_investimento,
         tipo_investimento,
         investimento,
@@ -113,7 +134,7 @@ final AS (
         SUM(vlr_atualizado)::INT AS vlr_atualizado
     FROM unioned
     WHERE vlr_atualizado IS NOT NULL
-    GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9
+    GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 )
 
 SELECT * FROM final

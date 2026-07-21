@@ -18,6 +18,7 @@ datas AS (
 variavel AS (
     SELECT
         instituicao,
+        NULL::TEXT AS emissor,
         categoria_investimento,
         tipo_investimento,
         NULL::TEXT AS camada,
@@ -34,6 +35,7 @@ variavel AS (
 fixa AS (
     SELECT
         instituicao,
+        emissor,
         categoria_investimento,
         tipo_investimento,
         NULL::TEXT AS camada,
@@ -60,6 +62,7 @@ final AS (
         t2.quarter_of_year  AS semestre,
         t2.year_number      AS ano,
         t1.instituicao,
+        t1.emissor,
         t1.categoria_investimento,
         t1.tipo_investimento,
         t1.camada,
@@ -73,7 +76,6 @@ final AS (
     FROM unioned AS t1
     INNER JOIN datas AS t2
         ON t1.mes_base = t2.month_start_date
-    WHERE pessoa in ('lucas','jessica')
 )
 
 SELECT * FROM final

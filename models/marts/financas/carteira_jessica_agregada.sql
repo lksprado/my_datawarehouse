@@ -18,16 +18,33 @@
     default = ['SOFISA', 'ITAU', 'NUBANK', 'AVENUE', 'DESCONHECIDO']
 ) -%}
 
-SELECT
+WITH
+agregrada as (
+  SELECT
+      mes_final,
+      {{ dbt_utils.pivot(
+          'instituicao',
+          instituicoes,
+          agg = 'sum',
+          then_value = 'vlr_atualizado',
+          quote_identifiers = False
+      ) }}
+  FROM {{ ref('carteira_conjunta') }}
+  WHERE pessoa = 'jessica'
+  GROUP BY mes_final
+  ORDER BY mes_final
+),
+final as (
+  SELECT
     mes_final,
-    {{ dbt_utils.pivot(
-        'instituicao',
-        instituicoes,
-        agg = 'sum',
-        then_value = 'vlr_atualizado',
-        quote_identifiers = False
-    ) }}
-FROM {{ ref('carteira_conjunta') }}
-WHERE pessoa = 'jessica'
-GROUP BY mes_final
-ORDER BY mes_final
+    (sofisa+
+    itau+
+    nubank+
+    avenue) AS total_investido,
+    sofisa,
+    itau,
+    nubank,
+    avenue
+  FROM agregrada
+)
+select * from final

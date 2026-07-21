@@ -1,7 +1,7 @@
 {{
   config(
     materialized = 'table',
-    tags = ['investimentos', 'staging'],
+    tags = ['financas', 'staging'],
   )
 }}
 

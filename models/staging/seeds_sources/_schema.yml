@@ -3,6 +3,7 @@ version: 2
 models:
   - name: stg_investimentos_faltantes
     description: "Investimentos não capturados pelos scrapers, carregados via seed, com categoria, tipo, indexador, vencimento e valor atualizado."
-
+  - name: stg_investimentos_faltantes_deusa
+    description: "Investimentos não capturados pelos scrapers, carregados via seed, com categoria, tipo, indexador, vencimento e valor atualizado."
   - name: stg_usd
     description: "Cotação do dólar (USD) no último dia útil de cada mês, com data de referência posicionada no final do mês."
