@@ -11,9 +11,9 @@ source AS (
         *,
         substring(source_path FROM '(\d{4}-[a-zçãáéíóú]+)(?=\.xlsx$)') AS mes_base,
         CASE 
-            WHEN source_path LIKE '%deusa%' THEN 'deusa'
-            WHEN source_path LIKE '%jessica%' THEN 'jessica'
-            WHEN source_path LIKE '%lucas%' THEN 'lucas'
+            WHEN source_path LIKE '%b3/deusa%' THEN 'deusa'
+            WHEN source_path LIKE '%b3/jessica%' THEN 'jessica'
+            WHEN source_path LIKE '%b3/lucas%' THEN 'lucas'
             ELSE 'desconhecido'
         END                             AS pessoa
     FROM {{ source('raw' ,'acoes') }}
@@ -42,9 +42,10 @@ renamed AS (
         quantidade::INT                                                             AS quantidade,
         NULLIF(REGEXP_REPLACE(quantidade_disponivel, '[^0-9]', '', 'g'), '')::INT   AS quantidade_disponivel,
         NULLIF(REGEXP_REPLACE(quantidade_indisponivel, '[^0-9]', '', 'g'), '')::INT AS quantidade_indisponivel,
-        NULLIF(motivo, '-')                                                          AS motivo_indisponibilidade,
+        NULLIF(motivo, '-')                                                         AS motivo_indisponibilidade,
         preco_de_fechamento                                                         AS vlr_fechamento,
-        valor_atualizado                                                            AS vlr_atualizado
+        valor_atualizado                                                            AS vlr_atualizado_brl,
+        'BRL'                                                                       AS moeda_ativo
     FROM source
 )
 

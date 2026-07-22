@@ -3,5 +3,34 @@ version: 2
 models:
   - name: stg_assets
     description: "Posições atuais e legadas da Avenue, ordenada por início do período."
+    columns:
+      - name: period_start
+        description: "Início do período de referência da posição, normalizado para o início do mês em períodos longos."
+      - name: period_end
+        description: "Fim do período de referência da posição."
+      - name: asset_class
+        description: "Classe do ativo na Avenue (ex.: FIXED INCOME, EQUITIES, CASH), normalizada em maiúsculas."
+      - name: market_value
+        description: "Valor de mercado da posição, em dólares (USD)."
+      - name: pessoa
+        description: "Titular da posição."
+      - name: description
+        description: "Descrição do ativo; títulos do tesouro americano são padronizados como 'US TREASURY'."
+      - name: symbol_cusip
+        description: "Símbolo/CUSIP identificador do ativo (com normalização para títulos do tesouro americano)."
+      - name: moeda_ativo
+        description: "Moeda do ativo (USD)."
+
   - name: stg_dividends_interest
     description: "Dividendos e impostos pagos atuais e legadas da Avenue, ordenada por início do período."
+    columns:
+      - name: period_start
+        description: "Início do período de referência, normalizado para o início do mês em períodos longos."
+      - name: period_end
+        description: "Fim do período de referência."
+      - name: vlr_liquido_usd
+        description: "Valor líquido de dividendos/juros no período (crédito menos débito/impostos), em dólares (USD)."
+      - name: pessoa
+        description: "Titular que recebeu os dividendos/juros."
+      - name: moeda_ativo
+        description: "Moeda do valor (USD)."

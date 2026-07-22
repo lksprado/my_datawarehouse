@@ -24,7 +24,7 @@ dividendos AS (
     SELECT
         mes_base,
         pessoa,
-        SUM(vlr_liquido) AS vlr_liquido
+        SUM(vlr_liquido_brl) AS vlr_liquido_brl
     FROM {{ ref('int_renda_passiva') }}
     GROUP BY 1, 2
 ),
@@ -54,7 +54,7 @@ final AS (
         spine.year_number                   AS ano,
         spine.quarter_of_year               AS semestre,
         spine.pessoa,
-        COALESCE(dividendos.vlr_liquido, 0) AS vlr_liquido
+        COALESCE(dividendos.vlr_liquido_brl, 0) AS vlr_liquido_brl
     FROM spine
     LEFT JOIN dividendos
         ON spine.month_start_date = dividendos.mes_base

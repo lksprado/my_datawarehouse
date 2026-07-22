@@ -19,9 +19,10 @@ renamed AS (
         tipo_investimento,
         investimento,
         indexador,
-        NULL::DATE AS data_emissao,
+        NULL::DATE     AS data_emissao,
         data_vencimento,
-        vlr_atualizado
+        vlr_atualizado AS vlr_atualizado_brl,
+        'BRL'          AS moeda_ativo
     FROM seed
     ORDER BY mes_base, pessoa, instituicao, investimento
 )

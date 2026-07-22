@@ -77,4 +77,6 @@ sources:
       description: "Total de Ativos Financeiros"
     - name: dividends_interest
       description: "Dividendos e Impostos pagos"
+    - name: carteira_classificacao
+      description: "Classificação manual de camada por posição, lida de volta da planilha Google (loop de retroalimentação). Colunas: mes_base, pessoa, investimento, categoria_investimento, tipo_investimento, instituicao, camada."
 

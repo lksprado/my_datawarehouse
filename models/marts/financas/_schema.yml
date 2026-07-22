@@ -3,19 +3,398 @@ version: 2
 models:
   - name: carteira_conjunta
     description: "Carteira consolidada de investimentos por mês (renda fixa e renda variável), com instituição, categoria, tipo, indexador, vencimento e valor atualizado por pessoa."
+    columns:
+      - name: mes
+        description: "Primeiro dia do mês de referência da posição."
+      - name: mes_final
+        description: "Último dia do mês de referência da posição."
+      - name: semestre
+        description: "Trimestre/semestre do ano da posição (quarter_of_year da dimensão de datas)."
+      - name: ano
+        description: "Ano da posição."
+      - name: instituicao
+        description: "Corretora/custodiante padronizada."
+      - name: emissor
+        description: "Instituição emissora do título (apenas renda fixa)."
+      - name: conglomerado
+        description: "Conglomerado financeiro FGC do emissor (apenas renda fixa)."
+      - name: categoria_investimento
+        description: "Categoria do investimento (RENDA FIXA ou RENDA VARIAVEL)."
+      - name: tipo_investimento
+        description: "Tipo do investimento (ex.: ACAO, FUNDO, TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+      - name: camada
+        description: "Camada de alocação (RESERVA/CRESCIMENTO/RENDA) classificada manualmente na planilha e lida de volta via stg_carteira_classificacao, aplicada por join as-of (SCD2) na identidade da posição (pessoa, investimento, categoria_investimento, tipo_investimento, instituicao): cada mês recebe a classificação vigente naquele mês (última com mes_base <= o mês da posição). Permite analisar a composição por camada ao longo do tempo, refletindo reclassificações. Meses anteriores à primeira classificação ficam como 'NAO CLASSIFICADO'. Tickers de RV são chaves estáveis; strings de RF (produto - ano, normalizadas em int_renda_fixa) podem mudar e cair no default."
+      - name: investimento
+        description: "Nome/identificação do investimento."
+      - name: indexador
+        description: "Indexador de rentabilidade (apenas renda fixa)."
+      - name: data_vencimento
+        description: "Data de vencimento do título (apenas renda fixa)."
+      - name: vencimento_em_dias
+        description: "Dias restantes até o vencimento (apenas renda fixa)."
+      - name: vlr_atualizado_brl
+        description: "Valor de mercado atualizado da posição, em reais."
+      - name: moeda_ativo
+        description: "Moeda do ativo (BRL ou USD)."
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição (chave de junção com a dimensão de datas)."
+      - name: fl_mes_atual
+        description: "Indica se a linha pertence ao mês-base mais recente disponível na carteira."
+      - name: pessoa
+        description: "Titular da posição (deusa, jessica ou lucas)."
+
+  - name: carteira_deusa
+    description: "Carteira consolidada de investimentos de Deusa por mês (renda fixa e renda variável); mesmo layout de carteira_conjunta filtrado para pessoa = deusa."
+    columns:
+      - name: mes
+        description: "Primeiro dia do mês de referência da posição."
+      - name: mes_final
+        description: "Último dia do mês de referência da posição."
+      - name: semestre
+        description: "Trimestre/semestre do ano da posição."
+      - name: ano
+        description: "Ano da posição."
+      - name: instituicao
+        description: "Corretora/custodiante padronizada."
+      - name: emissor
+        description: "Instituição emissora do título (apenas renda fixa)."
+      - name: conglomerado
+        description: "Conglomerado financeiro FGC do emissor (apenas renda fixa)."
+      - name: categoria_investimento
+        description: "Categoria do investimento (RENDA FIXA ou RENDA VARIAVEL)."
+      - name: tipo_investimento
+        description: "Tipo do investimento."
+      - name: camada
+        description: "Camada de alocação (RESERVA/CRESCIMENTO/RENDA) classificada manualmente na planilha e lida de volta via stg_carteira_classificacao, aplicada por join as-of (SCD2) na identidade da posição (pessoa, investimento, categoria_investimento, tipo_investimento, instituicao): cada mês recebe a classificação vigente naquele mês (última com mes_base <= o mês da posição). Permite analisar a composição por camada ao longo do tempo, refletindo reclassificações. Meses anteriores à primeira classificação ficam como 'NAO CLASSIFICADO'. Tickers de RV são chaves estáveis; strings de RF (produto - ano, normalizadas em int_renda_fixa) podem mudar e cair no default."
+      - name: investimento
+        description: "Nome/identificação do investimento."
+      - name: indexador
+        description: "Indexador de rentabilidade (apenas renda fixa)."
+      - name: data_vencimento
+        description: "Data de vencimento do título (apenas renda fixa)."
+      - name: vencimento_em_dias
+        description: "Dias restantes até o vencimento (apenas renda fixa)."
+      - name: vlr_atualizado_brl
+        description: "Valor de mercado atualizado da posição, em reais."
+      - name: moeda_ativo
+        description: "Moeda do ativo (BRL ou USD)."
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição."
+      - name: fl_mes_atual
+        description: "Indica se a linha pertence ao mês-base mais recente disponível na carteira."
+      - name: pessoa
+        description: "Titular da posição (deusa)."
 
   - name: carteira_lucas_agregada
-    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de carteira_conjunta)."
+    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de carteira_conjunta) para Lucas."
+    columns:
+      - name: mes_final
+        description: "Último dia do mês de referência."
+      - name: total_investido
+        description: "Total investido no mês, somando as instituições (bradesco, nubank, daycoval, avenue)."
+      - name: bradesco
+        description: "Total investido na Bradesco no mês."
+      - name: nubank
+        description: "Total investido na Nubank no mês."
+      - name: daycoval
+        description: "Total investido na Daycoval no mês."
+      - name: avenue
+        description: "Total investido na Avenue no mês."
+    # Observação: as colunas por instituição são geradas dinamicamente (dbt_utils.pivot);
+    # instituições novas viram colunas automaticamente no próximo dbt run.
 
   - name: carteira_jessica_agregada
-    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de carteira_conjunta)."
+    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de carteira_conjunta) para Jéssica."
+    columns:
+      - name: mes_final
+        description: "Último dia do mês de referência."
+      - name: total_investido
+        description: "Total investido no mês, somando as instituições (sofisa, itau, nubank, avenue)."
+      - name: sofisa
+        description: "Total investido na Sofisa no mês."
+      - name: itau
+        description: "Total investido no Itaú no mês."
+      - name: nubank
+        description: "Total investido na Nubank no mês."
+      - name: avenue
+        description: "Total investido na Avenue no mês."
+    # Observação: as colunas por instituição são geradas dinamicamente (dbt_utils.pivot);
+    # instituições novas viram colunas automaticamente no próximo dbt run.
+
+  - name: carteira_deusa_agregada
+    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de carteira_conjunta) para Deusa."
+    columns:
+      - name: mes_final
+        description: "Último dia do mês de referência."
+      - name: total_investido
+        description: "Total investido no mês, somando as instituições (banco_do_brasil, bradesco, nubank, avenue)."
+      - name: banco_do_brasil
+        description: "Total investido no Banco do Brasil no mês."
+      - name: bradesco
+        description: "Total investido na Bradesco no mês."
+      - name: nubank
+        description: "Total investido na Nubank no mês."
+      - name: avenue
+        description: "Total investido na Avenue no mês."
+    # Observação: as colunas por instituição são geradas dinamicamente (dbt_utils.pivot);
+    # instituições novas viram colunas automaticamente no próximo dbt run.
+
+  - name: carteira_classificacao
+    description: "Mart auxiliar de INPUT do loop de classificação: lista os ativos do mês atual (distintos) já com a camada vigente preenchida ('NAO CLASSIFICADO' para os novos). É copiado para a aba 'classificacao' da planilha, onde o Lucas preenche/edita a camada; o ETL do Google lê a aba de volta para raw.carteira_classificacao, fechando o loop de retroalimentação."
+    columns:
+      - name: pessoa
+        description: "Dono do ativo (deusa, jessica ou lucas)."
+      - name: investimento
+        description: "Identificador do ativo (ticker para RV; produto normalizado para RF). Chave que o Lucas usa para classificar."
+      - name: categoria_investimento
+        description: "RENDA FIXA ou RENDA VARIAVEL — contexto para a classificação manual."
+      - name: tipo_investimento
+        description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO)."
+      - name: instituicao
+        description: "Instituição/corretora onde o ativo é mantido."
+      - name: camada
+        description: "Camada vigente do ativo (reserva/crescimento/renda) ou 'NAO CLASSIFICADO' se ainda não classificado — os brancos que o Lucas deve preencher na planilha."
+
+  - name: dividendos
+    description: "Série mensal de renda passiva por pessoa, com spine de datas contínuo entre o primeiro e o último mês com dividendos (zero quando não há recebimento)."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês de referência."
+      - name: ano
+        description: "Ano do mês de referência."
+      - name: semestre
+        description: "Trimestre/semestre do ano de referência."
+      - name: pessoa
+        description: "Titular que recebeu os dividendos (deusa, jessica ou lucas)."
+      - name: vlr_liquido_brl
+        description: "Valor líquido de dividendos/proventos recebidos no mês (0 quando não há recebimento)."
+
+  - name: risco_fgc_lucas
+    description: "Exposição ao FGC por conglomerado no mês atual (Lucas), comparando o total investido ao limite de garantia de R$ 250.000 e sinalizando risco."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base avaliado (mês atual da carteira)."
+      - name: conglomerado
+        description: "Conglomerado financeiro FGC avaliado."
+      - name: vlr_liberado
+        description: "Valor ainda coberto pela garantia (limite de R$ 250.000 menos o total investido no conglomerado)."
+      - name: risco_fgc
+        description: "Classificação do risco: 'OK' quando há folga acima de R$ 1.000, 'PERIGO!' caso contrário."
+
+  - name: risco_fgc_deusa
+    description: "Exposição ao FGC por conglomerado no mês atual (Deusa), comparando o total investido ao limite de garantia de R$ 250.000 e sinalizando risco."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base avaliado (mês atual da carteira)."
+      - name: conglomerado
+        description: "Conglomerado financeiro FGC avaliado."
+      - name: vlr_liberado
+        description: "Valor ainda coberto pela garantia (limite de R$ 250.000 menos o total investido no conglomerado)."
+      - name: risco_fgc
+        description: "Classificação do risco: 'OK' quando há folga acima de R$ 1.000, 'PERIGO!' caso contrário."
+
+  - name: risco_fgc_jessica
+    description: "Exposição ao FGC por conglomerado no mês atual (Jéssica), comparando o total investido ao limite de garantia de R$ 250.000 e sinalizando risco."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base avaliado (mês atual da carteira)."
+      - name: conglomerado
+        description: "Conglomerado financeiro FGC avaliado."
+      - name: vlr_liberado
+        description: "Valor ainda coberto pela garantia (limite de R$ 250.000 menos o total investido no conglomerado)."
+      - name: risco_fgc
+        description: "Classificação do risco: 'OK' quando há folga acima de R$ 1.000, 'PERIGO!' caso contrário."
+
+  - name: verificar_fgc
+    description: "Modelo de auditoria: lista emissores de CDB/LCA/LCI/LC ainda sem conglomerado FGC mapeado. Saída vazia significa que o de-para está completo."
+    columns:
+      - name: emissor
+        description: "Emissor de renda fixa sem conglomerado FGC associado."
+      - name: conglomerado
+        description: "Conglomerado FGC (sempre nulo nesta saída — é justamente o que precisa ser mapeado)."
+
   - name: ativos_mom
     description: "Variação Month over Month dos ativos"
+    columns:
+      - name: mes
+        description: "Primeiro dia do mês de referência."
+      - name: total_patrimonio_bruto
+        description: "Variação percentual mês a mês do patrimônio bruto total."
+      - name: total_patrimonio_liquido
+        description: "Variação percentual mês a mês do patrimônio líquido total."
+      - name: patrimonio_liquido_lucas
+        description: "Variação percentual mês a mês do patrimônio líquido de Lucas."
+      - name: saldo_bradesco
+        description: "Variação percentual mês a mês do saldo Bradesco (Lucas)."
+      - name: saldo_bradesco_investimentos
+        description: "Variação percentual mês a mês dos investimentos Bradesco (Lucas)."
+      - name: saldo_nubank_investimentos_lucas
+        description: "Variação percentual mês a mês dos investimentos Nubank (Lucas)."
+      - name: saldo_nubank_cashback
+        description: "Variação percentual mês a mês do cashback Nubank (Lucas)."
+      - name: saldo_bitcoin
+        description: "Variação percentual mês a mês do saldo em bitcoin (Lucas)."
+      - name: saldo_daycoval
+        description: "Variação percentual mês a mês dos investimentos Daycoval (Lucas)."
+      - name: saldo_avenue_lucas
+        description: "Variação percentual mês a mês do saldo Avenue (Lucas)."
+      - name: saldo_wise
+        description: "Variação percentual mês a mês do saldo Wise (Lucas)."
+      - name: patrimonio_liquido_jessica
+        description: "Variação percentual mês a mês do patrimônio líquido de Jéssica."
+      - name: saldo_banco_brasil
+        description: "Variação percentual mês a mês do saldo Banco do Brasil (Jéssica)."
+      - name: saldo_sofisa_investimentos
+        description: "Variação percentual mês a mês dos investimentos Sofisa (Jéssica)."
+      - name: saldo_itau_investimentos
+        description: "Variação percentual mês a mês dos investimentos Itaú (Jéssica)."
+      - name: saldo_nubank_investimentos_jessica
+        description: "Variação percentual mês a mês dos investimentos Nubank (Jéssica)."
+      - name: saldo_avenue_jessica
+        description: "Variação percentual mês a mês do saldo Avenue (Jéssica)."
+
   - name: ativos
     description: "Saldos das contas que contabiliza os ativos"
+    columns:
+      - name: mes
+        description: "Primeiro dia do mês de referência."
+      - name: semestre
+        description: "Trimestre/semestre do ano de referência."
+      - name: ano
+        description: "Ano de referência."
+      - name: total_patrimonio_bruto
+        description: "Patrimônio bruto total do casal no mês."
+      - name: total_patrimonio_liquido
+        description: "Patrimônio líquido total do casal no mês."
+      - name: patrimonio_liquido_lucas
+        description: "Patrimônio líquido de Lucas no mês."
+      - name: saldo_bradesco
+        description: "Saldo em conta corrente Bradesco (Lucas)."
+      - name: saldo_bradesco_investimentos
+        description: "Saldo em investimentos Bradesco (Lucas)."
+      - name: saldo_nubank_investimentos_lucas
+        description: "Saldo em investimentos Nubank (Lucas)."
+      - name: saldo_nubank_cashback
+        description: "Saldo de cashback Nubank (Lucas)."
+      - name: saldo_bitcoin
+        description: "Saldo em bitcoin (Lucas)."
+      - name: saldo_daycoval
+        description: "Saldo em investimentos Daycoval (Lucas)."
+      - name: saldo_avenue_lucas
+        description: "Saldo na Avenue (Lucas)."
+      - name: saldo_wise
+        description: "Saldo na Wise (Lucas)."
+      - name: patrimonio_liquido_jessica
+        description: "Patrimônio líquido de Jéssica no mês."
+      - name: saldo_banco_brasil
+        description: "Saldo em conta Banco do Brasil (Jéssica)."
+      - name: saldo_sofisa_investimentos
+        description: "Saldo em investimentos Sofisa (Jéssica)."
+      - name: saldo_itau_investimentos
+        description: "Saldo em investimentos Itaú (Jéssica)."
+      - name: saldo_nubank_investimentos_jessica
+        description: "Saldo em investimentos Nubank (Jéssica)."
+      - name: saldo_avenue_jessica
+        description: "Saldo na Avenue (Jéssica)."
+      - name: inflacao
+        description: "Inflação observada no mês (indicador macroeconômico)."
+      - name: selic
+        description: "Taxa Selic no mês (indicador macroeconômico)."
+      - name: curva_inflacao
+        description: "Expectativa de inflação pela curva (indicador macroeconômico)."
+      - name: curva_juros
+        description: "Expectativa de juros pela curva (indicador macroeconômico)."
+
   - name: consumo
     description: "Consumo diário débito e crédito por dia"
+    columns:
+      - name: mes
+        description: "Primeiro dia do mês de débito/competência."
+      - name: data
+        description: "Data do lançamento/consumo."
+      - name: dia_nome
+        description: "Nome do dia da semana."
+      - name: dia_fatura
+        description: "Dia ajustado ao ciclo da fatura."
+      - name: dia_ano
+        description: "Dia real do calendário."
+      - name: dia_mes
+        description: "Dia do mês (day_of_month da dimensão de datas)."
+      - name: semana
+        description: "Semana do ano (week_of_year da dimensão de datas)."
+      - name: semestre
+        description: "Trimestre/semestre do ano."
+      - name: total_mercado
+        description: "Total consumido na categoria mercado no dia."
+      - name: total_diversos
+        description: "Total consumido na categoria diversos no dia."
+      - name: total_assinaturas
+        description: "Total consumido na categoria assinaturas no dia."
+      - name: total_role
+        description: "Total consumido na categoria rolê/lazer no dia."
+      - name: total_transporte
+        description: "Total consumido na categoria transporte no dia."
+      - name: total_apartamento
+        description: "Total consumido na categoria apartamento/moradia no dia."
+      - name: total_saude
+        description: "Total consumido na categoria saúde no dia."
+      - name: total_educacao
+        description: "Total consumido na categoria educação no dia."
+
   - name: resultado
     description: "Receita x Despesas e tipos de despesas"
+    columns:
+      - name: mes_debito
+        description: "Primeiro dia do mês de débito/competência."
+      - name: semestre
+        description: "Trimestre/semestre do ano."
+      - name: ano
+        description: "Ano de referência."
+      - name: total_receita
+        description: "Receita total do mês."
+      - name: total_despesas
+        description: "Despesa total do mês."
+      - name: resultado
+        description: "Resultado do mês (receita total menos despesa total)."
+      - name: total_salario
+        description: "Receita total de salário no mês."
+      - name: total_dividendo
+        description: "Receita total de dividendos no mês."
+      - name: total_outros
+        description: "Outras receitas no mês."
+      - name: total_mercado
+        description: "Despesa total na categoria mercado."
+      - name: total_diversos
+        description: "Despesa total na categoria diversos."
+      - name: total_assinaturas
+        description: "Despesa total na categoria assinaturas."
+      - name: total_role
+        description: "Despesa total na categoria rolê/lazer."
+      - name: total_transporte
+        description: "Despesa total na categoria transporte."
+      - name: total_apartamento
+        description: "Despesa total na categoria apartamento/moradia."
+      - name: total_saude
+        description: "Despesa total na categoria saúde."
+      - name: total_educacao
+        description: "Despesa total na categoria educação."
+
   - name: luz
     description: "Dados da conta de Luz"
+    columns:
+      - name: mes
+        description: "Primeiro dia do mês de referência da conta."
+      - name: semestre
+        description: "Trimestre/semestre do ano."
+      - name: ano
+        description: "Ano de referência."
+      - name: vlr_fatura
+        description: "Valor total da fatura de energia no mês."
+      - name: kwh
+        description: "Consumo de energia no período, em kWh."
+      - name: dias
+        description: "Número de dias do período de faturamento."
+      - name: kwh_dia
+        description: "Consumo médio diário de energia, em kWh."
+      - name: preco_kwh
+        description: "Preço médio por kWh no período."

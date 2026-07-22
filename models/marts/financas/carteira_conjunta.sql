@@ -22,12 +22,12 @@ variavel AS (
         NULL::TEXT AS conglomerado,
         categoria_investimento,
         tipo_investimento,
-        NULL::TEXT AS camada,
         investimento,
         NULL::TEXT AS indexador,
         NULL::DATE AS data_vencimento,
         NULL::INT AS vencimento_em_dias,
-        vlr_atualizado,
+        vlr_atualizado_brl,
+        moeda_ativo,
         mes_base,
         pessoa
     FROM {{ ref('int_renda_variavel') }}
@@ -40,12 +40,12 @@ fixa AS (
         conglomerado,
         categoria_investimento,
         tipo_investimento,
-        NULL::TEXT AS camada,
         investimento,
         indexador,
         data_vencimento,
         vencimento_em_dias,
-        vlr_atualizado,
+        vlr_atualizado_brl,
+        moeda_ativo,
         mes_base,
         pessoa
     FROM {{ ref('int_renda_fixa') }}
@@ -72,12 +72,13 @@ final AS (
         t1.conglomerado,
         t1.categoria_investimento,
         t1.tipo_investimento,
-        t1.camada,
+        COALESCE(cls.camada, 'NAO CLASSIFICADO') AS camada,
         t1.investimento,
         t1.indexador,
         t1.data_vencimento,
         t1.vencimento_em_dias,
-        t1.vlr_atualizado,
+        t1.vlr_atualizado_brl,
+        t1.moeda_ativo,
         t1.mes_base,
         CASE 
             WHEN t3.mes_base_mais_recente IS NULL THEN false
@@ -89,6 +90,18 @@ final AS (
         ON t1.mes_base = t2.month_start_date
     LEFT JOIN mes_base_mais_recente t3
         ON t1.mes_base = t3.mes_base_mais_recente
+    LEFT JOIN LATERAL (
+        SELECT c.camada
+        FROM {{ ref('stg_carteira_classificacao') }} AS c
+        WHERE c.pessoa = t1.pessoa
+          AND c.investimento = t1.investimento
+          AND c.categoria_investimento = t1.categoria_investimento
+          AND c.tipo_investimento = t1.tipo_investimento
+          AND c.instituicao = t1.instituicao
+          AND c.mes_base <= t1.mes_base
+        ORDER BY c.mes_base DESC
+        LIMIT 1
+    ) AS cls ON TRUE
 )
 
 SELECT * FROM final

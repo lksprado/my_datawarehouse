@@ -27,8 +27,9 @@ final AS (
             ELSE period_start
         END::DATE AS period_start,
         period_end,
-        credit-debit AS vlr_liquido,
-        pessoa
+        credit-debit AS vlr_liquido_usd,
+        pessoa,
+        'USD'        AS moeda_ativo
     FROM renamed
 )
 

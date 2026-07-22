@@ -79,8 +79,41 @@ renamed AS (
         NULLIF(preco_atualizado_mtm, '-')::NUMERIC(18, 2)                                      AS preco_atualizado_mtm,
         NULLIF(valor_atualizado_mtm, '-')::NUMERIC(18, 2)                                      AS vlr_atualizado_mtm,
         NULLIF(preco_atualizado_curva, '-')::NUMERIC(18, 9)                                    AS preco_atualizado_curva,
-        NULLIF(valor_atualizado_curva, '-')::NUMERIC(18, 2)                                    AS vlr_atualizado_curva
+        NULLIF(valor_atualizado_curva, '-')::NUMERIC(18, 2)                                    AS vlr_atualizado_curva,
+        'BRL'                                                                                  AS moeda_ativo
     FROM source
+),
+final AS (
+    SELECT 
+    mes_base,
+    pessoa,
+    CASE 
+        WHEN produto LIKE '%DEB - LIGHT SERVICOS DE ELETRICIDADE S/A%'
+            THEN 'DEB - LIGHT'
+        WHEN produto LIKE '%CDB - NU FINANCEIRA SA SOCIEDADE DE CREDITO FINANCIAMENTO E INVESTIMENTO%'
+            THEN 'CDB - NUBANK'
+        WHEN produto LIKE '%DEB - CONC. ECOVIAS DOS IMIGRANTES S.A.%'
+            THEN 'DEB - ECOVIAS'
+        ELSE produto        
+    END AS produto,
+    instituicao,
+    emissor,
+    codigo,
+    indexador,
+    tipo_de_regime,
+    data_emissao,
+    data_vencimento,
+    quantidade,
+    quantidade_disponivel,
+    quantidade_indisponivel,
+    motivo_indisponibilidade,
+    contraparte,
+    preco_atualizado_mtm,
+    vlr_atualizado_mtm,
+    preco_atualizado_curva,
+    vlr_atualizado_curva,
+    moeda_ativo
+    FROM renamed
 )
 
-SELECT * FROM renamed
+SELECT * FROM final

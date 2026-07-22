@@ -3,15 +3,188 @@ version: 2
 models:
   - name: int_ativos_agregado
     description: "Consolida o patrimônio mensal a partir de stg_ativos, expondo patrimônio bruto e líquido, saldos por conta/instituição de Lucas e Jéssica e indicadores macroeconômicos (inflação, selic e curvas), ordenado por mês."
+    columns:
+      - name: mes
+        description: "Primeiro dia do mês de referência do patrimônio."
+      - name: total_patrimonio_bruto
+        description: "Patrimônio bruto total do casal no mês."
+      - name: total_patrimonio_liquido
+        description: "Patrimônio líquido total do casal no mês."
+      - name: patrimonio_liquido_lucas
+        description: "Patrimônio líquido de Lucas no mês."
+      - name: saldo_bradesco
+        description: "Saldo em conta corrente Bradesco (Lucas)."
+      - name: saldo_bradesco_investimentos
+        description: "Saldo em investimentos Bradesco (Lucas)."
+      - name: saldo_nubank_investimentos_lucas
+        description: "Saldo em investimentos Nubank (Lucas)."
+      - name: saldo_nubank_cashback
+        description: "Saldo de cashback Nubank (Lucas)."
+      - name: saldo_bitcoin
+        description: "Saldo em bitcoin (Lucas)."
+      - name: saldo_daycoval
+        description: "Saldo em investimentos Daycoval (Lucas)."
+      - name: saldo_avenue_lucas
+        description: "Saldo na Avenue (Lucas)."
+      - name: saldo_wise
+        description: "Saldo na Wise (Lucas)."
+      - name: patrimonio_liquido_jessica
+        description: "Patrimônio líquido de Jéssica no mês."
+      - name: saldo_banco_brasil
+        description: "Saldo em conta Banco do Brasil (Jéssica)."
+      - name: saldo_sofisa_investimentos
+        description: "Saldo em investimentos Sofisa (Jéssica)."
+      - name: saldo_itau_investimentos
+        description: "Saldo em investimentos Itaú (Jéssica)."
+      - name: saldo_nubank_investimentos_jessica
+        description: "Saldo em investimentos Nubank (Jéssica)."
+      - name: saldo_avenue_jessica
+        description: "Saldo na Avenue (Jéssica)."
+      - name: inflacao
+        description: "Inflação observada no mês (indicador macroeconômico)."
+      - name: selic
+        description: "Taxa Selic no mês (indicador macroeconômico)."
+      - name: curva_inflacao
+        description: "Expectativa de inflação pela curva (indicador macroeconômico)."
+      - name: curva_juros
+        description: "Expectativa de juros pela curva (indicador macroeconômico)."
 
   - name: int_consumo_consolidado
     description: "Une os lançamentos de contas de Lucas e Jéssica (stg_luc_contas e stg_jsc_contas) num único fato de despesas por categoria, ordenado por mês de débito e pessoa."
+    columns:
+      - name: mes_fatura
+        description: "Primeiro dia do mês da fatura em que a despesa foi cobrada."
+      - name: mes_debito
+        description: "Primeiro dia do mês de débito/competência da despesa."
+      - name: data_debito
+        description: "Data do débito/lançamento da despesa."
+      - name: nome_dia
+        description: "Nome do dia da semana da despesa, em maiúsculas."
+      - name: dia_ajustado
+        description: "Dia ajustado ao ciclo da fatura."
+      - name: dia_real
+        description: "Dia real do calendário da despesa."
+      - name: mercado
+        description: "Total gasto na categoria mercado."
+      - name: diversos
+        description: "Total gasto na categoria diversos."
+      - name: assinaturas
+        description: "Total gasto na categoria assinaturas."
+      - name: role
+        description: "Total gasto na categoria rolê/lazer."
+      - name: transporte
+        description: "Total gasto na categoria transporte."
+      - name: apartamento
+        description: "Total gasto na categoria apartamento/moradia."
+      - name: saude
+        description: "Total gasto na categoria saúde."
+      - name: educacao
+        description: "Total gasto na categoria educação."
+      - name: pessoa
+        description: "Titular do lançamento (lucas ou jessica)."
 
   - name: int_dre_consolidado
     description: "Une a consolidação mensal de receitas e despesas de Lucas e Jéssica (stg_luc_consolidado e stg_jsc_consolidado) num único DRE por categoria, ordenado por mês de débito e pessoa."
+    columns:
+      - name: mes_fatura
+        description: "Primeiro dia do mês da fatura de referência."
+      - name: mes_debito
+        description: "Primeiro dia do mês de débito/competência."
+      - name: salario
+        description: "Receita de salário no mês."
+      - name: dividendos
+        description: "Receita de dividendos no mês."
+      - name: outros
+        description: "Outras receitas no mês."
+      - name: receita_total
+        description: "Receita total do mês."
+      - name: mercado
+        description: "Despesa total na categoria mercado."
+      - name: diversos
+        description: "Despesa total na categoria diversos."
+      - name: assinaturas
+        description: "Despesa total na categoria assinaturas."
+      - name: role
+        description: "Despesa total na categoria rolê/lazer."
+      - name: transporte
+        description: "Despesa total na categoria transporte."
+      - name: apartamento
+        description: "Despesa total na categoria apartamento/moradia."
+      - name: saude
+        description: "Despesa total na categoria saúde."
+      - name: educacao
+        description: "Despesa total na categoria educação."
+      - name: despesas_total
+        description: "Despesa total do mês."
+      - name: resultado
+        description: "Resultado do mês (receita total menos despesa total)."
+      - name: pessoa
+        description: "Titular do consolidado (lucas ou jessica)."
 
   - name: int_renda_fixa
     description: "Consolida posições de renda fixa (renda fixa B3, tesouro direto, Avenue e faltantes) por mês-base e pessoa, padronizando instituição e somando o valor atualizado."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição."
+      - name: pessoa
+        description: "Titular da posição (deusa, jessica ou lucas)."
+      - name: instituicao
+        description: "Corretora/custodiante padronizada (ex.: NUBANK, BRADESCO, DAYCOVAL, AVENUE)."
+      - name: emissor
+        description: "Instituição emissora do título, normalizada."
+      - name: conglomerado
+        description: "Conglomerado financeiro FGC do emissor (via de-para)."
+      - name: categoria_investimento
+        description: "Categoria do investimento (RENDA FIXA)."
+      - name: tipo_investimento
+        description: "Tipo do investimento (TÍTULO PÚBLICO ou TÍTULO PRIVADO)."
+      - name: investimento
+        description: "Nome/identificação do investimento (com ano de vencimento para títulos privados)."
+      - name: indexador
+        description: "Indexador de rentabilidade (ex.: CDI, IPCA, PREFIXADO)."
+      - name: data_emissao
+        description: "Data de emissão do título."
+      - name: data_vencimento
+        description: "Data de vencimento do título."
+      - name: vencimento_em_dias
+        description: "Dias restantes até o vencimento a partir da data atual (nulo se já vencido)."
+      - name: vlr_atualizado_brl
+        description: "Valor de mercado atualizado da posição, somado por grupo, em reais."
+      - name: moeda_ativo
+        description: "Moeda do ativo (BRL)."
 
   - name: int_renda_variavel
     description: "Consolida posições de renda variável (ações, BDRs, ETFs, fundos e Avenue) por mês-base e pessoa, padronizando instituição e somando o valor atualizado."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição."
+      - name: pessoa
+        description: "Titular da posição (deusa, jessica ou lucas)."
+      - name: instituicao
+        description: "Corretora/custodiante padronizada (ex.: NUBANK, BRADESCO, AVENUE)."
+      - name: categoria_investimento
+        description: "Categoria do investimento (RENDA VARIAVEL)."
+      - name: tipo_investimento
+        description: "Tipo do investimento (ACAO ou FUNDO)."
+      - name: investimento
+        description: "Ticker/identificação do ativo."
+      - name: vlr_atualizado_brl
+        description: "Valor de mercado atualizado da posição, somado por grupo, em reais."
+      - name: moeda_ativo
+        description: "Moeda do ativo (BRL)."
+
+  - name: int_renda_passiva
+    description: "Consolida a renda passiva (proventos B3 exceto juros e dividendos da Avenue) por mês-base e pessoa, padronizando instituição e somando o valor líquido."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base do recebimento."
+      - name: pessoa
+        description: "Titular que recebeu a renda passiva (deusa, jessica ou lucas)."
+      - name: instituicao
+        description: "Instituição pagadora padronizada (ex.: NUBANK, BRADESCO, AVENUE)."
+      - name: categoria_investimento
+        description: "Categoria do investimento (RENDA PASSIVA)."
+      - name: vlr_liquido_brl
+        description: "Valor líquido de proventos/dividendos recebidos no mês, em reais."
+      - name: moeda_ativo
+        description: "Moeda do valor (BRL ou USD conforme origem)."

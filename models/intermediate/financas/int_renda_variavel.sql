@@ -19,7 +19,8 @@ avenue AS (
         'AVENUE'                           AS instituicao,
         'FUNDO'                            AS tipo_investimento,
         symbol_cusip                       AS ticker,
-        (market_value::INT * vlr_usd)::INT AS vlr_atualizado
+        (market_value::INT * vlr_usd)::INT AS vlr_atualizado_brl,
+        moeda_ativo
     FROM {{ ref('stg_assets') }}
     INNER JOIN {{ ref('stg_usd') }}
         ON period_end = data_referencia
@@ -35,7 +36,8 @@ acoes AS (
         instituicao,
         'ACAO' AS tipo_investimento,
         ticker,
-        vlr_atualizado
+        vlr_atualizado_brl,
+        moeda_ativo
     FROM {{ ref('stg_acoes') }}
 ),
 
@@ -46,7 +48,8 @@ bdr AS (
         instituicao,
         'ACAO' AS tipo_investimento,
         ticker,
-        vlr_atualizado
+        vlr_atualizado_brl,
+        moeda_ativo
     FROM {{ ref('stg_bdr') }}
 ),
 
@@ -57,7 +60,8 @@ etf AS (
         instituicao,
         'FUNDO' AS tipo_investimento,
         ticker,
-        vlr_atualizado
+        vlr_atualizado_brl,
+        moeda_ativo
     FROM {{ ref('stg_etf') }}
 ),
 
@@ -68,7 +72,8 @@ fundos AS (
         instituicao,
         'FUNDO' AS tipo_investimento,
         ticker,
-        vlr_atualizado
+        vlr_atualizado_brl,
+        moeda_ativo
     FROM {{ ref('stg_fundos') }}
 ),
 
@@ -106,9 +111,10 @@ final AS (
         'RENDA VARIAVEL'         AS categoria_investimento,
         tipo_investimento,
         ticker                   AS investimento,
-        SUM(vlr_atualizado)::INT AS vlr_atualizado
+        SUM(vlr_atualizado_brl)::INT AS vlr_atualizado_brl,
+        moeda_ativo
     FROM unioned
-    GROUP BY 1, 2, 3, 4, 5, 6
+    GROUP BY 1, 2, 3, 4, 5, 6, 8
 )
 
 SELECT * FROM final

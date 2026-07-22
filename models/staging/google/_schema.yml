@@ -3,18 +3,243 @@ version: 2
 models:
   - name: stg_ativos
     description: "Patrimônio e saldos por conta/instituição extraídos da planilha do Google, com valores limpos e normalizados, indicadores macroeconômicos (inflação, selic, curvas) e mês de referência."
+    columns:
+      - name: total_patrimonio_bruto
+        description: "Patrimônio bruto total do casal no mês, em reais."
+      - name: total_patrimonio_liquido
+        description: "Patrimônio líquido total do casal no mês, em reais."
+      - name: patrimonio_liquido_lucas
+        description: "Patrimônio líquido de Lucas no mês, em reais."
+      - name: saldo_bradesco
+        description: "Saldo em conta corrente Bradesco (Lucas)."
+      - name: saldo_bradesco_investimentos
+        description: "Saldo em investimentos Bradesco (Lucas)."
+      - name: saldo_nubank_investimentos_lucas
+        description: "Saldo em investimentos Nubank (Lucas)."
+      - name: saldo_nubank_cashback
+        description: "Saldo de cashback Nubank (Lucas)."
+      - name: saldo_bitcoin
+        description: "Saldo em bitcoin (Lucas)."
+      - name: saldo_daycoval
+        description: "Saldo em investimentos Daycoval (Lucas)."
+      - name: saldo_avenue_lucas
+        description: "Saldo na Avenue (Lucas)."
+      - name: saldo_wise
+        description: "Saldo na Wise (Lucas)."
+      - name: patrimonio_liquido_jessica
+        description: "Patrimônio líquido de Jéssica no mês, em reais."
+      - name: saldo_banco_brasil
+        description: "Saldo em conta Banco do Brasil (Jéssica)."
+      - name: saldo_sofisa_investimentos
+        description: "Saldo em investimentos Sofisa (Jéssica)."
+      - name: saldo_itau_investimentos
+        description: "Saldo em investimentos Itaú (Jéssica)."
+      - name: saldo_nubank_investimentos_jessica
+        description: "Saldo em investimentos Nubank (Jéssica)."
+      - name: saldo_avenue_jessica
+        description: "Saldo na Avenue (Jéssica)."
+      - name: inflacao
+        description: "Inflação do mês, convertida para fração decimal (indicador macroeconômico)."
+      - name: selic
+        description: "Taxa Selic mensal, convertida para fração decimal (indicador macroeconômico)."
+      - name: curva_inflacao
+        description: "Expectativa de inflação pela curva (indicador macroeconômico)."
+      - name: curva_juros
+        description: "Expectativa de juros pela curva (indicador macroeconômico)."
+      - name: mes
+        description: "Primeiro dia do mês de referência (a partir de 2023-08)."
 
   - name: stg_jsc_consolidado
     description: "Consolidação mensal de receitas e despesas por categoria da Jéssica, com valores limpos e meses de fatura e débito normalizados."
+    columns:
+      - name: salario
+        description: "Receita de salário no mês."
+      - name: dividendos
+        description: "Receita de dividendos no mês."
+      - name: outros
+        description: "Outras receitas no mês."
+      - name: receita_total
+        description: "Receita total do mês."
+      - name: mercado
+        description: "Despesa total na categoria mercado."
+      - name: diversos
+        description: "Despesa total na categoria diversos."
+      - name: assinaturas
+        description: "Despesa total na categoria assinaturas."
+      - name: role
+        description: "Despesa total na categoria rolê/lazer."
+      - name: transporte
+        description: "Despesa total na categoria transporte."
+      - name: apartamento
+        description: "Despesa total na categoria apartamento/moradia."
+      - name: saude
+        description: "Despesa total na categoria saúde."
+      - name: educacao
+        description: "Despesa total na categoria educação."
+      - name: despesas_total
+        description: "Despesa total do mês."
+      - name: resultado
+        description: "Resultado do mês (receita total menos despesa total)."
+      - name: pessoa
+        description: "Titular do consolidado (jessica)."
+      - name: mes_fatura
+        description: "Primeiro dia do mês da fatura de referência."
+      - name: mes_debito
+        description: "Primeiro dia do mês de débito/competência."
 
   - name: stg_jsc_contas
     description: "Lançamentos de contas da Jéssica detalhados por categoria, com valores normalizados e datas de fatura, débito e vencimento."
+    columns:
+      - name: mes_fatura
+        description: "Primeiro dia do mês da fatura em que a despesa foi cobrada."
+      - name: mes_debito
+        description: "Primeiro dia do mês de débito/competência da despesa."
+      - name: data_debito
+        description: "Data do débito/lançamento da despesa."
+      - name: nome_dia
+        description: "Nome do dia da semana da despesa, em maiúsculas."
+      - name: dia_ajustado
+        description: "Dia ajustado ao ciclo da fatura."
+      - name: dia_real
+        description: "Dia real do calendário da despesa."
+      - name: mercado
+        description: "Total gasto na categoria mercado."
+      - name: diversos
+        description: "Total gasto na categoria diversos."
+      - name: assinaturas
+        description: "Total gasto na categoria assinaturas."
+      - name: role
+        description: "Total gasto na categoria rolê/lazer."
+      - name: transporte
+        description: "Total gasto na categoria transporte."
+      - name: apartamento
+        description: "Total gasto na categoria apartamento/moradia."
+      - name: saude
+        description: "Total gasto na categoria saúde."
+      - name: educacao
+        description: "Total gasto na categoria educação."
+      - name: pessoa
+        description: "Titular do lançamento (jessica)."
 
   - name: stg_luc_consolidado
     description: "Consolidação mensal de receitas e despesas por categoria do Lucas, com valores limpos e meses de fatura e débito normalizados."
+    columns:
+      - name: salario
+        description: "Receita de salário no mês."
+      - name: dividendos
+        description: "Receita de dividendos no mês."
+      - name: outros
+        description: "Outras receitas no mês."
+      - name: receita_total
+        description: "Receita total do mês."
+      - name: mercado
+        description: "Despesa total na categoria mercado."
+      - name: diversos
+        description: "Despesa total na categoria diversos."
+      - name: assinaturas
+        description: "Despesa total na categoria assinaturas."
+      - name: role
+        description: "Despesa total na categoria rolê/lazer."
+      - name: transporte
+        description: "Despesa total na categoria transporte."
+      - name: apartamento
+        description: "Despesa total na categoria apartamento/moradia."
+      - name: saude
+        description: "Despesa total na categoria saúde."
+      - name: educacao
+        description: "Despesa total na categoria educação."
+      - name: despesas_total
+        description: "Despesa total do mês."
+      - name: resultado
+        description: "Resultado do mês (receita total menos despesa total)."
+      - name: pessoa
+        description: "Titular do consolidado (lucas)."
+      - name: mes_fatura
+        description: "Primeiro dia do mês da fatura de referência."
+      - name: mes_debito
+        description: "Primeiro dia do mês de débito/competência."
 
   - name: stg_luc_contas
     description: "Lançamentos de contas do Lucas detalhados por categoria, com valores normalizados e datas de fatura, débito e vencimento."
+    columns:
+      - name: mes_fatura
+        description: "Primeiro dia do mês da fatura em que a despesa foi cobrada."
+      - name: mes_debito
+        description: "Primeiro dia do mês de débito/competência da despesa."
+      - name: data_debito
+        description: "Data do débito/lançamento da despesa."
+      - name: nome_dia
+        description: "Nome do dia da semana da despesa, em maiúsculas."
+      - name: dia_ajustado
+        description: "Dia ajustado ao ciclo da fatura."
+      - name: dia_real
+        description: "Dia real do calendário da despesa."
+      - name: mercado
+        description: "Total gasto na categoria mercado."
+      - name: diversos
+        description: "Total gasto na categoria diversos."
+      - name: assinaturas
+        description: "Total gasto na categoria assinaturas."
+      - name: role
+        description: "Total gasto na categoria rolê/lazer."
+      - name: transporte
+        description: "Total gasto na categoria transporte."
+      - name: apartamento
+        description: "Total gasto na categoria apartamento/moradia."
+      - name: saude
+        description: "Total gasto na categoria saúde."
+      - name: educacao
+        description: "Total gasto na categoria educação."
+      - name: pessoa
+        description: "Titular do lançamento (lucas)."
 
   - name: stg_luz
     description: "Histórico mensal da conta de luz, com valor da fatura, consumo em kWh, dias faturados, consumo e preço por kWh e mês de referência."
+    columns:
+      - name: vlr_fatura
+        description: "Valor total da fatura de energia no mês, em reais."
+      - name: kwh
+        description: "Consumo de energia no período, em kWh."
+      - name: dias
+        description: "Número de dias do período de faturamento."
+      - name: kwh_dia
+        description: "Consumo médio diário de energia, em kWh."
+      - name: preco_kwh
+        description: "Preço médio por kWh no período."
+      - name: mes
+        description: "Primeiro dia do mês de referência da conta."
+
+  - name: stg_carteira_classificacao
+    description: "Histórico de classificação manual de camada por posição (SCD2), lido de volta da planilha Google (metade de leitura do loop de retroalimentação). A planilha acumula uma linha por mes_base sempre que a camada de um ativo muda. Alimenta o campo `camada` de carteira_conjunta/carteira_deusa por join as-of na identidade da posição (pessoa, investimento, categoria_investimento, tipo_investimento, instituicao): cada mês da carteira recebe a classificação vigente naquele mês."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês a partir do qual esta classificação passa a valer (data de vigência SCD2). No join as-of, cada linha da carteira no mês M recebe a camada da última classificação com mes_base <= M."
+        data_tests:
+          - not_null
+      - name: pessoa
+        description: "Dono do ativo (lucas / jessica / deusa), em minúsculas. Parte da chave de join com a carteira."
+        data_tests:
+          - not_null
+      - name: investimento
+        description: "Identificador do ativo (ticker para renda variável; produto normalizado para renda fixa). Parte da chave de join com a carteira."
+        data_tests:
+          - not_null
+      - name: categoria_investimento
+        description: "Categoria do investimento (ex.: RENDA FIXA, RENDA VARIÁVEL)."
+        data_tests:
+          - not_null
+      - name: tipo_investimento
+        description: "Tipo do investimento (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+        data_tests:
+          - not_null
+      - name: instituicao
+        description: "Instituição onde o investimento está posicionado."
+        data_tests:
+          - not_null
+      - name: camada
+        description: "Camada de alocação do ativo, em minúsculas: reserva, crescimento ou renda."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['RESERVA', 'CRESCIMENTO', 'RENDA']

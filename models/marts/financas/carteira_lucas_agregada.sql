@@ -25,7 +25,7 @@ SELECT
         'instituicao',
         instituicoes,
         agg = 'sum',
-        then_value = 'vlr_atualizado',
+        then_value = 'vlr_atualizado_brl',
         quote_identifiers = False
     ) }}
 FROM {{ ref('carteira_conjunta') }}

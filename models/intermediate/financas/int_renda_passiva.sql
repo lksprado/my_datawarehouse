@@ -17,7 +17,8 @@ avenue AS (
         period_start                       AS mes_base,
         pessoa,
         'AVENUE'                           AS instituicao,
-        (vlr_liquido*vlr_usd)::INT         AS vlr_liquido
+        moeda_ativo,
+        (vlr_liquido_usd*vlr_usd)::INT     AS vlr_liquido_brl        
     FROM {{ ref('stg_dividends_interest') }}
     INNER JOIN {{ ref('stg_usd') }}
         ON period_end = data_referencia
@@ -27,11 +28,12 @@ b3 AS (
         mes_base,
         pessoa,
         instituicao,
-        SUM(vlr_liquido)::INT                   AS vlr_liquido
+        moeda_ativo,
+        SUM(vlr_liquido_brl)::INT                   AS vlr_liquido_brl        
     FROM {{ ref('stg_proventos') }}
     WHERE tipo_provento <> 'PAGAMENTO DE JUROS'
     GROUP BY 
-    1,2,3
+    1,2,3,4
 ),
 
 unioned AS (
@@ -60,7 +62,8 @@ final AS (
             ELSE 'DESCONHECIDO'
         END                      AS instituicao,
         'RENDA PASSIVA'          AS categoria_investimento,
-        vlr_liquido
+        vlr_liquido_brl,
+        moeda_ativo
     FROM unioned
 )
 

@@ -3,7 +3,68 @@ version: 2
 models:
   - name: stg_investimentos_faltantes
     description: "Investimentos não capturados pelos scrapers, carregados via seed, com categoria, tipo, indexador, vencimento e valor atualizado."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição."
+      - name: pessoa
+        description: "Titular da posição (deusa, jessica ou lucas)."
+      - name: instituicao
+        description: "Instituição onde o investimento está posicionado."
+      - name: categoria_investimento
+        description: "Categoria do investimento (ex.: RENDA FIXA, RENDA VARIÁVEL)."
+      - name: tipo_investimento
+        description: "Tipo do investimento (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+      - name: investimento
+        description: "Nome/identificação do investimento."
+      - name: indexador
+        description: "Indexador de rentabilidade (ex.: CDI, IPCA, PREFIXADO)."
+      - name: data_emissao
+        description: "Data de emissão do investimento (nula na seed atual)."
+      - name: data_vencimento
+        description: "Data de vencimento do investimento."
+      - name: vlr_atualizado_brl
+        description: "Valor de mercado atualizado da posição, em reais."
+      - name: moeda_ativo
+        description: "Moeda do ativo (BRL)."
+
   - name: stg_investimentos_faltantes_deusa
     description: "Investimentos não capturados pelos scrapers, carregados via seed, com categoria, tipo, indexador, vencimento e valor atualizado."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição."
+      - name: pessoa
+        description: "Titular da posição (deusa)."
+      - name: instituicao
+        description: "Instituição onde o investimento está posicionado."
+      - name: categoria_investimento
+        description: "Categoria do investimento (ex.: RENDA FIXA, RENDA VARIÁVEL)."
+      - name: tipo_investimento
+        description: "Tipo do investimento (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+      - name: investimento
+        description: "Nome/identificação do investimento."
+      - name: indexador
+        description: "Indexador de rentabilidade (ex.: CDI, IPCA, PREFIXADO)."
+      - name: data_emissao
+        description: "Data de emissão do investimento (nula na seed atual)."
+      - name: data_vencimento
+        description: "Data de vencimento do investimento."
+      - name: vlr_atualizado_brl
+        description: "Valor de mercado atualizado da posição, em reais."
+      - name: moeda_ativo
+        description: "Moeda do ativo (BRL)."
+
   - name: stg_usd
     description: "Cotação do dólar (USD) no último dia útil de cada mês, com data de referência posicionada no final do mês."
+    columns:
+      - name: data_referencia
+        description: "Último dia do mês de referência (posição usada para conversão cambial mensal)."
+      - name: vlr_usd
+        description: "Cotação de venda do dólar no último dia útil do mês, em reais."
+
+  - name: stg_de_para_instituicoes_fgc
+    description: "De-para entre instituição emissora e o conglomerado financeiro do FGC ao qual pertence, usado para agregar o risco por conglomerado (limite de garantia)."
+    columns:
+      - name: instituicao
+        description: "Nome da instituição emissora, normalizado (sem sufixos societários e pontuação)."
+      - name: conglomerado
+        description: "Conglomerado financeiro FGC ao qual a instituição pertence."

@@ -41,7 +41,8 @@ final AS (
             WHEN symbol_cusip = '91282CLH2'
                 THEN '7009170'
             ELSE symbol_cusip
-        END       AS symbol_cusip
+        END       AS symbol_cusip,
+        'USD'     AS moeda_ativo
     FROM renamed
 )
 

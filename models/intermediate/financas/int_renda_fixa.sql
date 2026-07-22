@@ -23,7 +23,8 @@ avenue AS (
         NULL::TEXT             AS indexador,
         NULL::DATE             AS data_emissao,
         NULL::DATE             AS data_vencimento,
-        market_value * vlr_usd AS vlr_atualizado
+        market_value * vlr_usd AS vlr_atualizado_brl,
+        moeda_ativo
     FROM {{ ref('stg_assets') }}
     INNER JOIN {{ ref('stg_usd') }}
         ON period_end = data_referencia
@@ -75,7 +76,8 @@ rf AS (
         indexador,
         data_emissao,
         data_vencimento,
-        COALESCE(vlr_atualizado_curva, vlr_atualizado_mtm)                                                                      AS vlr_atualizado
+        COALESCE(vlr_atualizado_curva, vlr_atualizado_mtm)                                                                      AS vlr_atualizado_brl,
+        moeda_ativo
     FROM {{ ref('stg_renda_fixa') }}
 ),
 
@@ -84,13 +86,14 @@ td AS (
         mes_base,
         pessoa,
         instituicao,
-        NULL::TEXT       AS emissor,
+        'TESOURO NACIONAL'::TEXT       AS emissor,
         'TITULO PUBLICO' AS tipo_investimento,
         TRIM(produto)    AS investimento,
         indexador,
         NULL::DATE       AS data_emissao,
         data_vencimento,
-        vlr_atualizado
+        vlr_atualizado_brl,
+        moeda_ativo
     FROM {{ ref('stg_tesouro_direto') }}
 ),
 
@@ -105,7 +108,8 @@ faltantes AS (
         indexador,
         data_emissao,
         data_vencimento,
-        vlr_atualizado
+        vlr_atualizado_brl,
+        moeda_ativo
     FROM {{ ref('stg_investimentos_faltantes') }}
 ),
 faltantes_deusa AS (
@@ -119,7 +123,8 @@ faltantes_deusa AS (
         indexador,
         data_emissao,
         data_vencimento,
-        vlr_atualizado
+        vlr_atualizado_brl,
+        moeda_ativo
     FROM {{ ref('stg_investimentos_faltantes_deusa') }}
 ),
 
@@ -171,10 +176,11 @@ treated AS (
             WHEN data_vencimento >= CURRENT_DATE THEN data_vencimento-CURRENT_DATE
             ELSE NULL
         END                      AS vencimento_em_dias,
-        SUM(vlr_atualizado)::INT AS vlr_atualizado
+        moeda_ativo,
+        SUM(vlr_atualizado_brl)::INT AS vlr_atualizado_brl        
     FROM unioned
-    WHERE vlr_atualizado IS NOT NULL
-    GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    WHERE vlr_atualizado_brl IS NOT NULL
+    GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
 ),
 final as (
     SELECT
@@ -190,7 +196,8 @@ final as (
         t1.data_emissao,
         t1.data_vencimento,
         t1.vencimento_em_dias,
-        t1.vlr_atualizado
+        t1.vlr_atualizado_brl,
+        t1.moeda_ativo
     FROM treated t1
     LEFT JOIN {{ ref('stg_de_para_instituicoes_fgc') }} t2
     ON t1.emissor = t2.instituicao

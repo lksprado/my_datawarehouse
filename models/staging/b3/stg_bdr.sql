@@ -31,19 +31,20 @@ renamed AS (
                 {{ clean_string("split_part(mes_base, '-', 2)", "lower") }}
             ),
             1
-        )                                                                           AS mes_base,
+        )                                                                            AS mes_base,
         pessoa,
-        {{ clean_string("produto", "upper") }}                                      AS produto,
-        {{ clean_string("instituicao", "upper") }}                                  AS instituicao,
-        codigo_de_negociacao                                                        AS ticker,
-        {{ clean_string("tipo", "upper") }}                                         AS tipo,
+        {{ clean_string("produto", "upper") }}                                       AS produto,
+        {{ clean_string("instituicao", "upper") }}                                   AS instituicao,
+        codigo_de_negociacao                                                         AS ticker,
+        {{ clean_string("tipo", "upper") }}                                          AS tipo,
         escriturador,
-        quantidade::INT                                                             AS quantidade,
-        quantidade_disponivel::INT                                                  AS quantidade_disponivel,
-        NULLIF(REGEXP_REPLACE(quantidade_indisponivel, '[^0-9]', '', 'g'), '')::INT AS quantidade_indisponivel,
+        quantidade::INT                                                              AS quantidade,
+        quantidade_disponivel::INT                                                   AS quantidade_disponivel,
+        NULLIF(REGEXP_REPLACE(quantidade_indisponivel, '[^0-9]', '', 'g'), '')::INT  AS quantidade_indisponivel,
         NULLIF(motivo, '-')                                                          AS motivo_indisponibilidade,
-        preco_de_fechamento                                                         AS vlr_fechamento,
-        valor_atualizado                                                            AS vlr_atualizado
+        preco_de_fechamento                                                          AS vlr_fechamento,
+        valor_atualizado                                                             AS vlr_atualizado_brl,
+        'BRL'                                                                        AS moeda_ativo
     FROM source
 )
 

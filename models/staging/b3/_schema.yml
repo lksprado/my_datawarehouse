@@ -3,21 +3,234 @@ version: 2
 models:
   - name: stg_acoes
     description: "Posições de ações na B3 por pessoa e mês-base, com ticker, CNPJ da empresa, quantidades e valores de fechamento/atualizado."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição (derivado do nome do arquivo de origem)."
+      - name: pessoa
+        description: "Titular da posição (deusa, jessica ou lucas), inferido do caminho do arquivo."
+      - name: produto
+        description: "Nome do produto/ativo conforme extrato da B3, normalizado em maiúsculas."
+      - name: instituicao
+        description: "Corretora/custodiante onde o ativo está posicionado, normalizada em maiúsculas."
+      - name: ticker
+        description: "Código de negociação da ação na B3."
+      - name: cnpj_empresa
+        description: "CNPJ da empresa emissora, apenas dígitos."
+      - name: tipo
+        description: "Tipo do ativo conforme classificação da B3 (ex.: ON, PN)."
+      - name: escriturador
+        description: "Instituição escrituradora do ativo."
+      - name: quantidade
+        description: "Quantidade total de ativos na posição."
+      - name: quantidade_disponivel
+        description: "Quantidade disponível para negociação."
+      - name: quantidade_indisponivel
+        description: "Quantidade indisponível (bloqueada/em garantia/etc.)."
+      - name: motivo_indisponibilidade
+        description: "Motivo da indisponibilidade da quantidade bloqueada, quando houver."
+      - name: vlr_fechamento
+        description: "Preço de fechamento unitário do ativo no mês-base."
+      - name: vlr_atualizado_brl
+        description: "Valor de mercado atualizado da posição, em reais."
+      - name: moeda_ativo
+        description: "Moeda do ativo (BRL)."
 
   - name: stg_bdr
     description: "Posições de BDRs na B3 por pessoa e mês-base, com ticker, quantidades e valores de fechamento/atualizado."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição (derivado do nome do arquivo de origem)."
+      - name: pessoa
+        description: "Titular da posição (deusa, jessica ou lucas), inferido do caminho do arquivo."
+      - name: produto
+        description: "Nome do produto/ativo conforme extrato da B3, normalizado em maiúsculas."
+      - name: instituicao
+        description: "Corretora/custodiante onde o ativo está posicionado, normalizada em maiúsculas."
+      - name: ticker
+        description: "Código de negociação do BDR na B3."
+      - name: tipo
+        description: "Tipo do ativo conforme classificação da B3."
+      - name: escriturador
+        description: "Instituição escrituradora do ativo."
+      - name: quantidade
+        description: "Quantidade total de ativos na posição."
+      - name: quantidade_disponivel
+        description: "Quantidade disponível para negociação."
+      - name: quantidade_indisponivel
+        description: "Quantidade indisponível (bloqueada/em garantia/etc.)."
+      - name: motivo_indisponibilidade
+        description: "Motivo da indisponibilidade da quantidade bloqueada, quando houver."
+      - name: vlr_fechamento
+        description: "Preço de fechamento unitário do ativo no mês-base."
+      - name: vlr_atualizado_brl
+        description: "Valor de mercado atualizado da posição, em reais."
+      - name: moeda_ativo
+        description: "Moeda do ativo (BRL)."
 
   - name: stg_etf
     description: "Posições de ETFs na B3 por pessoa e mês-base, com ticker, CNPJ do fundo, quantidades e valores."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição (derivado do nome do arquivo de origem)."
+      - name: pessoa
+        description: "Titular da posição (deusa, jessica ou lucas), inferido do caminho do arquivo."
+      - name: produto
+        description: "Nome do produto/ETF conforme extrato da B3, normalizado em maiúsculas."
+      - name: instituicao
+        description: "Corretora/custodiante onde o ativo está posicionado, normalizada em maiúsculas."
+      - name: ticker
+        description: "Código de negociação do ETF na B3."
+      - name: cnpj_empresa
+        description: "CNPJ do fundo (ETF), apenas dígitos."
+      - name: tipo
+        description: "Tipo do ativo conforme classificação da B3."
+      - name: quantidade
+        description: "Quantidade total de cotas na posição."
+      - name: quantidade_disponivel
+        description: "Quantidade disponível para negociação."
+      - name: quantidade_indisponivel
+        description: "Quantidade indisponível (bloqueada/em garantia/etc.)."
+      - name: motivo_indisponibilidade
+        description: "Motivo da indisponibilidade da quantidade bloqueada, quando houver."
+      - name: vlr_fechamento
+        description: "Preço de fechamento unitário da cota no mês-base."
+      - name: vlr_atualizado_brl
+        description: "Valor de mercado atualizado da posição, em reais."
+      - name: moeda_ativo
+        description: "Moeda do ativo (BRL)."
 
   - name: stg_fundos
     description: "Posições de fundos de investimento na B3 por pessoa e mês-base, com CNPJ, quantidades e valores."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição (derivado do nome do arquivo de origem)."
+      - name: pessoa
+        description: "Titular da posição (deusa, jessica ou lucas), inferido do caminho do arquivo."
+      - name: produto
+        description: "Nome do fundo conforme extrato da B3, normalizado em maiúsculas."
+      - name: instituicao
+        description: "Corretora/custodiante onde o ativo está posicionado, normalizada em maiúsculas."
+      - name: ticker
+        description: "Código de negociação do fundo na B3."
+      - name: cnpj_empresa
+        description: "CNPJ do fundo, apenas dígitos."
+      - name: tipo
+        description: "Tipo do fundo conforme classificação da B3."
+      - name: quantidade
+        description: "Quantidade total de cotas na posição."
+      - name: quantidade_disponivel
+        description: "Quantidade disponível para negociação."
+      - name: quantidade_indisponivel
+        description: "Quantidade indisponível (bloqueada/em garantia/etc.)."
+      - name: motivo_indisponibilidade
+        description: "Motivo da indisponibilidade da quantidade bloqueada, quando houver."
+      - name: vlr_fechamento
+        description: "Preço de fechamento unitário da cota no mês-base."
+      - name: vlr_atualizado_brl
+        description: "Valor de mercado atualizado da posição, em reais."
+      - name: moeda_ativo
+        description: "Moeda do ativo (BRL)."
 
   - name: stg_proventos
     description: "Proventos recebidos na B3 por pessoa, com data de pagamento, tipo de evento, quantidade, preço unitário e valor líquido."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base do provento (derivado do nome do arquivo de origem)."
+      - name: pessoa
+        description: "Titular que recebeu o provento (deusa, jessica ou lucas), inferido do caminho do arquivo."
+      - name: data_pagamento
+        description: "Data de pagamento do provento."
+      - name: produto
+        description: "Ativo que gerou o provento, normalizado em maiúsculas."
+      - name: instituicao
+        description: "Instituição responsável pelo pagamento, normalizada em maiúsculas."
+      - name: tipo_provento
+        description: "Tipo do evento (ex.: DIVIDENDO, JUROS SOBRE CAPITAL PRÓPRIO, RENDIMENTO)."
+      - name: quantidade
+        description: "Quantidade de ativos considerada no cálculo do provento."
+      - name: preco_unitario
+        description: "Valor do provento por ativo."
+      - name: vlr_liquido_brl
+        description: "Valor líquido recebido, em reais."
+      - name: moeda_ativo
+        description: "Moeda do provento (BRL)."
 
   - name: stg_renda_fixa
     description: "Posições de renda fixa na B3 por pessoa e mês-base, com emissor, indexador, vencimento e valores atualizados (MtM e curva), incluindo backfill Daycoval."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição (derivado do nome do arquivo de origem)."
+      - name: pessoa
+        description: "Titular da posição (deusa, jessica ou lucas), inferido do caminho do arquivo."
+      - name: produto
+        description: "Nome do título de renda fixa (ex.: CDB, LCA, LCI), normalizado em maiúsculas."
+      - name: instituicao
+        description: "Corretora/custodiante onde o título está posicionado, normalizada em maiúsculas."
+      - name: emissor
+        description: "Instituição emissora do título, normalizada em maiúsculas."
+      - name: codigo
+        description: "Código identificador do título."
+      - name: indexador
+        description: "Indexador de rentabilidade (ex.: CDI, IPCA, PREFIXADO)."
+      - name: tipo_de_regime
+        description: "Regime de tributação/registro do título."
+      - name: data_emissao
+        description: "Data de emissão do título."
+      - name: data_vencimento
+        description: "Data de vencimento do título."
+      - name: quantidade
+        description: "Quantidade total de títulos na posição."
+      - name: quantidade_disponivel
+        description: "Quantidade disponível."
+      - name: quantidade_indisponivel
+        description: "Quantidade indisponível (bloqueada/em garantia/etc.)."
+      - name: motivo_indisponibilidade
+        description: "Motivo da indisponibilidade da quantidade bloqueada, quando houver."
+      - name: contraparte
+        description: "Contraparte da operação, quando informada."
+      - name: preco_atualizado_mtm
+        description: "Preço unitário atualizado por marcação a mercado (MtM)."
+      - name: vlr_atualizado_mtm
+        description: "Valor da posição atualizado por marcação a mercado (MtM), em reais."
+      - name: preco_atualizado_curva
+        description: "Preço unitário atualizado pela curva do título."
+      - name: vlr_atualizado_curva
+        description: "Valor da posição atualizado pela curva do título, em reais."
+      - name: moeda_ativo
+        description: "Moeda do ativo (BRL)."
 
   - name: stg_tesouro_direto
     description: "Posições de Tesouro Direto por pessoa e mês-base, com código ISIN, indexador, vencimento e valores aplicado, bruto, líquido e atualizado."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição (derivado do nome do arquivo de origem)."
+      - name: pessoa
+        description: "Titular da posição (deusa, jessica ou lucas), inferido do caminho do arquivo."
+      - name: produto
+        description: "Nome do título público (ex.: Tesouro Selic, Tesouro IPCA+), normalizado em maiúsculas."
+      - name: instituicao
+        description: "Corretora/custodiante onde o título está posicionado, normalizada em maiúsculas."
+      - name: codigo_isin
+        description: "Código ISIN do título público."
+      - name: indexador
+        description: "Indexador de rentabilidade (ex.: SELIC, IPCA, PREFIXADO)."
+      - name: data_vencimento
+        description: "Data de vencimento do título."
+      - name: quantidade
+        description: "Quantidade total de títulos na posição."
+      - name: quantidade_disponivel
+        description: "Quantidade disponível."
+      - name: quantidade_indisponivel
+        description: "Quantidade indisponível (bloqueada/em garantia/etc.)."
+      - name: motivo_indisponibilidade
+        description: "Motivo da indisponibilidade da quantidade bloqueada, quando houver."
+      - name: vlr_aplicado
+        description: "Valor originalmente aplicado no título, em reais."
+      - name: vlr_bruto
+        description: "Valor bruto atual da posição, em reais."
+      - name: vlr_liquido
+        description: "Valor líquido atual da posição (após IR e taxas), em reais."
+      - name: vlr_atualizado_brl
+        description: "Valor de mercado atualizado da posição, em reais."
+      - name: moeda_ativo
+        description: "Moeda do ativo (BRL)."

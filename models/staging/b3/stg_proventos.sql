@@ -39,7 +39,8 @@ renamed AS (
         {{ clean_string("tipo_de_evento", "upper") }} AS tipo_provento,
         quantidade::INT                               AS quantidade,
         preco_unitario,
-        valor_liquido                                 AS vlr_liquido
+        valor_liquido                                 AS vlr_liquido_brl,
+        'BRL'                                         AS moeda_ativo
     FROM source
 )
 
