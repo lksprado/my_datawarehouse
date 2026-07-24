@@ -36,11 +36,7 @@ ativos AS (
         t1.saldo_sofisa_investimentos,
         t1.saldo_itau_investimentos,
         t1.saldo_nubank_investimentos_jessica,
-        t1.saldo_avenue_jessica,
-        t1.inflacao,
-        t1.selic,
-        t1.curva_inflacao,
-        t1.curva_juros
+        t1.saldo_avenue_jessica
     FROM {{ ref('int_ativos_agregado') }} AS t1
     INNER JOIN datas AS t2
         ON t1.mes = t2.month_start_date

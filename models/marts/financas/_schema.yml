@@ -296,14 +296,58 @@ models:
         description: "Saldo em investimentos Nubank (Jéssica)."
       - name: saldo_avenue_jessica
         description: "Saldo na Avenue (Jéssica)."
-      - name: inflacao
-        description: "Inflação observada no mês (indicador macroeconômico)."
-      - name: selic
-        description: "Taxa Selic no mês (indicador macroeconômico)."
-      - name: curva_inflacao
-        description: "Expectativa de inflação pela curva (indicador macroeconômico)."
-      - name: curva_juros
-        description: "Expectativa de juros pela curva (indicador macroeconômico)."
+
+  - name: riqueza
+    description: "Compara mês a mês o crescimento acumulado do patrimônio líquido (composto a partir das variações MoM de ativos_mom, a partir de 2023-11) contra os índices acumulados de int_indexadores, classificando cada mês como RICO(S) ou POBRE(S) por indexador."
+    columns:
+      - name: mes
+        description: "Primeiro dia do mês de referência."
+      - name: total_patrimonio_liquido_acum
+        description: "Índice acumulado (base 1) do patrimônio líquido total do casal, composto via EXP(SUM(LN(1+variação MoM)))."
+      - name: patrimonio_liquido_lucas_acum
+        description: "Índice acumulado (base 1) do patrimônio líquido de Lucas, composto via EXP(SUM(LN(1+variação MoM)))."
+      - name: patrimonio_liquido_jessica_acum
+        description: "Índice acumulado (base 1) do patrimônio líquido de Jéssica, composto via EXP(SUM(LN(1+variação MoM)))."
+      - name: minha_inflacao_acum
+        description: "Índice acumulado (base 1) da inflação pessoal, vindo de int_indexadores."
+      - name: ipca_acum
+        description: "Índice acumulado (base 1) do IPCA, vindo de int_indexadores."
+      - name: igpm_acum
+        description: "Índice acumulado (base 1) do IGP-M, vindo de int_indexadores."
+      - name: selic_acum
+        description: "Índice acumulado (base 1) da Selic, vindo de int_indexadores."
+      - name: cdi_acum
+        description: "Índice acumulado (base 1) do CDI, vindo de int_indexadores."
+      - name: comparativo_minha_inflacao_total_liquido
+        description: "'RICOS' quando o índice do patrimônio total supera o da inflação pessoal no mês; 'POBRES' caso contrário."
+      - name: comparativo_minha_inflacao_lucas
+        description: "'RICO' quando o índice do patrimônio de Lucas supera o da inflação pessoal no mês; 'POBRE' caso contrário."
+      - name: comparativo_minha_inflacao_jessica
+        description: "'RICO' quando o índice do patrimônio de Jéssica supera o da inflação pessoal no mês; 'POBRE' caso contrário."
+      - name: comparativo_ipca_total_liquido
+        description: "'RICOS' quando o índice do patrimônio total supera o do IPCA no mês; 'POBRES' caso contrário."
+      - name: comparativo_ipca_lucas
+        description: "'RICO' quando o índice do patrimônio de Lucas supera o do IPCA no mês; 'POBRE' caso contrário."
+      - name: comparativo_ipca_jessica
+        description: "'RICO' quando o índice do patrimônio de Jéssica supera o do IPCA no mês; 'POBRE' caso contrário."
+      - name: comparativo_igpm_total_liquido
+        description: "'RICOS' quando o índice do patrimônio total supera o do IGP-M no mês; 'POBRES' caso contrário."
+      - name: comparativo_igpm_lucas
+        description: "'RICO' quando o índice do patrimônio de Lucas supera o do IGP-M no mês; 'POBRE' caso contrário."
+      - name: comparativo_igpm_jessica
+        description: "'RICO' quando o índice do patrimônio de Jéssica supera o do IGP-M no mês; 'POBRE' caso contrário."
+      - name: comparativo_selic_total_liquido
+        description: "'RICOS' quando o índice do patrimônio total supera o da Selic no mês; 'POBRES' caso contrário."
+      - name: comparativo_selic_lucas
+        description: "'RICO' quando o índice do patrimônio de Lucas supera o da Selic no mês; 'POBRE' caso contrário."
+      - name: comparativo_selic_jessica
+        description: "'RICO' quando o índice do patrimônio de Jéssica supera o da Selic no mês; 'POBRE' caso contrário."
+      - name: comparativo_cdi_total_liquido
+        description: "'RICOS' quando o índice do patrimônio total supera o do CDI no mês; 'POBRES' caso contrário."
+      - name: comparativo_cdi_lucas
+        description: "'RICO' quando o índice do patrimônio de Lucas supera o do CDI no mês; 'POBRE' caso contrário."
+      - name: comparativo_cdi_jessica
+        description: "'RICO' quando o índice do patrimônio de Jéssica supera o do CDI no mês; 'POBRE' caso contrário."
 
   - name: consumo
     description: "Consumo diário débito e crédito por dia"

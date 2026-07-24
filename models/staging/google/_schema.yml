@@ -2,8 +2,10 @@ version: 2
 
 models:
   - name: stg_ativos
-    description: "Patrimônio e saldos por conta/instituição extraídos da planilha do Google, com valores limpos e normalizados, indicadores macroeconômicos (inflação, selic, curvas) e mês de referência."
+    description: "Patrimônio e saldos por conta/instituição extraídos da planilha do Google, com valores limpos e normalizados, indexadores mensais (minha inflação, IPCA, IGP-M, Selic e CDI) com seus respectivos índices acumulados, e mês de referência."
     columns:
+      - name: mes
+        description: "Primeiro dia do mês de referência (a partir de 2023-08)."
       - name: total_patrimonio_bruto
         description: "Patrimônio bruto total do casal no mês, em reais."
       - name: total_patrimonio_liquido
@@ -38,16 +40,26 @@ models:
         description: "Saldo em investimentos Nubank (Jéssica)."
       - name: saldo_avenue_jessica
         description: "Saldo na Avenue (Jéssica)."
-      - name: inflacao
-        description: "Inflação do mês, convertida para fração decimal (indicador macroeconômico)."
+      - name: minha_inflacao
+        description: "Inflação pessoal do mês. Vem da planilha em percentual e é dividida por 100 — fração decimal NUMERIC(18,3)."
+      - name: ipca
+        description: "IPCA do mês. Vem da planilha em percentual e é dividido por 100 — fração decimal NUMERIC(18,3)."
+      - name: igpm
+        description: "IGP-M do mês. Vem da planilha em percentual e é dividido por 100 — fração decimal NUMERIC(18,3)."
       - name: selic
-        description: "Taxa Selic mensal, convertida para fração decimal (indicador macroeconômico)."
-      - name: curva_inflacao
-        description: "Expectativa de inflação pela curva (indicador macroeconômico)."
-      - name: curva_juros
-        description: "Expectativa de juros pela curva (indicador macroeconômico)."
-      - name: mes
-        description: "Primeiro dia do mês de referência (a partir de 2023-08)."
+        description: "Taxa Selic do mês. Vem da planilha em percentual e é dividida por 100 — fração decimal NUMERIC(18,3)."
+      - name: cdi
+        description: "CDI do mês. Vem da planilha em percentual e é dividido por 100 — fração decimal NUMERIC(18,3)."
+      - name: minha_inflacao_acum
+        description: "Índice acumulado (base 1) da inflação pessoal, lido pronto da planilha — só troca vírgula por ponto."
+      - name: ipca_acum
+        description: "Índice acumulado (base 1) do IPCA, lido pronto da planilha — só troca vírgula por ponto."
+      - name: igpm_acum
+        description: "Índice acumulado (base 1) do IGP-M, lido pronto da planilha — só troca vírgula por ponto."
+      - name: selic_acum
+        description: "Índice acumulado (base 1) da Selic, lido pronto da planilha — só troca vírgula por ponto."
+      - name: cdi_acum
+        description: "Índice acumulado (base 1) do CDI, lido pronto da planilha — só troca vírgula por ponto."
 
   - name: stg_jsc_consolidado
     description: "Consolidação mensal de receitas e despesas por categoria da Jéssica, com valores limpos e meses de fatura e débito normalizados."

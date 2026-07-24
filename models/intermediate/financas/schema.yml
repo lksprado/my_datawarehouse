@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: int_ativos_agregado
-    description: "Consolida o patrimônio mensal a partir de stg_ativos, expondo patrimônio bruto e líquido, saldos por conta/instituição de Lucas e Jéssica e indicadores macroeconômicos (inflação, selic e curvas), ordenado por mês."
+    description: "Consolida o patrimônio mensal a partir de stg_ativos, expondo patrimônio bruto e líquido e saldos por conta/instituição de Lucas e Jéssica, ordenado por mês. Os indexadores macroeconômicos ficam em int_indexadores."
     columns:
       - name: mes
         description: "Primeiro dia do mês de referência do patrimônio."
@@ -40,14 +40,32 @@ models:
         description: "Saldo em investimentos Nubank (Jéssica)."
       - name: saldo_avenue_jessica
         description: "Saldo na Avenue (Jéssica)."
-      - name: inflacao
-        description: "Inflação observada no mês (indicador macroeconômico)."
+
+  - name: int_indexadores
+    description: "Isola os indexadores macroeconômicos mensais vindos de stg_ativos — taxas do mês e índices acumulados de minha inflação, IPCA, IGP-M, Selic e CDI. Serve de referência de comparação para o mart riqueza."
+    columns:
+      - name: mes
+        description: "Primeiro dia do mês de referência."
+      - name: minha_inflacao
+        description: "Inflação pessoal do mês, em fração decimal."
+      - name: ipca
+        description: "IPCA do mês, em fração decimal."
+      - name: igpm
+        description: "IGP-M do mês, em fração decimal."
       - name: selic
-        description: "Taxa Selic no mês (indicador macroeconômico)."
-      - name: curva_inflacao
-        description: "Expectativa de inflação pela curva (indicador macroeconômico)."
-      - name: curva_juros
-        description: "Expectativa de juros pela curva (indicador macroeconômico)."
+        description: "Taxa Selic do mês, em fração decimal."
+      - name: cdi
+        description: "CDI do mês, em fração decimal."
+      - name: minha_inflacao_acum
+        description: "Índice acumulado (base 1) da inflação pessoal."
+      - name: ipca_acum
+        description: "Índice acumulado (base 1) do IPCA."
+      - name: igpm_acum
+        description: "Índice acumulado (base 1) do IGP-M."
+      - name: selic_acum
+        description: "Índice acumulado (base 1) da Selic."
+      - name: cdi_acum
+        description: "Índice acumulado (base 1) do CDI."
 
   - name: int_consumo_consolidado
     description: "Une os lançamentos de contas de Lucas e Jéssica (stg_luc_contas e stg_jsc_contas) num único fato de despesas por categoria, ordenado por mês de débito e pessoa."

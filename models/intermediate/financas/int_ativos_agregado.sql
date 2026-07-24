@@ -26,12 +26,7 @@ ativos AS (
         saldo_sofisa_investimentos,
         saldo_itau_investimentos,
         saldo_nubank_investimentos_jessica,
-        saldo_avenue_jessica,
-
-        inflacao,
-        selic,
-        curva_inflacao,
-        curva_juros
+        saldo_avenue_jessica
     FROM {{ ref('stg_ativos') }}
     ORDER BY mes
 )

@@ -11,6 +11,23 @@ source AS (
 
 renamed AS (
     SELECT
+        TO_DATE(
+            CASE
+                WHEN mes LIKE 'jan.%' THEN '01/' || RIGHT(mes, 2)
+                WHEN mes LIKE 'fev.%' THEN '02/' || RIGHT(mes, 2)
+                WHEN mes LIKE 'mar.%' THEN '03/' || RIGHT(mes, 2)
+                WHEN mes LIKE 'abr.%' THEN '04/' || RIGHT(mes, 2)
+                WHEN mes LIKE 'mai.%' THEN '05/' || RIGHT(mes, 2)
+                WHEN mes LIKE 'jun.%' THEN '06/' || RIGHT(mes, 2)
+                WHEN mes LIKE 'jul.%' THEN '07/' || RIGHT(mes, 2)
+                WHEN mes LIKE 'ago.%' THEN '08/' || RIGHT(mes, 2)
+                WHEN mes LIKE 'set.%' THEN '09/' || RIGHT(mes, 2)
+                WHEN mes LIKE 'out.%' THEN '10/' || RIGHT(mes, 2)
+                WHEN mes LIKE 'nov.%' THEN '11/' || RIGHT(mes, 2)
+                WHEN mes LIKE 'dez.%' THEN '12/' || RIGHT(mes, 2)
+            END, 'MM/YY'
+        )                                                              AS mes,
+
         REGEXP_REPLACE(patrimonio_total, '[^0-9]', '', 'g')::INT       AS total_patrimonio_bruto,
         REGEXP_REPLACE(patrimonio_r$, '[^0-9]', '', 'g')::INT          AS total_patrimonio_liquido,
         REGEXP_REPLACE(patrimonio_lucas_r$, '[^0-9]', '', 'g')::INT    AS patrimonio_liquido_lucas,
@@ -31,34 +48,37 @@ renamed AS (
         REGEXP_REPLACE(nubank, '[^0-9]', '', 'g')::INT                 AS saldo_nubank_investimentos_jessica,
         REGEXP_REPLACE(avenue_j, '[^0-9]', '', 'g')::INT               AS saldo_avenue_jessica,
         (REPLACE(
-            REPLACE(REGEXP_REPLACE(inflacao, '[^0-9,.]', '', 'g'), '.', ''),
+            REPLACE(REGEXP_REPLACE(minha_inflacao, '[^0-9,.]', '', 'g'), '.', ''),
             ',',
             '.'
-        )::NUMERIC / 100)::NUMERIC(18, 3)                              AS inflacao,
+        )::NUMERIC / 100)::NUMERIC(18, 3)                              AS minha_inflacao,
+        (REPLACE(
+            REPLACE(REGEXP_REPLACE(ipca, '[^0-9,.]', '', 'g'), '.', ''),
+            ',',
+            '.'
+        )::NUMERIC / 100)::NUMERIC(18, 3)                              AS ipca,
+        (REPLACE(
+            REPLACE(REGEXP_REPLACE(igpm, '[^0-9,.]', '', 'g'), '.', ''),
+            ',',
+            '.'
+        )::NUMERIC / 100)::NUMERIC(18, 3)                              AS igpm,
 
         (REPLACE(
-            REPLACE(REGEXP_REPLACE(selic_mensal, '[^0-9,.]', '', 'g'), '.', ''),
+            REPLACE(REGEXP_REPLACE(selic, '[^0-9,.]', '', 'g'), '.', ''),
             ',',
             '.'
         )::NUMERIC / 100)::NUMERIC(18, 3)                              AS selic,
-        REPLACE(curva_inflacao, ',', '.')::NUMERIC(18, 3)              AS curva_inflacao,
-        REPLACE(curva_juros, ',', '.')::NUMERIC(18, 3)                 AS curva_juros,
-        TO_DATE(
-            CASE
-                WHEN mes LIKE 'jan.%' THEN '01/' || RIGHT(mes, 2)
-                WHEN mes LIKE 'fev.%' THEN '02/' || RIGHT(mes, 2)
-                WHEN mes LIKE 'mar.%' THEN '03/' || RIGHT(mes, 2)
-                WHEN mes LIKE 'abr.%' THEN '04/' || RIGHT(mes, 2)
-                WHEN mes LIKE 'mai.%' THEN '05/' || RIGHT(mes, 2)
-                WHEN mes LIKE 'jun.%' THEN '06/' || RIGHT(mes, 2)
-                WHEN mes LIKE 'jul.%' THEN '07/' || RIGHT(mes, 2)
-                WHEN mes LIKE 'ago.%' THEN '08/' || RIGHT(mes, 2)
-                WHEN mes LIKE 'set.%' THEN '09/' || RIGHT(mes, 2)
-                WHEN mes LIKE 'out.%' THEN '10/' || RIGHT(mes, 2)
-                WHEN mes LIKE 'nov.%' THEN '11/' || RIGHT(mes, 2)
-                WHEN mes LIKE 'dez.%' THEN '12/' || RIGHT(mes, 2)
-            END, 'MM/YY'
-        )                                                              AS mes
+        (REPLACE(
+            REPLACE(REGEXP_REPLACE(cdi, '[^0-9,.]', '', 'g'), '.', ''),
+            ',',
+            '.'
+        )::NUMERIC / 100)::NUMERIC(18, 3)                              AS cdi,
+
+        REPLACE("minha_inflacao_acum.", ',', '.')::NUMERIC(18, 3)      AS minha_inflacao_acum,
+        REPLACE("ipca_acum.", ',', '.')::NUMERIC(18, 3)                AS ipca_acum,
+        REPLACE("igpm_acum.", ',', '.')::NUMERIC(18, 3)                AS igpm_acum,
+        REPLACE("selic_acum.", ',', '.')::NUMERIC(18, 3)               AS selic_acum,
+        REPLACE("cdi_acum.", ',', '.')::NUMERIC(18, 3)                 AS cdi_acum
     FROM source
 )
 
