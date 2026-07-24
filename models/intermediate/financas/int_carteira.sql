@@ -1,9 +1,14 @@
 {{
   config(
     materialized = 'table',
-    tags = ['financas', 'marts'],
+    tags = ['financas', 'intermediate'],
   )
 }}
+
+{#- Materializado como table (foge do default view do intermediate) porque é
+    consumido por 9 marts a jusante (carteira_lucas_jessica, carteira_deusa,
+    carteira_classificacao, risco_fgc_*, carteira_*_agregada); como view, o
+    union + join as-of LATERAL seria recalculado do zero em cada um deles. -#}
 
 WITH
 datas AS (
@@ -65,7 +70,7 @@ final AS (
     SELECT
         t2.month_start_date AS mes,
         t2.month_end_date   AS mes_final,
-        t2.quarter_of_year  AS semestre,
+        t2.quarter_of_year  AS trimestre,
         t2.year_number      AS ano,
         t1.instituicao,
         t1.emissor,
@@ -80,7 +85,7 @@ final AS (
         t1.vlr_atualizado_brl,
         t1.moeda_ativo,
         t1.mes_base,
-        CASE 
+        CASE
             WHEN t3.mes_base_mais_recente IS NULL THEN false
             ELSE true
         END AS fl_mes_atual,

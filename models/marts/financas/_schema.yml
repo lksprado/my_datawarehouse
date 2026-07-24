@@ -1,15 +1,15 @@
 version: 2
 
 models:
-  - name: carteira_conjunta
-    description: "Carteira consolidada de investimentos por mês (renda fixa e renda variável), com instituição, categoria, tipo, indexador, vencimento e valor atualizado por pessoa."
+  - name: carteira_lucas_jessica
+    description: "Carteira consolidada de investimentos do casal (Lucas e Jéssica) por mês (renda fixa e renda variável), com instituição, categoria, tipo, indexador, vencimento e valor atualizado por pessoa. Filtra pessoa IN ('lucas', 'jessica') a partir de int_carteira; Deusa fica em carteira_deusa."
     columns:
       - name: mes
         description: "Primeiro dia do mês de referência da posição."
       - name: mes_final
         description: "Último dia do mês de referência da posição."
-      - name: semestre
-        description: "Trimestre/semestre do ano da posição (quarter_of_year da dimensão de datas)."
+      - name: trimestre
+        description: "Trimestre do ano da posição (quarter_of_year da dimensão de datas)."
       - name: ano
         description: "Ano da posição."
       - name: instituicao
@@ -41,17 +41,17 @@ models:
       - name: fl_mes_atual
         description: "Indica se a linha pertence ao mês-base mais recente disponível na carteira."
       - name: pessoa
-        description: "Titular da posição (deusa, jessica ou lucas)."
+        description: "Titular da posição (jessica ou lucas)."
 
   - name: carteira_deusa
-    description: "Carteira consolidada de investimentos de Deusa por mês (renda fixa e renda variável); mesmo layout de carteira_conjunta filtrado para pessoa = deusa."
+    description: "Carteira consolidada de investimentos de Deusa por mês (renda fixa e renda variável); mesmo layout de carteira_lucas_jessica, filtrando pessoa = 'deusa' a partir de int_carteira."
     columns:
       - name: mes
         description: "Primeiro dia do mês de referência da posição."
       - name: mes_final
         description: "Último dia do mês de referência da posição."
-      - name: semestre
-        description: "Trimestre/semestre do ano da posição."
+      - name: trimestre
+        description: "Trimestre do ano da posição."
       - name: ano
         description: "Ano da posição."
       - name: instituicao
@@ -86,7 +86,7 @@ models:
         description: "Titular da posição (deusa)."
 
   - name: carteira_lucas_agregada
-    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de carteira_conjunta) para Lucas."
+    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de int_carteira) para Lucas."
     columns:
       - name: mes_final
         description: "Último dia do mês de referência."
@@ -104,7 +104,7 @@ models:
     # instituições novas viram colunas automaticamente no próximo dbt run.
 
   - name: carteira_jessica_agregada
-    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de carteira_conjunta) para Jéssica."
+    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de int_carteira) para Jéssica."
     columns:
       - name: mes_final
         description: "Último dia do mês de referência."
@@ -122,7 +122,7 @@ models:
     # instituições novas viram colunas automaticamente no próximo dbt run.
 
   - name: carteira_deusa_agregada
-    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de carteira_conjunta) para Deusa."
+    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de int_carteira) para Deusa."
     columns:
       - name: mes_final
         description: "Último dia do mês de referência."
@@ -162,8 +162,8 @@ models:
         description: "Primeiro dia do mês de referência."
       - name: ano
         description: "Ano do mês de referência."
-      - name: semestre
-        description: "Trimestre/semestre do ano de referência."
+      - name: trimestre
+        description: "Trimestre do ano de referência."
       - name: pessoa
         description: "Titular que recebeu os dividendos (deusa, jessica ou lucas)."
       - name: vlr_liquido_brl
@@ -258,8 +258,8 @@ models:
     columns:
       - name: mes
         description: "Primeiro dia do mês de referência."
-      - name: semestre
-        description: "Trimestre/semestre do ano de referência."
+      - name: trimestre
+        description: "Trimestre do ano de referência."
       - name: ano
         description: "Ano de referência."
       - name: total_patrimonio_bruto
@@ -366,8 +366,8 @@ models:
         description: "Dia do mês (day_of_month da dimensão de datas)."
       - name: semana
         description: "Semana do ano (week_of_year da dimensão de datas)."
-      - name: semestre
-        description: "Trimestre/semestre do ano."
+      - name: trimestre
+        description: "Trimestre do ano."
       - name: total_mercado
         description: "Total consumido na categoria mercado no dia."
       - name: total_diversos
@@ -390,8 +390,8 @@ models:
     columns:
       - name: mes_debito
         description: "Primeiro dia do mês de débito/competência."
-      - name: semestre
-        description: "Trimestre/semestre do ano."
+      - name: trimestre
+        description: "Trimestre do ano."
       - name: ano
         description: "Ano de referência."
       - name: total_receita
@@ -428,8 +428,8 @@ models:
     columns:
       - name: mes
         description: "Primeiro dia do mês de referência da conta."
-      - name: semestre
-        description: "Trimestre/semestre do ano."
+      - name: trimestre
+        description: "Trimestre do ano."
       - name: ano
         description: "Ano de referência."
       - name: vlr_fatura

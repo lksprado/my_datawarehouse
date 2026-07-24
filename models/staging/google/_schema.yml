@@ -222,7 +222,7 @@ models:
         description: "Primeiro dia do mês de referência da conta."
 
   - name: stg_carteira_classificacao
-    description: "Histórico de classificação manual de camada por posição (SCD2), lido de volta da planilha Google (metade de leitura do loop de retroalimentação). A planilha acumula uma linha por mes_base sempre que a camada de um ativo muda. Alimenta o campo `camada` de carteira_conjunta/carteira_deusa por join as-of na identidade da posição (pessoa, investimento, categoria_investimento, tipo_investimento, instituicao): cada mês da carteira recebe a classificação vigente naquele mês."
+    description: "Histórico de classificação manual de camada por posição (SCD2), lido de volta da planilha Google (metade de leitura do loop de retroalimentação). A planilha acumula uma linha por mes_base sempre que a camada de um ativo muda. Alimenta o campo `camada` de int_carteira (usado por carteira_lucas_jessica/carteira_deusa) por join as-of na identidade da posição (pessoa, investimento, categoria_investimento, tipo_investimento, instituicao): cada mês da carteira recebe a classificação vigente naquele mês."
     columns:
       - name: mes_base
         description: "Primeiro dia do mês a partir do qual esta classificação passa a valer (data de vigência SCD2). No join as-of, cada linha da carteira no mês M recebe a camada da última classificação com mes_base <= M."

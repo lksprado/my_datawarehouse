@@ -18,7 +18,7 @@ datas AS (
 ativos AS (
     SELECT
         t1.mes,
-        t2.quarter_of_year AS semestre,
+        t2.quarter_of_year AS trimestre,
         t2.year_number     AS ano,
         t1.total_patrimonio_bruto,
         t1.total_patrimonio_liquido,

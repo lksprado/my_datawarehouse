@@ -41,6 +41,48 @@ models:
       - name: saldo_avenue_jessica
         description: "Saldo na Avenue (Jéssica)."
 
+  - name: int_carteira
+    description: "Carteira consolidada de investimentos por mês (união de int_renda_variavel e int_renda_fixa), com camada de alocação aplicada via join as-of (SCD2) contra stg_carteira_classificacao e flag do mês mais recente disponível. Base única para todos os marts de carteira (carteira_lucas_jessica, carteira_deusa, carteira_classificacao, risco_fgc_*, carteira_*_agregada) — materializado como table por ser fortemente reutilizado a jusante."
+    columns:
+      - name: mes
+        description: "Primeiro dia do mês de referência da posição."
+      - name: mes_final
+        description: "Último dia do mês de referência da posição."
+      - name: trimestre
+        description: "Trimestre do ano da posição (quarter_of_year da dimensão de datas)."
+      - name: ano
+        description: "Ano da posição."
+      - name: instituicao
+        description: "Corretora/custodiante padronizada."
+      - name: emissor
+        description: "Instituição emissora do título (apenas renda fixa)."
+      - name: conglomerado
+        description: "Conglomerado financeiro FGC do emissor (apenas renda fixa)."
+      - name: categoria_investimento
+        description: "Categoria do investimento (RENDA FIXA ou RENDA VARIAVEL)."
+      - name: tipo_investimento
+        description: "Tipo do investimento (ex.: ACAO, FUNDO, TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+      - name: camada
+        description: "Camada de alocação (RESERVA/CRESCIMENTO/RENDA) classificada manualmente na planilha e lida de volta via stg_carteira_classificacao, aplicada por join as-of (SCD2) na identidade da posição (pessoa, investimento, categoria_investimento, tipo_investimento, instituicao): cada mês recebe a classificação vigente naquele mês (última com mes_base <= o mês da posição). Meses anteriores à primeira classificação ficam como 'NAO CLASSIFICADO'."
+      - name: investimento
+        description: "Nome/identificação do investimento."
+      - name: indexador
+        description: "Indexador de rentabilidade (apenas renda fixa)."
+      - name: data_vencimento
+        description: "Data de vencimento do título (apenas renda fixa)."
+      - name: vencimento_em_dias
+        description: "Dias restantes até o vencimento (apenas renda fixa)."
+      - name: vlr_atualizado_brl
+        description: "Valor de mercado atualizado da posição, em reais."
+      - name: moeda_ativo
+        description: "Moeda do ativo (BRL ou USD)."
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição (chave de junção com a dimensão de datas)."
+      - name: fl_mes_atual
+        description: "Indica se a linha pertence ao mês-base mais recente disponível na carteira."
+      - name: pessoa
+        description: "Titular da posição (deusa, jessica ou lucas)."
+
   - name: int_indexadores
     description: "Isola os indexadores macroeconômicos mensais vindos de stg_ativos — taxas do mês e índices acumulados de minha inflação, IPCA, IGP-M, Selic e CDI. Serve de referência de comparação para o mart riqueza."
     columns:

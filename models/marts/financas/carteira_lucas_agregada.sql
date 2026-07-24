@@ -6,13 +6,13 @@
 }}
 
 {#-
-  Lista de instituições obtida em tempo de compilação a partir de carteira_conjunta.
+  Lista de instituições obtida em tempo de compilação a partir de int_carteira.
   Ao surgir uma instituição nova, ela vira coluna automaticamente no próximo dbt run.
-  O `default` garante colunas mesmo numa build do zero, quando carteira_conjunta
+  O `default` garante colunas mesmo numa build do zero, quando int_carteira
   ainda não foi materializada e a consulta retornaria vazio.
 -#}
 {%- set instituicoes = dbt_utils.get_column_values(
-    ref('carteira_conjunta'),
+    ref('int_carteira'),
     'instituicao',
     order_by = 'instituicao',
     default = ['BRADESCO', 'NUBANK', 'DAYCOVAL','AVENUE', 'DESCONHECIDO']
@@ -28,7 +28,7 @@ SELECT
         then_value = 'vlr_atualizado_brl',
         quote_identifiers = False
     ) }}
-FROM {{ ref('carteira_conjunta') }}
+FROM {{ ref('int_carteira') }}
 WHERE pessoa = 'lucas'
 GROUP BY mes_final
 ORDER BY mes_final

@@ -15,7 +15,7 @@ consolidados AS (
         t1.dia_real         AS dia_ano,
         t2.day_of_month     AS dia_mes,
         t2.week_of_year     AS semana,
-        t2.quarter_of_year  AS semestre,
+        t2.quarter_of_year  AS trimestre,
         SUM(t1.mercado)     AS total_mercado,
         SUM(t1.diversos)    AS total_diversos,
         SUM(t1.assinaturas) AS total_assinaturas,

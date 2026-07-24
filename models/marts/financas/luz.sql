@@ -18,7 +18,7 @@ datas AS (
 luz AS (
     SELECT
         t1.mes,
-        t2.quarter_of_year AS semestre,
+        t2.quarter_of_year AS trimestre,
         t2.year_number     AS ano,
         t1.vlr_fatura,
         t1.kwh,

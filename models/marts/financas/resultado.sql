@@ -17,7 +17,7 @@ datas AS (
 consolidados AS (
     SELECT
         t1.mes_debito,
-        t2.quarter_of_year                          AS semestre,
+        t2.quarter_of_year                          AS trimestre,
         t2.year_number                              AS ano,
         SUM(t1.receita_total)                       AS total_receita,
         SUM(t1.despesas_total)                      AS total_despesas,

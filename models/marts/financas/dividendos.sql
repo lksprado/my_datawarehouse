@@ -52,7 +52,7 @@ final AS (
     SELECT
         spine.month_start_date              AS mes_base,
         spine.year_number                   AS ano,
-        spine.quarter_of_year               AS semestre,
+        spine.quarter_of_year               AS trimestre,
         spine.pessoa,
         COALESCE(dividendos.vlr_liquido_brl, 0) AS vlr_liquido_brl
     FROM spine

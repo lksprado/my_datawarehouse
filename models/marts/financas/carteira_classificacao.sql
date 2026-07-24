@@ -29,7 +29,7 @@ final AS (
         tipo_investimento,
         instituicao,
         camada
-    FROM {{ ref('carteira_conjunta') }}
+    FROM {{ ref('int_carteira') }}
     WHERE fl_mes_atual IS TRUE
 )
 

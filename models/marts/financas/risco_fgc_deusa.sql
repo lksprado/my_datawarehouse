@@ -12,7 +12,7 @@ carteira AS (
         conglomerado,
         250000                  AS limite_fgc,
         SUM(vlr_atualizado_brl) AS total
-    FROM {{ ref('carteira_conjunta') }}
+    FROM {{ ref('int_carteira') }}
     WHERE
         1 = 1
         AND pessoa = 'deusa'
