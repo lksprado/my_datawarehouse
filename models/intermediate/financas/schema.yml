@@ -12,29 +12,29 @@ models:
         description: "Patrimônio líquido total do casal no mês."
       - name: patrimonio_liquido_lucas
         description: "Patrimônio líquido de Lucas no mês."
-      - name: saldo_bradesco
+      - name: saldo_bradesco_lucas
         description: "Saldo em conta corrente Bradesco (Lucas)."
-      - name: saldo_bradesco_investimentos
+      - name: saldo_bradesco_investimentos_lucas
         description: "Saldo em investimentos Bradesco (Lucas)."
       - name: saldo_nubank_investimentos_lucas
         description: "Saldo em investimentos Nubank (Lucas)."
-      - name: saldo_nubank_cashback
+      - name: saldo_nubank_cashback_lucas
         description: "Saldo de cashback Nubank (Lucas)."
-      - name: saldo_bitcoin
+      - name: saldo_bitcoin_lucas
         description: "Saldo em bitcoin (Lucas)."
-      - name: saldo_daycoval
+      - name: saldo_daycoval_lucas
         description: "Saldo em investimentos Daycoval (Lucas)."
       - name: saldo_avenue_lucas
         description: "Saldo na Avenue (Lucas)."
-      - name: saldo_wise
+      - name: saldo_wise_lucas
         description: "Saldo na Wise (Lucas)."
       - name: patrimonio_liquido_jessica
         description: "Patrimônio líquido de Jéssica no mês."
-      - name: saldo_banco_brasil
+      - name: saldo_banco_brasil_jessica
         description: "Saldo em conta Banco do Brasil (Jéssica)."
-      - name: saldo_sofisa_investimentos
+      - name: saldo_sofisa_investimentos_jessica
         description: "Saldo em investimentos Sofisa (Jéssica)."
-      - name: saldo_itau_investimentos
+      - name: saldo_itau_investimentos_jessica
         description: "Saldo em investimentos Itaú (Jéssica)."
       - name: saldo_nubank_investimentos_jessica
         description: "Saldo em investimentos Nubank (Jéssica)."

@@ -180,7 +180,7 @@ Essa informação é apresentada apenas como referência para facilitar a análi
 {% docs camada_investimento %}
 
 
-**Camada de alocação** — o papel que o ativo cumpre na carteira.
+**Camada de alocação** — o papel que o ativo cumpre na carteira conforme intenção do investidor.
 
 A camada não descreve o que o ativo é (isso é `tipo_investimento`), e sim para
 que ele existe na carteira. É classificada manualmente por Lucas na aba
@@ -189,16 +189,19 @@ que ele existe na carteira. É classificada manualmente por Lucas na aba
 
 | Camada | Objetivo | Horizonte | Instrumentos típicos |
 |---|---|---|---|
-| `RESERVA` | Liquidez e preservação de capital | D+0 a D+1 | CDB de liquidez diária aplicado por conta remunerada, RDB com liquidez diária |
+| `RESERVA` | Liquidez e preservação de capital | D+0 a D+1 | CDB de liquidez diária aplicado por conta remunerada, RDB com liquidez diária, saldo em conta corrente |
+| `RESERVA ESTRATEGICA` | Reserva de valor | Indefinido | Criptoativos, saldo em conta de moeda estrangeira e cashback |
 | `CRESCIMENTO` | Acumulação de patrimônio, aceita volatilidade | 2 anos ou mais | RDB de vencimento, CDB, LCA, LCI, ações, ETFs, BDRs, fundos de ações, cripto, prefixado e IPCA+ longos |
 | `RENDA` | Geração de fluxo de caixa recorrente | 3 anos ou mais | FIIs, ações pagadores de dividendos |
 | `NAO CLASSIFICADO` | — | — | Default automático a ser regularizado |
 
 `RESERVA` — o critério é liquidez e ausência de marcação a mercado negativa, não
-o rótulo do produto. Um CDB com vencimento em três anos e sem liquidez diária
-não é reserva, ainda que seja renda fixa. O tamanho da reserva é definido em
+o rótulo do produto. Um CDB com vencimento em 3 anos mas com liquidez em D+1
+não é reserva pois a intenção é carregá-lo até o vencimento. O tamanho da reserva é definido em
 meses de despesa (ver política abaixo), não em percentual da carteira: reserva
-existe para cobrir despesa emergencial, não para acompanhar o patrimônio.
+existe para cobrir despesa correntes e emergenciais, não para acompanhar o patrimônio uma vez que as metas estejam cumpridas.
+
+`RESERVA ESTRATEGICA` — Referem-se a ativos financeiros voltados à reserva de valor (Cripto ou moeda estrangeira), possuem alta liquidez mas que dependem de um cenário favorável de valorização para serem liquidados. Sem perspectiva de novos aportes.
 
 `CRESCIMENTO` — é a camada que aceita perda temporária em troca de retorno
 esperado maior. Renda fixa longa entra aqui, e não em `RESERVA`, quando está
@@ -227,7 +230,7 @@ diagnóstico em recomendação.
 Sem estes números, o relatório só consegue descrever a carteira. Com eles,
 consegue dizer para onde vai o aporte do mês.
 
-### Aporte mensal
+### Aporte mensal estimado
 
 | Pessoa | Aporte alvo (R$/mês) | Origem |
 |---|---|---|
@@ -257,8 +260,8 @@ ultrapassa 15 pontos percentuais.
 
 | Parâmetro | Valor | Aplicação |
 |---|---|---|
-| Reserva de emergência | R$100.000 em conjunto ou despesa mediana dos últimos 6 meses | Lucas e Jéssica (separados) |
-| Reserva de emergência | R$100.000 | Deusa (aposentada) |
+| Reserva | R$100.000 em conjunto ou despesa mediana dos últimos 6 meses | Lucas e Jéssica (separados) |
+| Reserva | R$100.000 | Deusa (aposentada) |
 | Limite FGC por conglomerado | R$ 250.000 | Todos |
 | Folga mínima sobre o limite FGC | R$ 50.000 | Alerta antes de estourar a garantia |
 | Exposição internacional alvo | 15% da carteira | Lucas e Jéssica |
