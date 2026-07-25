@@ -17,36 +17,6 @@ source AS (
         END                              AS pessoa,
         *
     FROM {{ source('raw' ,'renda_fixa') }}
-    UNION ALL
-    SELECT
-        substring(source_path FROM '(\d{4}-[a-zçãáéíóú]+)(?=\.xlsx$)') AS mes_base,
-        CASE 
-            WHEN source_path LIKE '%deusa%' THEN 'deusa'
-            WHEN source_path LIKE '%jessica%' THEN 'jessica'
-            WHEN source_path LIKE '%lucas%' THEN 'lucas'
-            ELSE 'desconhecido'
-        END                              AS pessoa,
-        produto,
-        instituicao,
-        emissor,
-        codigo,
-        indexador,
-        tipo_de_regime,
-        data_de_emissao,
-        vencimento,
-        quantidade,
-        quantidade_disponivel,
-        quantidade_indisponivel,
-        motivo,
-        contraparte,
-        preco_atualizado_mtm,
-        valor_atualizado_mtm,
-        preco_atualizado_curva::TEXT     AS preco_atualizado_curva,
-        valor_atualizado_curva::TEXT     AS valor_atualizado_curva,
-        source_path,
-        "unnamed:_17",
-        "unnamed:_18"
-    FROM {{ ref('daycoval_backfill') }}
 ),
 
 renamed AS (

@@ -2,7 +2,11 @@ version: 2
 
 models:
   - name: carteira_lucas_jessica
-    description: "Carteira consolidada de investimentos do casal (Lucas e Jéssica) por mês (renda fixa e renda variável), com instituição, categoria, tipo, indexador, vencimento e valor atualizado por pessoa. Filtra pessoa IN ('lucas', 'jessica') a partir de int_carteira; Deusa fica em carteira_deusa."
+    description: >
+      Carteira consolidada de investimentos do casal (Lucas e Jéssica) por mês (renda fixa e renda variável), 
+      com instituição, categoria, tipo, indexador, vencimento e valor atualizado por pessoa. 
+      Filtra pessoa IN ('lucas', 'jessica') a partir de int_carteira; Deusa fica em carteira_deusa.
+      {{ doc('politica_investimentos') }}
     columns:
       - name: mes
         description: "Primeiro dia do mês de referência da posição."
@@ -23,7 +27,7 @@ models:
       - name: tipo_investimento
         description: "Tipo do investimento (ex.: ACAO, FUNDO, TÍTULO PÚBLICO, TÍTULO PRIVADO)."
       - name: camada
-        description: "Camada de alocação (RESERVA/CRESCIMENTO/RENDA) classificada manualmente na planilha e lida de volta via stg_carteira_classificacao, aplicada por join as-of (SCD2) na identidade da posição (pessoa, investimento, categoria_investimento, tipo_investimento, instituicao): cada mês recebe a classificação vigente naquele mês (última com mes_base <= o mês da posição). Permite analisar a composição por camada ao longo do tempo, refletindo reclassificações. Meses anteriores à primeira classificação ficam como 'NAO CLASSIFICADO'. Tickers de RV são chaves estáveis; strings de RF (produto - ano, normalizadas em int_renda_fixa) podem mudar e cair no default."
+        description: '{{ doc("camada_investimento") }}'
       - name: investimento
         description: "Nome/identificação do investimento."
       - name: indexador
@@ -44,7 +48,10 @@ models:
         description: "Titular da posição (jessica ou lucas)."
 
   - name: carteira_deusa
-    description: "Carteira consolidada de investimentos de Deusa por mês (renda fixa e renda variável); mesmo layout de carteira_lucas_jessica, filtrando pessoa = 'deusa' a partir de int_carteira."
+    description: >
+      Carteira consolidada de investimentos de Deusa por mês (renda fixa e renda variável); 
+      mesmo layout de carteira_lucas_jessica, filtrando pessoa = 'deusa' a partir de int_carteira.
+      {{ doc('politica_investimentos') }}
     columns:
       - name: mes
         description: "Primeiro dia do mês de referência da posição."
@@ -65,7 +72,7 @@ models:
       - name: tipo_investimento
         description: "Tipo do investimento."
       - name: camada
-        description: "Camada de alocação (RESERVA/CRESCIMENTO/RENDA) classificada manualmente na planilha e lida de volta via stg_carteira_classificacao, aplicada por join as-of (SCD2) na identidade da posição (pessoa, investimento, categoria_investimento, tipo_investimento, instituicao): cada mês recebe a classificação vigente naquele mês (última com mes_base <= o mês da posição). Permite analisar a composição por camada ao longo do tempo, refletindo reclassificações. Meses anteriores à primeira classificação ficam como 'NAO CLASSIFICADO'. Tickers de RV são chaves estáveis; strings de RF (produto - ano, normalizadas em int_renda_fixa) podem mudar e cair no default."
+        description: '{{ doc("camada_investimento") }}'
       - name: investimento
         description: "Nome/identificação do investimento."
       - name: indexador
@@ -179,7 +186,7 @@ models:
       - name: vlr_liberado
         description: "Valor ainda coberto pela garantia (limite de R$ 250.000 menos o total investido no conglomerado)."
       - name: risco_fgc
-        description: "Classificação do risco: 'OK' quando há folga acima de R$ 1.000, 'PERIGO!' caso contrário."
+        description: "Classificação do risco: 'OK' quando há folga acima de R$ 50.000, 'PERIGO!' caso contrário."
 
   - name: risco_fgc_deusa
     description: "Exposição ao FGC por conglomerado no mês atual (Deusa), comparando o total investido ao limite de garantia de R$ 250.000 e sinalizando risco."
@@ -356,6 +363,10 @@ models:
         description: "Primeiro dia do mês de débito/competência."
       - name: data
         description: "Data do lançamento/consumo."
+      - name: fl_data_especial
+        description: "Flag de uma data especial de aniversário"
+      - name: fl_mes_especial
+        description: "Flag de um mês com data especial de aniversário"
       - name: dia_nome
         description: "Nome do dia da semana."
       - name: dia_fatura
@@ -369,21 +380,21 @@ models:
       - name: trimestre
         description: "Trimestre do ano."
       - name: total_mercado
-        description: "Total consumido na categoria mercado no dia."
+        description: '{{ doc("categoria_mercado") }}'
       - name: total_diversos
-        description: "Total consumido na categoria diversos no dia."
+        description: '{{ doc("categoria_diversos") }}'
       - name: total_assinaturas
-        description: "Total consumido na categoria assinaturas no dia."
+        description: '{{ doc("categoria_assinaturas") }}'
       - name: total_role
-        description: "Total consumido na categoria rolê/lazer no dia."
+        description: '{{ doc("categoria_role") }}'
       - name: total_transporte
-        description: "Total consumido na categoria transporte no dia."
+        description: '{{ doc("categoria_transporte") }}'
       - name: total_apartamento
-        description: "Total consumido na categoria apartamento/moradia no dia."
+        description: '{{ doc("categoria_apartamento") }}'
       - name: total_saude
-        description: "Total consumido na categoria saúde no dia."
+        description: '{{ doc("categoria_saude") }}'
       - name: total_educacao
-        description: "Total consumido na categoria educação no dia."
+        description: '{{ doc("categoria_educacao") }}'
 
   - name: resultado
     description: "Receita x Despesas e tipos de despesas"
@@ -396,6 +407,8 @@ models:
         description: "Ano de referência."
       - name: total_receita
         description: "Receita total do mês."
+      - name: ajuste_realizado
+        description: '{{ doc("ajuste") }}'
       - name: total_despesas
         description: "Despesa total do mês."
       - name: resultado
@@ -407,21 +420,21 @@ models:
       - name: total_outros
         description: "Outras receitas no mês."
       - name: total_mercado
-        description: "Despesa total na categoria mercado."
+        description: '{{ doc("categoria_mercado") }}'
       - name: total_diversos
-        description: "Despesa total na categoria diversos."
+        description: '{{ doc("categoria_diversos") }}'
       - name: total_assinaturas
-        description: "Despesa total na categoria assinaturas."
+        description: '{{ doc("categoria_assinaturas") }}'
       - name: total_role
-        description: "Despesa total na categoria rolê/lazer."
+        description: '{{ doc("categoria_role") }}'
       - name: total_transporte
-        description: "Despesa total na categoria transporte."
+        description: '{{ doc("categoria_transporte") }}'
       - name: total_apartamento
-        description: "Despesa total na categoria apartamento/moradia."
+        description: '{{ doc("categoria_apartamento") }}'
       - name: total_saude
-        description: "Despesa total na categoria saúde."
+        description: '{{ doc("categoria_saude") }}'
       - name: total_educacao
-        description: "Despesa total na categoria educação."
+        description: '{{ doc("categoria_educacao") }}'
 
   - name: luz
     description: "Dados da conta de Luz"

@@ -7,7 +7,7 @@
 
 WITH
 seed AS (
-    SELECT * FROM {{ ref('investimentos_faltantes') }}
+    SELECT * FROM {{ ref('investimentos_faltantes_jessica') }}
 ),
 
 renamed AS (
@@ -15,6 +15,7 @@ renamed AS (
         mes_base,
         pessoa,
         instituicao,
+        NULL::TEXT AS emissor,
         categoria_investimento,
         tipo_investimento,
         investimento,
@@ -24,7 +25,7 @@ renamed AS (
         vlr_atualizado AS vlr_atualizado_brl,
         'BRL'          AS moeda_ativo
     FROM seed
-    ORDER BY mes_base, pessoa, instituicao, investimento
+    ORDER BY mes_base, instituicao, investimento
 )
 
 SELECT * FROM renamed

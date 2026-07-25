@@ -9,19 +9,25 @@ WITH
 datas AS (
     SELECT DISTINCT
         month_start_date,
+        month_of_year,
         quarter_of_year,
-        year_number
+        year_number,
+        fl_mes_especial,
+        motivo
     FROM {{ ref('dim_datas') }}
 ),
 
 consolidados AS (
     SELECT
         t1.mes_debito,
+        t2.fl_mes_especial,
+        t2.motivo,
         t2.quarter_of_year                          AS trimestre,
         t2.year_number                              AS ano,
         SUM(t1.receita_total)                       AS total_receita,
         SUM(t1.despesas_total)                      AS total_despesas,
         SUM(t1.receita_total) - SUM(despesas_total) AS resultado,
+        SUM(t1.ajuste_realizado)                    AS ajuste_realizado,
         SUM(t1.salario)                             AS total_salario,
         SUM(t1.dividendos)                          AS total_dividendo,
         SUM(t1.outros)                              AS total_outros,
@@ -40,6 +46,8 @@ consolidados AS (
     WHERE t1.mes_debito > '2023-08-01'
     GROUP BY
         t1.mes_debito,
+        t2.fl_mes_especial,
+        t2.motivo,
         t2.quarter_of_year,
         t2.year_number
     ORDER BY t1.mes_debito

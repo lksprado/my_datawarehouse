@@ -255,3 +255,19 @@ models:
           - accepted_values:
               arguments:
                 values: ['RESERVA', 'CRESCIMENTO', 'RENDA']
+
+  - name: stg_ajuste
+    description: "Histórico de transferências para equilíbrio de despesas proporcional à renda, descontados gastos individuais. Saldos de conta já consideram este valor descontado/recebido no respectivo mês."
+    columns:
+      - name: mes
+        description: "Referente às despesas daquele mês."
+        data_tests:
+          - not_null
+      - name: ajuste_realizado
+        description: "Valor de transferência realizado para a pessoa."
+        data_tests:
+          - not_null
+      - name: pessoa
+        description: "Recebedor do ajuste realizado."
+        data_tests:
+          - not_null

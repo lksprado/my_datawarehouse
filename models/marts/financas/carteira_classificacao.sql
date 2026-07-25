@@ -28,6 +28,7 @@ final AS (
         categoria_investimento,
         tipo_investimento,
         instituicao,
+        data_vencimento,
         camada
     FROM {{ ref('int_carteira') }}
     WHERE fl_mes_atual IS TRUE

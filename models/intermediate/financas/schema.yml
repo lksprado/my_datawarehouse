@@ -158,6 +158,8 @@ models:
         description: "Outras receitas no mês."
       - name: receita_total
         description: "Receita total do mês."
+      - name: ajuste_realizado
+        description: "Ajuste recebido"
       - name: mercado
         description: "Despesa total na categoria mercado."
       - name: diversos

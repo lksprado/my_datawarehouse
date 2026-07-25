@@ -10,6 +10,8 @@ consolidados AS (
     SELECT
         t1.mes_debito       AS mes,
         t1.data_debito      AS data,
+        t2.fl_data_especial,
+        t2.fl_mes_especial,
         t1.nome_dia         AS dia_nome,
         t1.dia_ajustado     AS dia_fatura,
         t1.dia_real         AS dia_ano,
@@ -31,6 +33,8 @@ consolidados AS (
     GROUP BY
         t1.mes_debito,
         t1.data_debito,
+        t2.fl_data_especial,
+        t2.fl_mes_especial,
         t1.nome_dia,
         t1.dia_ajustado,
         t1.dia_real,

@@ -97,12 +97,12 @@ td AS (
     FROM {{ ref('stg_tesouro_direto') }}
 ),
 
-faltantes AS (
+faltantes_lucas AS (
     SELECT
         mes_base,
         pessoa,
         instituicao,
-        NULL::TEXT AS emissor,
+        emissor,
         tipo_investimento,
         investimento,
         indexador,
@@ -110,14 +110,31 @@ faltantes AS (
         data_vencimento,
         vlr_atualizado_brl,
         moeda_ativo
-    FROM {{ ref('stg_investimentos_faltantes') }}
+    FROM {{ ref('stg_investimentos_faltantes_lucas') }}
 ),
+
+faltantes_jessica AS (
+    SELECT
+        mes_base,
+        pessoa,
+        instituicao,
+        emissor,
+        tipo_investimento,
+        investimento,
+        indexador,
+        data_emissao,
+        data_vencimento,
+        vlr_atualizado_brl,
+        moeda_ativo
+    FROM {{ ref('stg_investimentos_faltantes_jessica') }}
+),
+
 faltantes_deusa AS (
     SELECT
         mes_base,
         pessoa,
         instituicao,
-        NULL::TEXT AS emissor,
+        emissor,
         tipo_investimento,
         investimento,
         indexador,
@@ -135,7 +152,9 @@ unioned AS (
     UNION ALL
     SELECT * FROM td
     UNION ALL
-    SELECT * FROM faltantes
+    SELECT * FROM faltantes_lucas
+    UNION ALL
+    SELECT * FROM faltantes_jessica
     UNION ALL
     SELECT * FROM faltantes_deusa
 ),
