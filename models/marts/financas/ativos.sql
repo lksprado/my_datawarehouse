@@ -42,4 +42,4 @@ ativos AS (
         ON t1.mes = t2.month_start_date
 )
 
-SELECT * FROM ativos
+SELECT * FROM ativos ORDER BY mes

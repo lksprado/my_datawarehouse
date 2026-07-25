@@ -254,7 +254,7 @@ models:
           - not_null
           - accepted_values:
               arguments:
-                values: ['RESERVA', 'CRESCIMENTO', 'RENDA']
+                values: ['RESERVA', 'CRESCIMENTO', 'RENDA', 'RESERVA ESTRATEGICA']
 
   - name: stg_ajuste
     description: "Histórico de transferências para equilíbrio de despesas proporcional à renda, descontados gastos individuais. Saldos de conta já consideram este valor descontado/recebido no respectivo mês."

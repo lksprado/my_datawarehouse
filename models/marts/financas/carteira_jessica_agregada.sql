@@ -19,9 +19,9 @@
 ) -%}
 
 WITH
-agregrada as (
-  SELECT
-      mes_final,
+agregrada AS (
+    SELECT
+        mes_final,
       {{ dbt_utils.pivot(
           'instituicao',
           instituicoes,
@@ -29,22 +29,27 @@ agregrada as (
           then_value = 'vlr_atualizado_brl',
           quote_identifiers = False
       ) }}
-  FROM {{ ref('int_carteira') }}
-  WHERE pessoa = 'jessica'
-  GROUP BY mes_final
-  ORDER BY mes_final
+    FROM {{ ref('int_carteira') }}
+    WHERE pessoa = 'jessica'
+    GROUP BY mes_final
+    ORDER BY mes_final
 ),
-final as (
-  SELECT
-    mes_final,
-    (sofisa+
-    itau+
-    nubank+
-    avenue) AS total_investido,
-    sofisa,
-    itau,
-    nubank,
-    avenue
-  FROM agregrada
+
+final AS (
+    SELECT
+        mes_final,
+        sofisa,
+        itau,
+        nubank,
+        avenue,
+        (
+            sofisa
+            + itau
+            + nubank
+            + avenue
+        ) AS total_investido
+    FROM agregrada
 )
-select * from final
+
+SELECT * FROM final
+ORDER BY mes_final

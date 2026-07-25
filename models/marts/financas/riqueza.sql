@@ -83,4 +83,4 @@ final AS (
         INNER JOIN indexadores t2
         ON t1.mes = t2.mes
 )
-select * from final
+SELECT * FROM final ORDER BY mes

@@ -30,4 +30,4 @@ luz AS (
         ON t1.mes = t2.month_start_date
 )
 
-SELECT * FROM luz
+SELECT * FROM luz ORDER BY mes

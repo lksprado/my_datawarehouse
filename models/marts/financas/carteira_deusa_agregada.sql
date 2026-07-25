@@ -18,10 +18,10 @@
     default = ['BRADESCO', 'NUBANK', 'BANCO DO BRASIL','AVENUE', 'DESCONHECIDO']
 ) -%}
 
-WITH 
+WITH
 agregrada AS (
-SELECT
-    mes_final,
+    SELECT
+        mes_final,
     {{ dbt_utils.pivot(
         'instituicao',
         instituicoes,
@@ -29,22 +29,27 @@ SELECT
         then_value = 'vlr_atualizado_brl',
         quote_identifiers = False
     ) }}
-FROM {{ ref('int_carteira') }}
-WHERE pessoa = 'deusa'
-GROUP BY mes_final
-ORDER BY mes_final
+    FROM {{ ref('int_carteira') }}
+    WHERE pessoa = 'deusa'
+    GROUP BY mes_final
+    ORDER BY mes_final
 ),
-final as (
-  SELECT
-    mes_final,
-    (banco_do_brasil+
-    bradesco+
-    nubank+
-    avenue) AS total_investido,
-    banco_do_brasil,
-    bradesco,
-    nubank,
-    avenue
-  FROM agregrada
+
+final AS (
+    SELECT
+        mes_final,
+        banco_do_brasil,
+        bradesco,
+        nubank,
+        avenue,
+        (
+            banco_do_brasil
+            + bradesco
+            + nubank
+            + avenue
+        ) AS total_investido
+    FROM agregrada
 )
-select * from final
+
+SELECT * FROM final
+ORDER BY mes_final

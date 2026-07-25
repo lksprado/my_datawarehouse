@@ -31,4 +31,4 @@ ativos AS (
     FROM {{ ref('int_ativos_agregado') }}
 )
 
-SELECT * FROM ativos
+SELECT * FROM ativos ORDER BY mes
