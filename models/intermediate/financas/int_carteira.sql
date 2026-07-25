@@ -68,7 +68,7 @@ mes_base_mais_recente AS (
 ),
 final AS (
     SELECT
-        t2.month_start_date AS mes,
+        t1.mes_base,
         t2.month_end_date   AS mes_final,
         t2.quarter_of_year  AS trimestre,
         t2.year_number      AS ano,
@@ -84,7 +84,7 @@ final AS (
         t1.vencimento_em_dias,
         t1.vlr_atualizado_brl,
         t1.moeda_ativo,
-        t1.mes_base,
+        
         CASE
             WHEN t3.mes_base_mais_recente IS NULL THEN false
             ELSE true

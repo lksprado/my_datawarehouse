@@ -544,11 +544,11 @@ def montar_casal(d, n):
     # 2 — patrimônio
     partes.append(secao(2, "Patrimônio",
         f"Posição em {mes_extenso(meta['mes_carteira'])} · últimos 12 meses",
-        f'<figure>{barras_empilhadas([r["mes"] for r in pat], [("Lucas", SERIES[0], [r["patrimonio_liquido_lucas"] for r in pat]), ("Jéssica", SERIES[1], [r["patrimonio_liquido_jessica"] for r in pat])])}'
+        f'<figure>{barras_empilhadas([r["mes_base"] for r in pat], [("Lucas", SERIES[0], [r["patrimonio_liquido_lucas"] for r in pat]), ("Jéssica", SERIES[1], [r["patrimonio_liquido_jessica"] for r in pat])])}'
         f'{legenda([("Lucas", SERIES[0]), ("Jéssica", SERIES[1])])}'
         f'<figcaption>Patrimônio líquido por titular, em reais. Rótulo no topo = total do casal.</figcaption></figure>'
         + tabela(["Mês", "Bruto", "Líquido", "Lucas", "Jéssica", "Var. líq."],
-                 [[mes_curto(r["mes"]), brl(r["total_patrimonio_bruto"]),
+                 [[mes_curto(r["mes_base"]), brl(r["total_patrimonio_bruto"]),
                    brl(r["total_patrimonio_liquido"]), brl(r["patrimonio_liquido_lucas"]),
                    brl(r["patrimonio_liquido_jessica"]),
                    f'<span class="{classe_delta(variacao(r["total_patrimonio_liquido"], pat[i-1]["total_patrimonio_liquido"]) if i else None)}">'
@@ -701,14 +701,14 @@ def bloco_desempenho(d):
     r = d["riqueza"]
     if not r:
         return "<p>Sem série de benchmark disponível.</p>"
-    meses = [x["mes"] for x in r]
+    meses = [x["mes_base"] for x in r]
     u = r[-1]
     return (
         f'<figure>{linhas(meses, [("Patrimônio", SERIES[0], [float(x["total_patrimonio_liquido_acum"]) for x in r]), ("CDI", SERIES[1], [float(x["cdi_acum"]) for x in r]), ("Infl. pessoal", SERIES[2], [float(x["minha_inflacao_acum"]) for x in r])], formato="idx")}'
         f'<figcaption>Índice acumulado, base 1. Séries indexadas à mesma base — '
         f'eixo único.</figcaption></figure>'
         + tabela(["Mês", "Patrimônio", "CDI", "IPCA", "Inflação pessoal"],
-                 [[mes_curto(x["mes"]),
+                 [[mes_curto(x["mes_base"]),
                    f'{float(x["total_patrimonio_liquido_acum"]):.3f}'.replace(".", ","),
                    f'{float(x["cdi_acum"]):.3f}'.replace(".", ","),
                    f'{float(x["ipca_acum"]):.3f}'.replace(".", ","),

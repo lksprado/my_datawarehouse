@@ -2,10 +2,18 @@ version: 2
 
 models:
   - name: int_ativos_agregado
-    description: "Consolida o patrimônio mensal a partir de stg_ativos, expondo patrimônio bruto e líquido e saldos por conta/instituição de Lucas e Jéssica, ordenado por mês. Os indexadores macroeconômicos ficam em int_indexadores."
+    description: "Consolida o patrimônio mensal a partir de stg_ativos, expondo patrimônio bruto e líquido e saldos por conta/instituição de Lucas e Jéssica, ordenado por mês-base. Faz join com dim_datas para trazer mês final, trimestre e ano, e sinaliza o mês mais recente disponível. Consumido por ativos, ativos_mom e pelos CTEs de disponibilidade de carteira_lucas_jessica. Os indexadores macroeconômicos ficam em int_indexadores."
     columns:
-      - name: mes
-        description: "Primeiro dia do mês de referência do patrimônio."
+      - name: mes_base
+        description: "Primeiro dia do mês-base de referência do patrimônio (chave de junção com a dimensão de datas)."
+      - name: mes_final
+        description: "Último dia do mês de referência."
+      - name: trimestre
+        description: "Trimestre do ano de referência (quarter_of_year da dimensão de datas)."
+      - name: ano
+        description: "Ano de referência."
+      - name: fl_mes_atual
+        description: "Indica se a linha pertence ao mês-base mais recente disponível em stg_ativos."
       - name: total_patrimonio_bruto
         description: "Patrimônio bruto total do casal no mês."
       - name: total_patrimonio_liquido
@@ -44,8 +52,8 @@ models:
   - name: int_carteira
     description: "Carteira consolidada de investimentos por mês (união de int_renda_variavel e int_renda_fixa), com camada de alocação aplicada via join as-of (SCD2) contra stg_carteira_classificacao e flag do mês mais recente disponível. Base única para todos os marts de carteira (carteira_lucas_jessica, carteira_deusa, carteira_classificacao, risco_fgc_*, carteira_*_agregada) — materializado como table por ser fortemente reutilizado a jusante."
     columns:
-      - name: mes
-        description: "Primeiro dia do mês de referência da posição."
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição (chave de junção com a dimensão de datas)."
       - name: mes_final
         description: "Último dia do mês de referência da posição."
       - name: trimestre
@@ -76,8 +84,6 @@ models:
         description: "Valor de mercado atualizado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda do ativo (BRL ou USD)."
-      - name: mes_base
-        description: "Primeiro dia do mês-base da posição (chave de junção com a dimensão de datas)."
       - name: fl_mes_atual
         description: "Indica se a linha pertence ao mês-base mais recente disponível na carteira."
       - name: pessoa
@@ -86,8 +92,8 @@ models:
   - name: int_indexadores
     description: "Isola os indexadores macroeconômicos mensais vindos de stg_ativos — taxas do mês e índices acumulados de minha inflação, IPCA, IGP-M, Selic e CDI. Serve de referência de comparação para o mart riqueza."
     columns:
-      - name: mes
-        description: "Primeiro dia do mês de referência."
+      - name: mes_base
+        description: "Primeiro dia do mês-base de referência."
       - name: minha_inflacao
         description: "Inflação pessoal do mês, em fração decimal."
       - name: ipca

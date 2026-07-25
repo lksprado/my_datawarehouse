@@ -4,8 +4,8 @@ models:
   - name: stg_ativos
     description: "Patrimônio e saldos por conta/instituição extraídos da planilha do Google, com valores limpos e normalizados, indexadores mensais (minha inflação, IPCA, IGP-M, Selic e CDI) com seus respectivos índices acumulados, e mês de referência."
     columns:
-      - name: mes
-        description: "Primeiro dia do mês de referência (a partir de 2023-08)."
+      - name: mes_base
+        description: "Primeiro dia do mês-base de referência (a partir de 2023-08)."
       - name: total_patrimonio_bruto
         description: "Patrimônio bruto total do casal no mês, em reais."
       - name: total_patrimonio_liquido

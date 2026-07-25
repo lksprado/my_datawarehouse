@@ -3,13 +3,16 @@ version: 2
 models:
   - name: carteira_lucas_jessica
     description: >
-      Carteira consolidada de investimentos do casal (Lucas e Jéssica) por mês (renda fixa e renda variável), 
-      com instituição, categoria, tipo, indexador, vencimento e valor atualizado por pessoa. 
-      Filtra pessoa IN ('lucas', 'jessica') a partir de int_carteira; Deusa fica em carteira_deusa.
+      Carteira consolidada do casal (Lucas e Jéssica) por mês, com instituição, categoria, tipo,
+      indexador, vencimento e valor atualizado por pessoa. Une as posições de renda fixa e renda
+      variável de int_carteira com as disponibilidades em conta derivadas de int_ativos_agregado
+      (Bradesco, Wise e Bitcoin do Lucas; Banco do Brasil da Jéssica), que entram como categoria
+      DISPONIBILIDADE / camada RESERVA ESTRATEGICA. Só então filtra pessoa IN ('lucas', 'jessica');
+      Deusa fica em carteira_deusa.
       {{ doc('politica_investimentos') }}
     columns:
-      - name: mes
-        description: "Primeiro dia do mês de referência da posição."
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição (chave de junção com a dimensão de datas)."
       - name: mes_final
         description: "Último dia do mês de referência da posição."
       - name: trimestre
@@ -17,31 +20,29 @@ models:
       - name: ano
         description: "Ano da posição."
       - name: instituicao
-        description: "Corretora/custodiante padronizada."
+        description: "Corretora/custodiante padronizada (ex.: NUBANK, BRADESCO, DAYCOVAL, AVENUE, WISE, AUTOCUSTODIA)."
       - name: emissor
-        description: "Instituição emissora do título (apenas renda fixa)."
+        description: "Instituição emissora do título (apenas renda fixa; nulo em renda variável e disponibilidades)."
       - name: conglomerado
-        description: "Conglomerado financeiro FGC do emissor (apenas renda fixa)."
+        description: "Conglomerado financeiro FGC do emissor (apenas renda fixa e conta corrente de banco; nulo nos demais)."
       - name: categoria_investimento
-        description: "Categoria do investimento (RENDA FIXA ou RENDA VARIAVEL)."
+        description: "Categoria do investimento (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
       - name: tipo_investimento
-        description: "Tipo do investimento (ex.: ACAO, FUNDO, TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+        description: "Tipo do investimento (ex.: ACAO, FUNDO, TÍTULO PÚBLICO, TÍTULO PRIVADO, CONTA CORRENTE)."
       - name: camada
         description: '{{ doc("camada_investimento") }}'
       - name: investimento
-        description: "Nome/identificação do investimento."
+        description: "Nome/identificação do investimento ('SALDO EM CONTA' para as disponibilidades)."
       - name: indexador
-        description: "Indexador de rentabilidade (apenas renda fixa)."
+        description: "Indexador de rentabilidade (renda fixa e conta corrente remunerada; nulo nos demais)."
       - name: data_vencimento
-        description: "Data de vencimento do título (apenas renda fixa)."
+        description: "Data de vencimento do título (apenas renda fixa; nulo em renda variável e disponibilidades)."
       - name: vencimento_em_dias
-        description: "Dias restantes até o vencimento (apenas renda fixa)."
+        description: "Dias restantes até o vencimento (apenas renda fixa; nulo em renda variável e disponibilidades)."
       - name: vlr_atualizado_brl
         description: "Valor de mercado atualizado da posição, em reais."
       - name: moeda_ativo
-        description: "Moeda do ativo (BRL ou USD)."
-      - name: mes_base
-        description: "Primeiro dia do mês-base da posição (chave de junção com a dimensão de datas)."
+        description: "Moeda do ativo (BRL, USD ou BTC)."
       - name: fl_mes_atual
         description: "Indica se a linha pertence ao mês-base mais recente disponível na carteira."
       - name: pessoa
@@ -53,8 +54,8 @@ models:
       mesmo layout de carteira_lucas_jessica, filtrando pessoa = 'deusa' a partir de int_carteira.
       {{ doc('politica_investimentos') }}
     columns:
-      - name: mes
-        description: "Primeiro dia do mês de referência da posição."
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição (chave de junção com a dimensão de datas)."
       - name: mes_final
         description: "Último dia do mês de referência da posição."
       - name: trimestre
@@ -85,8 +86,6 @@ models:
         description: "Valor de mercado atualizado da posição, em reais."
       - name: moeda_ativo
         description: "Moeda do ativo (BRL ou USD)."
-      - name: mes_base
-        description: "Primeiro dia do mês-base da posição."
       - name: fl_mes_atual
         description: "Indica se a linha pertence ao mês-base mais recente disponível na carteira."
       - name: pessoa
@@ -223,8 +222,8 @@ models:
   - name: ativos_mom
     description: "Variação Month over Month dos ativos"
     columns:
-      - name: mes
-        description: "Primeiro dia do mês de referência."
+      - name: mes_base
+        description: "Primeiro dia do mês-base de referência."
       - name: total_patrimonio_bruto
         description: "Variação percentual mês a mês do patrimônio bruto total."
       - name: total_patrimonio_liquido
@@ -249,7 +248,7 @@ models:
         description: "Variação percentual mês a mês do saldo Wise (Lucas)."
       - name: patrimonio_liquido_jessica
         description: "Variação percentual mês a mês do patrimônio líquido de Jéssica."
-      - name: saldo_banco_brasil
+      - name: saldo_banco_brasil_jessica
         description: "Variação percentual mês a mês do saldo Banco do Brasil (Jéssica)."
       - name: saldo_sofisa_investimentos_jessica
         description: "Variação percentual mês a mês dos investimentos Sofisa (Jéssica)."
@@ -263,12 +262,16 @@ models:
   - name: ativos
     description: "Saldos das contas que contabiliza os ativos"
     columns:
-      - name: mes
-        description: "Primeiro dia do mês de referência."
+      - name: mes_base
+        description: "Primeiro dia do mês-base de referência."
+      - name: mes_final
+        description: "Último dia do mês de referência."
       - name: trimestre
         description: "Trimestre do ano de referência."
       - name: ano
         description: "Ano de referência."
+      - name: fl_mes_atual
+        description: "Indica se a linha pertence ao mês-base mais recente disponível em stg_ativos."
       - name: total_patrimonio_bruto
         description: "Patrimônio bruto total do casal no mês."
       - name: total_patrimonio_liquido
@@ -307,8 +310,8 @@ models:
   - name: riqueza
     description: "Compara mês a mês o crescimento acumulado do patrimônio líquido (composto a partir das variações MoM de ativos_mom, a partir de 2023-11) contra os índices acumulados de int_indexadores, classificando cada mês como RICO(S) ou POBRE(S) por indexador."
     columns:
-      - name: mes
-        description: "Primeiro dia do mês de referência."
+      - name: mes_base
+        description: "Primeiro dia do mês-base de referência."
       - name: total_patrimonio_liquido_acum
         description: "Índice acumulado (base 1) do patrimônio líquido total do casal, composto via EXP(SUM(LN(1+variação MoM)))."
       - name: patrimonio_liquido_lucas_acum

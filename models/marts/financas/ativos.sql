@@ -7,39 +7,31 @@
 
 
 WITH
-datas AS (
-    SELECT DISTINCT
-        month_start_date,
-        quarter_of_year,
-        year_number
-    FROM {{ ref('dim_datas') }}
-),
-
 ativos AS (
     SELECT
-        t1.mes,
-        t2.quarter_of_year AS trimestre,
-        t2.year_number     AS ano,
-        t1.total_patrimonio_bruto,
-        t1.total_patrimonio_liquido,
-        t1.patrimonio_liquido_lucas,
-        t1.saldo_bradesco_lucas,
-        t1.saldo_bradesco_investimentos_lucas,
-        t1.saldo_nubank_investimentos_lucas,
-        t1.saldo_nubank_cashback_lucas,
-        t1.saldo_bitcoin_lucas,
-        t1.saldo_daycoval_lucas,
-        t1.saldo_avenue_lucas,
-        t1.saldo_wise_lucas,
-        t1.patrimonio_liquido_jessica,
-        t1.saldo_banco_brasil_jessica,
-        t1.saldo_sofisa_investimentos_jessica,
-        t1.saldo_itau_investimentos_jessica,
-        t1.saldo_nubank_investimentos_jessica,
-        t1.saldo_avenue_jessica
-    FROM {{ ref('int_ativos_agregado') }} AS t1
-    INNER JOIN datas AS t2
-        ON t1.mes = t2.month_start_date
+        mes_base,
+        mes_final,
+        trimestre,
+        ano,
+        fl_mes_atual,
+        total_patrimonio_bruto,
+        total_patrimonio_liquido,
+        patrimonio_liquido_lucas,
+        saldo_bradesco_lucas,
+        saldo_bradesco_investimentos_lucas,
+        saldo_nubank_investimentos_lucas,
+        saldo_nubank_cashback_lucas,
+        saldo_bitcoin_lucas,
+        saldo_daycoval_lucas,
+        saldo_avenue_lucas,
+        saldo_wise_lucas,
+        patrimonio_liquido_jessica,
+        saldo_banco_brasil_jessica,
+        saldo_sofisa_investimentos_jessica,
+        saldo_itau_investimentos_jessica,
+        saldo_nubank_investimentos_jessica,
+        saldo_avenue_jessica
+    FROM {{ ref('int_ativos_agregado') }}
 )
 
-SELECT * FROM ativos ORDER BY mes
+SELECT * FROM ativos ORDER BY mes_base

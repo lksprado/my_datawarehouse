@@ -84,36 +84,36 @@ b_consumo_dia AS (
 ),
 
 b_patrimonio AS (
-    SELECT COALESCE(json_agg(t ORDER BY t.mes), '[]'::json) AS j
+    SELECT COALESCE(json_agg(t ORDER BY t.mes_base), '[]'::json) AS j
     FROM (
         SELECT *
         FROM marts.ativos
-        WHERE mes <= (SELECT mes_ref FROM params)
-          AND mes >  (SELECT mes_ref FROM params) - interval '13 months'
+        WHERE mes_base <= (SELECT mes_ref FROM params)
+          AND mes_base >  (SELECT mes_ref FROM params) - interval '13 months'
     ) AS t
 ),
 
 b_patrimonio_mom AS (
-    SELECT COALESCE(json_agg(t ORDER BY t.mes), '[]'::json) AS j
+    SELECT COALESCE(json_agg(t ORDER BY t.mes_base), '[]'::json) AS j
     FROM (
-        SELECT mes,
+        SELECT mes_base,
                ROUND(total_patrimonio_bruto   * 100, 2) AS pct_patrimonio_bruto,
                ROUND(total_patrimonio_liquido * 100, 2) AS pct_patrimonio_liquido,
                ROUND(patrimonio_liquido_lucas * 100, 2) AS pct_lucas,
                ROUND(patrimonio_liquido_jessica * 100, 2) AS pct_jessica
         FROM marts.ativos_mom
-        WHERE mes <= (SELECT mes_ref FROM params)
-          AND mes >  (SELECT mes_ref FROM params) - interval '13 months'
+        WHERE mes_base <= (SELECT mes_ref FROM params)
+          AND mes_base >  (SELECT mes_ref FROM params) - interval '13 months'
     ) AS t
 ),
 
 b_riqueza AS (
-    SELECT COALESCE(json_agg(t ORDER BY t.mes), '[]'::json) AS j
+    SELECT COALESCE(json_agg(t ORDER BY t.mes_base), '[]'::json) AS j
     FROM (
         SELECT *
         FROM marts.riqueza
-        WHERE mes <= (SELECT mes_ref FROM params)
-          AND mes >  (SELECT mes_ref FROM params) - interval '13 months'
+        WHERE mes_base <= (SELECT mes_ref FROM params)
+          AND mes_base >  (SELECT mes_ref FROM params) - interval '13 months'
     ) AS t
 ),
 

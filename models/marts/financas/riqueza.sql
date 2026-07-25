@@ -7,12 +7,12 @@
 
 WITH var_acum AS (
     SELECT
-        mes,
+        mes_base,
 
         EXP(
             COALESCE(
                 SUM(LN(1 + total_patrimonio_liquido)) OVER (
-                    ORDER BY mes
+                    ORDER BY mes_base
                     ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
                 ),
                 0
@@ -22,7 +22,7 @@ WITH var_acum AS (
         EXP(
             COALESCE(
                 SUM(LN(1 + patrimonio_liquido_lucas)) OVER (
-                    ORDER BY mes
+                    ORDER BY mes_base
                     ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
                 ),
                 0
@@ -32,7 +32,7 @@ WITH var_acum AS (
         EXP(
             COALESCE(
                 SUM(LN(1 + patrimonio_liquido_jessica)) OVER (
-                    ORDER BY mes
+                    ORDER BY mes_base
                     ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
                 ),
                 0
@@ -40,11 +40,11 @@ WITH var_acum AS (
         )::NUMERIC(18,3) AS patrimonio_liquido_jessica_acum
 
     FROM {{ ref('ativos_mom') }}
-    WHERE mes >= DATE '2023-11-01'
+    WHERE mes_base >= DATE '2023-11-01'
 ),
 indexadores AS (
     SELECT
-        mes,
+        mes_base,
         minha_inflacao_acum,
         ipca_acum,
         igpm_acum,
@@ -81,6 +81,6 @@ final AS (
     CASE WHEN patrimonio_liquido_jessica_acum  > cdi_acum THEN 'RICO' ELSE 'POBRE' END AS comparativo_cdi_jessica
     FROM var_acum t1
         INNER JOIN indexadores t2
-        ON t1.mes = t2.mes
+        ON t1.mes_base = t2.mes_base
 )
-SELECT * FROM final ORDER BY mes
+SELECT * FROM final ORDER BY mes_base

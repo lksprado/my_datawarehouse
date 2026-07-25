@@ -7,7 +7,7 @@
 WITH 
 ativos as (
     SELECT 
-        mes,
+        mes_base,
         minha_inflacao,
         ipca,
         igpm,

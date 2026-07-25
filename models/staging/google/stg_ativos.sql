@@ -26,7 +26,7 @@ renamed AS (
                 WHEN mes LIKE 'nov.%' THEN '11/' || RIGHT(mes, 2)
                 WHEN mes LIKE 'dez.%' THEN '12/' || RIGHT(mes, 2)
             END, 'MM/YY'
-        )                                                              AS mes,
+        )                                                              AS mes_base,
 
         REGEXP_REPLACE(patrimonio_total, '[^0-9]', '', 'g')::INT       AS total_patrimonio_bruto,
         REGEXP_REPLACE(patrimonio_r$, '[^0-9]', '', 'g')::INT          AS total_patrimonio_liquido,
@@ -83,4 +83,4 @@ renamed AS (
 )
 
 SELECT * FROM renamed
-WHERE mes > '2023-08-01'
+WHERE mes_base > '2023-08-01'
