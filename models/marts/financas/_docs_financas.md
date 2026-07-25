@@ -244,9 +244,9 @@ diferença.
 
 | Pessoa | RESERVA | CRESCIMENTO | RENDA | Perfil |
 |---|---|---|---|---|
-| Lucas | 25% | 55% | 20% | Arrojado — horizonte longo, tolera volatilidade |
-| Jéssica | 40% | 50% | 10% | Moderado — prioriza segurança na formação de patrimônio |
-| Deusa | 40% | 25% | 35% | Conservador — preservação de capital e geração de renda |
+| Lucas | 30% | 50% | 20% | Arrojado — horizonte longo, tolera volatilidade |
+| Jéssica | 30% | 70% | 0% | Moderado — prioriza segurança na formação de patrimônio |
+| Deusa | 30% | 60% | 10% | Conservador — preservação de capital e geração de renda |
 
 Banda de tolerância: ±5 pontos percentuais. Desvio dentro da banda não gera
 recomendação. Fora da banda, o rebalanceamento é feito **por aporte** (direcionar
