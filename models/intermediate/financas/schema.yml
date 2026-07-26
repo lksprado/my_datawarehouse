@@ -73,7 +73,13 @@ models:
       - name: tipo_ativo
         description: "Tipo do ativo (ex.: ACAO, FUNDO, TÍTULO PÚBLICO, TÍTULO PRIVADO)."
       - name: camada
-        description: "Camada de alocação (RESERVA/CRESCIMENTO/RENDA) classificada manualmente na planilha e lida de volta via stg_carteira_classificacao, aplicada por join as-of (SCD2) na identidade da posição (pessoa, ativo, classe_ativo, tipo_ativo, instituicao): cada mês recebe a classificação vigente naquele mês (última com mes_base <= o mês da posição). Meses anteriores à primeira classificação ficam como 'NAO CLASSIFICADO'."
+        description: >
+          Camada de alocação classificada manualmente na planilha e lida de volta via
+          stg_carteira_classificacao, aplicada por join as-of (SCD2) na identidade da posição
+          (pessoa, ativo, classe_ativo, tipo_ativo, instituicao): cada mês recebe a classificação
+          vigente naquele mês (a última com mes_base <= o mês da posição). Meses anteriores à
+          primeira classificação ficam como 'NAO CLASSIFICADO'.
+          Valores possíveis e o significado de cada um: {{ doc('camada_investimento') }}
       - name: ativo
         description: "Nome/identificação do ativo."
       - name: indexador
@@ -92,7 +98,15 @@ models:
         description: "Titular da posição (deusa, jessica ou lucas)."
 
   - name: int_carteira_extra
-    description: "Disponibilidades em conta derivadas de int_patrimonio_mensal (saldo Bradesco, Wise e Bitcoin do Lucas; Banco do Brasil da Jéssica) expostas no mesmo layout e na mesma ordem de colunas de int_carteira, para que os dois possam ser unidos por posição a jusante (carteira_lucas_jessica, carteira_classificacao). A camada usa o mesmo join as-of (SCD2) contra stg_carteira_classificacao de int_carteira, mas com fallback 'RESERVA ESTRATEGICA' em vez de 'NAO CLASSIFICADO', porque saldo em conta já tem camada natural e não deve aparecer como pendência na planilha."
+    description: >
+      Disponibilidades em conta derivadas de int_patrimonio_mensal (saldo Bradesco, Wise e Bitcoin
+      do Lucas; Banco do Brasil da Jéssica) expostas no mesmo layout e na mesma ordem de colunas de
+      int_carteira, para que os dois possam ser unidos por posição a jusante (carteira_lucas_jessica,
+      carteira_classificacao). A camada usa o mesmo join as-of (SCD2) contra
+      stg_carteira_classificacao de int_carteira, com o mesmo fallback 'NAO CLASSIFICADO'.
+      PENDÊNCIA CONHECIDA: a intenção registrada era usar fallback 'RESERVA ESTRATEGICA' aqui, para
+      que saldo em conta — que tem camada natural — não aparecesse como pendência de classificação
+      na planilha. O SQL nunca implementou isso. Esta descrição documenta o comportamento real.
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base do saldo (chave de junção com a dimensão de datas)."
@@ -113,7 +127,7 @@ models:
       - name: tipo_ativo
         description: "Sempre 'CONTA CORRENTE'."
       - name: camada
-        description: "Camada de alocação vigente, resolvida por join as-of contra stg_carteira_classificacao na identidade da posição (pessoa, ativo, classe_ativo, tipo_ativo, instituicao); 'RESERVA ESTRATEGICA' enquanto não houver classificação manual na planilha."
+        description: "Camada de alocação vigente, resolvida por join as-of contra stg_carteira_classificacao na identidade da posição (pessoa, ativo, classe_ativo, tipo_ativo, instituicao); 'NAO CLASSIFICADO' enquanto não houver classificação manual na planilha."
       - name: ativo
         description: "Sempre 'SALDO EM CONTA' — as quatro linhas se distinguem por pessoa + instituicao."
       - name: indexador
@@ -158,7 +172,10 @@ models:
         description: "Índice acumulado (base 1) do CDI."
 
   - name: int_consumo_consolidado
-    description: "Une os lançamentos de contas de Lucas e Jéssica (stg_luc_contas e stg_jsc_contas) num único fato de despesas por categoria, ordenado por mês de débito e pessoa."
+    description: >
+      Une os lançamentos de contas de Lucas e Jéssica (stg_luc_contas e stg_jsc_contas) num único
+      fato de despesas por categoria, em reais, ordenado por mês de débito e pessoa.
+      {{ doc('ciclo_fatura') }}
     columns:
       - name: mes_fatura
         description: "Primeiro dia do mês da fatura em que a despesa foi cobrada."
@@ -192,7 +209,11 @@ models:
         description: "Titular do lançamento (lucas ou jessica)."
 
   - name: int_dre_consolidado
-    description: "Une a consolidação mensal de receitas e despesas de Lucas e Jéssica (stg_luc_consolidado e stg_jsc_consolidado) num único DRE por categoria, ordenado por mês de débito e pessoa."
+    description: >
+      Une a consolidação mensal de receitas e despesas de Lucas e Jéssica (stg_luc_consolidado e
+      stg_jsc_consolidado) num único DRE por categoria, em reais, ordenado por mês de débito e
+      pessoa.
+      {{ doc('ciclo_fatura') }}
     columns:
       - name: mes_fatura
         description: "Primeiro dia do mês da fatura de referência."
@@ -207,7 +228,7 @@ models:
       - name: receita_total
         description: "Receita total do mês."
       - name: ajuste_realizado
-        description: "Ajuste recebido"
+        description: '{{ doc("ajuste") }}'
       - name: mercado
         description: "Despesa total na categoria mercado."
       - name: diversos

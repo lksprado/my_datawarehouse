@@ -94,3 +94,19 @@ models:
         description: "Nome da instituição emissora, normalizado (sem sufixos societários e pontuação)."
       - name: conglomerado
         description: "Conglomerado financeiro FGC ao qual a instituição pertence."
+
+  - name: stg_datas_especiais
+    description: >
+      Calendário de datas especiais da família (aniversários e efemérides), vindo do seed
+      datas_especiais. Um registro por evento; a data é recorrente por dia+mês, sem ano fixo.
+      Consumido por dim_datas, que dele deriva fl_data_especial e fl_mes_especial — as flags que
+      permitem ler pico de gasto em `role` e `diversos` como sazonalidade conhecida.
+    columns:
+      - name: dia
+        description: "Dia do mês em que o evento cai (1-31)."
+      - name: mes_num
+        description: "Mês do evento (1-12)."
+      - name: ano_inicio
+        description: "Primeiro ano em que o evento passa a valer (ex.: o ano do casamento). Nulo quando o evento vale para toda a série."
+      - name: motivo
+        description: "Descrição do evento, em maiúsculas."

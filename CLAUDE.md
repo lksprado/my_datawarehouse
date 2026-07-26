@@ -16,20 +16,23 @@ dbt debug
 dbt run
 
 # Run a single model
-dbt run --select stg_all_games_summary
+dbt run --select int_carteira
 
-# Run a domain using selectors (energia | nhl | livros | inflation)
-dbt run --selector nhl
+# Run a domain using selectors (energia | livros | inflation)
+dbt run --selector energia
+
+# Run a domain by tag (financas | datas)
+dbt run --select tag:financas
 
 # Run a model and all its downstream dependents
-dbt run --select stg_all_games_summary+
+dbt run --select int_carteira+
 
 # Run tests
 dbt test
-dbt test --select int_dim_games
+dbt test --select int_carteira
 
-# Full refresh of an incremental model
-dbt run --select stg_all_play_by_play --full-refresh
+# Load the seeds (several finanças models depend on them)
+dbt seed
 
 # Generate and browse docs
 dbt docs generate && dbt docs serve
@@ -44,26 +47,44 @@ dbt deps
 
 | Layer | Materialization | Schema | Prefix | Purpose |
 |-------|----------------|--------|--------|---------|
-| Staging | `table` | `staging` | `stg_` | Extract and type-cast JSON payloads from raw sources; add indexes via `post_hook` |
-| Intermediate | `view` | `intermediate` | `int_dim_` / `int_fct_` | Kimball-style dimensions and facts; business logic joins |
-| Marts | `materialized_view` | `marts` | `mrt_` | Analytics-ready joins across intermediate models |
+| Staging | `table` | `staging` | `stg_` | Extract and type-cast raw sources (JSON payloads, Google Sheets exports, seeds); add indexes via `post_hook` |
+| Intermediate | `view` | `intermediate` | `int_` (`int_dim_` / `int_fct_` in NHL) | Business logic joins; Kimball dimensions and facts |
+| Marts | `table` | `marts` | none in most domains, `mrt_` in energy | Analytics-ready models |
 
-> **Important:** PostgreSQL `MATERIALIZED VIEW` is not auto-refreshed by `dbt run` — it requires a `REFRESH MATERIALIZED VIEW` post-hook or manual execution to update data after the initial build.
+> **Materialization:** every mart is a `table` (`dbt_project.yml` → `marts: +materialized: table`). Some models set `materialized = 'table'` explicitly in their config, which is redundant but harmless. Nothing in the project uses PostgreSQL `MATERIALIZED VIEW` except the NHL parameter views — so no `REFRESH MATERIALIZED VIEW` step is needed anywhere.
 
 ### Domain structure
 
-Each domain lives under `models/staging/<domain>/`, `models/intermediate/<domain>/`, and `models/marts/<domain>/`. Four domains exist:
+Each domain lives under `models/staging/<domain>/`, and — where it has downstream logic — `models/intermediate/<domain>/` and `models/marts/<domain>/`.
 
-- **nhl** — NHL hockey analytics (game summaries, play-by-play, player stats, fights)
+**Finanças** is the active domain, and the only one with a semantic dictionary. It is spread across several staging folders that all feed `models/{intermediate,marts}/financas/`:
+
+- **google** — Google Sheets export: contas, consolidado, patrimônio, luz, ajuste, classificação de carteira
+- **b3** — B3 positions: ações, BDR, ETF, fundos, renda fixa, tesouro direto, proventos
+- **avenue** — Avenue (broker no exterior): assets e dividendos
+- **seeds_sources** — seeds: câmbio USD, de-para FGC, investimentos faltantes, datas especiais
+
+Other domains:
+
 - **inflation** — Price tracking from Atacadão and Minha Inflação scrapers
 - **livros** — Bookstore price history from Vide Editorial scraping
-- **solar_weather_project** — Residential IoT solar generation + OpenWeather API
+- **solar** + **weather** — Residential IoT solar generation + OpenWeather API (mart `energy`, selector `energia`)
+- **conformado** — `int_dates` / `dim_datas`, the conformed date dimension shared by all domains
+- **nhl** — NHL hockey analytics. **Currently disabled**: `dbt_project.yml` sets `+enabled: false` for both `staging.nhl` and `intermediate.nhl`, so these models do not build and are excluded from `dbt run`. The code is kept in the repo.
+
+### Finanças — read this before touching the domain
+
+`models/marts/financas/_docs_financas.md` is the single source of truth for spending categories, investment layers and the investment policy (target allocation, contribution targets, reserve, FGC limits). Change a rule **there**, not in a `schema.yml`.
+
+Its numeric parameters are duplicated in `.claude/skills/relatorio-financas/scripts/montar_relatorio.py` (`alvos_camada()`, `APORTE_ALVO`, `META_RESERVA_*`, `TEXTO_CATEGORIA`, `TEXTO_CAMADA`) because the report builder cannot read Markdown. **Edit both in the same pass** — they silently diverged once and the monthly PDF rendered targets that contradicted the written policy.
 
 ### Key patterns
 
-**JSON denormalization at staging:** All raw tables store a single `payload jsonb` column. Staging models cast every field explicitly, e.g. `(payload ->> 'id')::int as game_id`. Never reference raw `payload` columns downstream of staging.
+**JSON denormalization at staging:** Scraper and API sources store a single `payload jsonb` column. Staging models cast every field explicitly, e.g. `(payload ->> 'id')::int as game_id`. Never reference raw `payload` columns downstream of staging. Google Sheets and seed sources are not JSON — they arrive as text columns and are cleaned with the `clean_string` / `clean_integer` macros.
 
-**Ephemeral base models:** Some staging models have an ephemeral helper (prefixed `stg_base_` in the NHL domain, placed in `bases/` in the inflation domain) that does the common parsing shared by two sibling staging tables. The NHL domain uses `stg_base_*` naming; the inflation domain uses `eph_*` naming — this inconsistency is a known issue.
+**Ephemeral base models:** Some staging models have a helper that does the parsing shared by two sibling staging tables — `stg_base_*` in the NHL domain, `bases/` subfolder in the inflation domain.
+
+**SCD2 by as-of join:** The investment layer (`camada`) is classified by hand in a spreadsheet and read back through `stg_carteira_classificacao`. `int_carteira` and `int_carteira_extra` resolve it with a `LEFT JOIN LATERAL` picking the last classification with `mes_base <= ` the position's month, so past months keep the classification that was in force then. Unclassified positions fall back to `'NAO CLASSIFICADO'`.
 
 **Parameter views:** `models/staging/nhl/parameters/vw_stg_request_*.sql` are not standard staging models — they are `materialized_view` query helpers that the Airflow extraction layer reads to determine which records to fetch next. They follow a different convention (`vw_` prefix) intentionally.
 
@@ -71,24 +92,30 @@ Each domain lives under `models/staging/<domain>/`, `models/intermediate/<domain
 
 **Index post-hooks:** Staging tables add indexes in `post_hook` using `CREATE INDEX IF NOT EXISTS`. Composite indexes exist on high-cardinality join keys (`game_id`, `event_id`, `game_date`).
 
-**Domain selectors:** `selectors.yml` defines path-based selectors for each domain. Use `dbt run --selector nhl` to run only NHL staging + all downstream models.
+**Domain selectors:** `selectors.yml` defines path-based selectors for `energia`, `livros` and `inflation`. Finanças and conformado have **no selector** — select them by tag (`--select tag:financas`, `--select tag:datas`).
 
 ### Schema/YAML files
 
-- `models/staging/_sources.yml` — all 17 raw source tables
-- `models/staging/_schema.yml` — all staging model documentation and tests
-- `models/intermediate/<domain>/schema.yml` — intermediate model tests
-- `models/marts/<domain>/*.yml` — mart documentation (partial)
+- `models/staging/_sources.yml` — all 36 raw source tables
+- `models/staging/<domain>/_schema.yml` — staging documentation and tests, one file per domain folder
+- `models/intermediate/<domain>/_schema.yml` — intermediate documentation and tests
+- `models/marts/<domain>/_schema.yml` — mart documentation
+- `models/marts/financas/_docs_financas.md` — `{% docs %}` blocks shared by the finanças schemas
+
+**Naming:** use `_schema.yml` (leading underscore). Two folders still use `schema.yml` — `intermediate/financas`, `intermediate/livros`, `intermediate/nhl`, `marts/energy`, `marts/inflation`, `marts/livros`. Rename on next touch; dbt does not care about the filename.
 
 ## Dependencies
 
 - `dbt-core ^1.10.0`, `dbt-postgres ^1.10.0`
-- `dbt-labs/dbt_utils 1.3.3` — used for `unique_combination_of_columns` generic test
+- `dbt-labs/dbt_utils 1.3.3` — `unique_combination_of_columns` generic test, `pivot` and `get_column_values`
+- `calogica/dbt_date` — `get_date_dimension` macro behind `int_dates`
 - `sqlfluff ^3.5.0` — SQL linting with dbt templating support
 
 ## Known Gaps (fora do escopo atual)
 
-- `stg_all_players.sql` duplica ~45 linhas de extração JSON para `regular` e `playoffs` — diferem apenas em `careerTotals -> 'regularSeason'` vs `'playoffs'`
-- Sources sem `freshness:` — nenhuma source em `_sources.yml` tem alerta de dados desatualizados configurado
-- `stg_all_games_details` usa incremental por `game_id > max(game_id)` — não cobre backfills; considerar migrar para filtro por data
-- Marts usam `materialized_view` do PostgreSQL (não auto-refreshadas) — requerem `REFRESH MATERIALIZED VIEW` externo ao dbt
+- `carteira_lucas_agregada` / `_jessica_` / `_deusa_`: o pivot por instituição é dinâmico, mas o CTE `final` lista as instituições uma a uma. Instituição nova vira coluna no pivot e é descartada em seguida — não chega ao mart nem entra em `total_investido`.
+- `int_carteira_extra.sql`: o fallback de camada é `'NAO CLASSIFICADO'`, mas a intenção registrada era `'RESERVA ESTRATEGICA'` — saldo em conta, que tem camada natural, aparece como pendência de classificação na planilha.
+- Reserva-alvo: o N em meses de despesa (6 casal / 12 Deusa) está marcado `[CONFIRMAR]` na política — nunca foi validado.
+- Sources sem `freshness:` — nenhuma source em `_sources.yml` tem alerta de dados desatualizados configurado.
+- `sinal()` em `montar_relatorio.py` troca todo `.` por `,`, então o sufixo `" p.p."` sai como `" p,p,"` no PDF.
+- Domínio NHL desabilitado (`+enabled: false`): `stg_all_players.sql` duplica ~45 linhas de extração JSON entre `regular` e `playoffs`, e `stg_all_games_details` usa incremental por `game_id > max(game_id)`, que não cobre backfills.

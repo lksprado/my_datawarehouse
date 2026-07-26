@@ -6,9 +6,10 @@ models:
       Carteira consolidada do casal (Lucas e Jéssica) por mês, com instituição, categoria, tipo,
       indexador, vencimento e valor atualizado por pessoa. Une as posições de renda fixa e renda
       variável de int_carteira com as disponibilidades em conta derivadas de int_patrimonio_mensal
-      (Bradesco, Wise e Bitcoin do Lucas; Banco do Brasil da Jéssica), que entram como categoria
-      DISPONIBILIDADE / camada RESERVA ESTRATEGICA. Só então filtra pessoa IN ('lucas', 'jessica');
-      Deusa fica em carteira_deusa.
+      (Bradesco, Wise e Bitcoin do Lucas; Banco do Brasil da Jéssica), que entram como classe
+      DISPONIBILIDADE e recebem camada pela mesma classificação manual dos demais ativos —
+      'NAO CLASSIFICADO' enquanto não classificadas na planilha. Só então filtra
+      pessoa IN ('lucas', 'jessica'); Deusa fica em carteira_deusa.
       {{ doc('politica_investimentos') }}
     columns:
       - name: mes_base
@@ -92,7 +93,7 @@ models:
         description: "Titular da posição (deusa)."
 
   - name: carteira_lucas_agregada
-    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de int_carteira) para Lucas."
+    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, a partir de int_carteira; a lista de instituições é fixa — ver observação abaixo) para Lucas."
     columns:
       - name: mes_final
         description: "Último dia do mês de referência."
@@ -106,11 +107,13 @@ models:
         description: "Total investido na Daycoval no mês."
       - name: avenue
         description: "Total investido na Avenue no mês."
-    # Observação: as colunas por instituição são geradas dinamicamente (dbt_utils.pivot);
-    # instituições novas viram colunas automaticamente no próximo dbt run.
+    # ATENÇÃO: o pivot é dinâmico, mas o CTE `final` do .sql lista as instituições
+    # uma a uma. Instituição nova vira coluna no pivot e é DESCARTADA em seguida —
+    # não aparece no mart nem entra em total_investido. Ao abrir conta em uma
+    # instituição nova, editar o CTE `final` à mão.
 
   - name: carteira_jessica_agregada
-    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de int_carteira) para Jéssica."
+    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, a partir de int_carteira; a lista de instituições é fixa — ver observação abaixo) para Jéssica."
     columns:
       - name: mes_final
         description: "Último dia do mês de referência."
@@ -124,11 +127,13 @@ models:
         description: "Total investido na Nubank no mês."
       - name: avenue
         description: "Total investido na Avenue no mês."
-    # Observação: as colunas por instituição são geradas dinamicamente (dbt_utils.pivot);
-    # instituições novas viram colunas automaticamente no próximo dbt run.
+    # ATENÇÃO: o pivot é dinâmico, mas o CTE `final` do .sql lista as instituições
+    # uma a uma. Instituição nova vira coluna no pivot e é DESCARTADA em seguida —
+    # não aparece no mart nem entra em total_investido. Ao abrir conta em uma
+    # instituição nova, editar o CTE `final` à mão.
 
   - name: carteira_deusa_agregada
-    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, gerada dinamicamente a partir de int_carteira) para Deusa."
+    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, a partir de int_carteira; a lista de instituições é fixa — ver observação abaixo) para Deusa."
     columns:
       - name: mes_final
         description: "Último dia do mês de referência."
@@ -142,11 +147,13 @@ models:
         description: "Total investido na Nubank no mês."
       - name: avenue
         description: "Total investido na Avenue no mês."
-    # Observação: as colunas por instituição são geradas dinamicamente (dbt_utils.pivot);
-    # instituições novas viram colunas automaticamente no próximo dbt run.
+    # ATENÇÃO: o pivot é dinâmico, mas o CTE `final` do .sql lista as instituições
+    # uma a uma. Instituição nova vira coluna no pivot e é DESCARTADA em seguida —
+    # não aparece no mart nem entra em total_investido. Ao abrir conta em uma
+    # instituição nova, editar o CTE `final` à mão.
 
   - name: carteira_classificacao
-    description: "Mart auxiliar de INPUT do loop de classificação: lista os ativos do mês atual (distintos) já com a camada vigente preenchida ('NAO CLASSIFICADO' para os novos). Cobre os investimentos de int_carteira e também as disponibilidades em conta de int_carteira_extra (saldo Bradesco/Wise/Bitcoin do Lucas, Banco do Brasil da Jéssica), que entram com camada 'RESERVA ESTRATEGICA' por padrão mas podem ser reclassificadas na planilha como qualquer outro ativo. É copiado para a aba 'classificacao' da planilha, onde o Lucas preenche/edita a camada; o ETL do Google lê a aba de volta para raw.carteira_classificacao, fechando o loop de retroalimentação."
+    description: "Mart auxiliar de INPUT do loop de classificação: lista os ativos do mês atual (distintos) já com a camada vigente preenchida ('NAO CLASSIFICADO' para os novos). Cobre os investimentos de int_carteira e também as disponibilidades em conta de int_carteira_extra (saldo Bradesco/Wise/Bitcoin do Lucas, Banco do Brasil da Jéssica), que seguem a mesma regra dos demais ativos e também chegam como 'NAO CLASSIFICADO' até serem classificadas na planilha. É copiado para a aba 'classificacao' da planilha, onde o Lucas preenche/edita a camada; o ETL do Google lê a aba de volta para raw.carteira_classificacao, fechando o loop de retroalimentação."
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base da posição — o mes_base que o Lucas registra na planilha ao classificar ou reclassificar."
@@ -165,7 +172,7 @@ models:
       - name: data_vencimento
         description: "Data de vencimento do título (apenas renda fixa); nula nos demais."
       - name: camada
-        description: "Camada vigente do ativo (reserva/crescimento/renda) ou 'NAO CLASSIFICADO' se ainda não classificado — os brancos que o Lucas deve preencher na planilha. As disponibilidades vindas de int_carteira_extra (saldo Bradesco/Wise/Bitcoin/BB) já chegam como 'RESERVA ESTRATEGICA' por default; as da Avenue vêm por int_carteira e entram como 'NAO CLASSIFICADO', a classificar na planilha."
+        description: "Camada vigente do ativo ou 'NAO CLASSIFICADO' se ainda não classificado — os brancos que o Lucas deve preencher na planilha. Nenhuma camada é inferida pelo modelo: tanto os investimentos de int_carteira quanto as disponibilidades de int_carteira_extra (saldo Bradesco/Wise/Bitcoin/BB) chegam como 'NAO CLASSIFICADO' até receberem classificação manual. Ver o bloco camada_investimento em _docs_financas.md para o significado de cada camada."
 
   - name: dividendos
     description: "Série mensal de renda passiva por pessoa, com spine de datas contínuo entre o primeiro e o último mês com dividendos (zero quando não há recebimento)."
@@ -203,7 +210,7 @@ models:
       - name: vlr_liberado
         description: "Valor ainda coberto pela garantia (limite de R$ 250.000 menos o total investido no conglomerado)."
       - name: risco_fgc
-        description: "Classificação do risco: 'OK' quando há folga acima de R$ 1.000, 'PERIGO!' caso contrário."
+        description: "Classificação do risco: 'OK' quando há folga acima de R$ 50.000, 'PERIGO!' caso contrário."
 
   - name: risco_fgc_jessica
     description: "Exposição ao FGC por conglomerado no mês atual (Jéssica), comparando o total investido ao limite de garantia de R$ 250.000 e sinalizando risco."
@@ -215,7 +222,7 @@ models:
       - name: vlr_liberado
         description: "Valor ainda coberto pela garantia (limite de R$ 250.000 menos o total investido no conglomerado)."
       - name: risco_fgc
-        description: "Classificação do risco: 'OK' quando há folga acima de R$ 1.000, 'PERIGO!' caso contrário."
+        description: "Classificação do risco: 'OK' quando há folga acima de R$ 50.000, 'PERIGO!' caso contrário."
 
   - name: verificar_fgc
     description: "Modelo de auditoria: lista emissores de CDB/LCA/LCI/LC ainda sem conglomerado FGC mapeado. Saída vazia significa que o de-para está completo."
@@ -226,49 +233,61 @@ models:
         description: "Conglomerado FGC (sempre nulo nesta saída — é justamente o que precisa ser mapeado)."
 
   - name: patrimonio_mom
-    description: "Variação Month over Month dos ativos"
+    description: >
+      Variação mês a mês (MoM) de cada saldo de int_patrimonio_mensal. Um registro por mês-base.
+      CUIDADO: as colunas têm exatamente os mesmos nomes de `patrimonio`, mas NÃO são saldos — são
+      variações, expressas em FRAÇÃO DECIMAL com 3 casas (0.045 = +4,5%), calculadas como
+      valor / LAG(valor) - 1 sobre mes_base. O primeiro mês da série e qualquer mês cujo antecessor
+      seja zero ou nulo vêm nulos. Somar ou comparar estas colunas com as de `patrimonio` mistura
+      unidades diferentes.
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base de referência."
       - name: total_patrimonio_bruto
-        description: "Variação percentual mês a mês do patrimônio bruto total."
+        description: "Variação MoM do patrimônio bruto total, em fração decimal."
       - name: total_patrimonio_liquido
-        description: "Variação percentual mês a mês do patrimônio líquido total."
+        description: "Variação MoM, em fração decimal, do patrimônio líquido total."
       - name: patrimonio_liquido_lucas
-        description: "Variação percentual mês a mês do patrimônio líquido de Lucas."
+        description: "Variação MoM, em fração decimal, do patrimônio líquido de Lucas."
       - name: saldo_bradesco_lucas
-        description: "Variação percentual mês a mês do saldo Bradesco (Lucas)."
+        description: "Variação MoM, em fração decimal, do saldo Bradesco (Lucas)."
       - name: saldo_bradesco_investimentos_lucas
-        description: "Variação percentual mês a mês dos investimentos Bradesco (Lucas)."
+        description: "Variação MoM, em fração decimal, dos investimentos Bradesco (Lucas)."
       - name: saldo_nubank_investimentos_lucas
-        description: "Variação percentual mês a mês dos investimentos Nubank (Lucas)."
+        description: "Variação MoM, em fração decimal, dos investimentos Nubank (Lucas)."
       - name: saldo_nubank_cashback_lucas
-        description: "Variação percentual mês a mês do cashback Nubank (Lucas)."
+        description: "Variação MoM, em fração decimal, do cashback Nubank (Lucas)."
       - name: saldo_bitcoin_lucas
-        description: "Variação percentual mês a mês do saldo em bitcoin (Lucas)."
+        description: "Variação MoM, em fração decimal, do saldo em bitcoin (Lucas)."
       - name: saldo_daycoval_lucas
-        description: "Variação percentual mês a mês dos investimentos Daycoval (Lucas)."
+        description: "Variação MoM, em fração decimal, dos investimentos Daycoval (Lucas)."
       - name: saldo_avenue_lucas
-        description: "Variação percentual mês a mês do saldo Avenue (Lucas)."
+        description: "Variação MoM, em fração decimal, do saldo Avenue (Lucas)."
       - name: saldo_wise_lucas
-        description: "Variação percentual mês a mês do saldo Wise (Lucas)."
+        description: "Variação MoM, em fração decimal, do saldo Wise (Lucas)."
       - name: patrimonio_liquido_jessica
-        description: "Variação percentual mês a mês do patrimônio líquido de Jéssica."
+        description: "Variação MoM, em fração decimal, do patrimônio líquido de Jéssica."
       - name: saldo_banco_brasil_jessica
-        description: "Variação percentual mês a mês do saldo Banco do Brasil (Jéssica)."
+        description: "Variação MoM, em fração decimal, do saldo Banco do Brasil (Jéssica)."
       - name: saldo_sofisa_investimentos_jessica
-        description: "Variação percentual mês a mês dos investimentos Sofisa (Jéssica)."
+        description: "Variação MoM, em fração decimal, dos investimentos Sofisa (Jéssica)."
       - name: saldo_itau_investimentos_jessica
-        description: "Variação percentual mês a mês dos investimentos Itaú (Jéssica)."
+        description: "Variação MoM, em fração decimal, dos investimentos Itaú (Jéssica)."
       - name: saldo_nubank_investimentos_jessica
-        description: "Variação percentual mês a mês dos investimentos Nubank (Jéssica)."
+        description: "Variação MoM, em fração decimal, dos investimentos Nubank (Jéssica)."
       - name: saldo_avenue_jessica
-        description: "Variação percentual mês a mês do saldo Avenue (Jéssica)."
+        description: "Variação MoM, em fração decimal, do saldo Avenue (Jéssica)."
       - name: vlr_carro
-        description: "Variação percentual mês a mês do valor de mercado do carro."
+        description: "Variação MoM, em fração decimal, do valor de mercado do carro."
 
   - name: patrimonio
-    description: "Saldos das contas que contabiliza os ativos"
+    description: >
+      Fotografia mensal do patrimônio do casal: um registro por mês-base, com o bruto e o líquido
+      totais, o líquido de cada titular e o saldo de cada conta/instituição, em reais. Vem de
+      int_patrimonio_mensal, cuja origem é a planilha (raw.patrimonio) — é declarado manualmente,
+      não derivado das posições de carteira, e por isso pode divergir de carteira_lucas_jessica em
+      meses em que as duas fontes não fecharam juntas. Para variação use patrimonio_mom, que tem os
+      mesmos nomes de coluna com unidade diferente.
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base de referência."
@@ -315,10 +334,19 @@ models:
       - name: saldo_avenue_jessica
         description: "Saldo na Avenue (Jéssica)."
       - name: vlr_carro
-        description: "Valor de mercado do carro segundo a fipe"
+        description: "Valor de mercado do carro segundo a tabela Fipe, em reais."
 
   - name: riqueza
-    description: "Compara mês a mês o crescimento acumulado do patrimônio líquido (composto a partir das variações MoM de patrimonio_mom, a partir de 2023-11) contra os índices acumulados de int_indexadores, classificando cada mês como RICO(S) ou POBRE(S) por indexador."
+    description: >
+      Compara mês a mês o crescimento acumulado do patrimônio líquido (composto a partir das
+      variações MoM de patrimonio_mom, a partir de 2023-11) contra os índices acumulados de
+      int_indexadores, classificando cada mês por indexador.
+      NÃO É RENTABILIDADE: o índice compõe a variação do patrimônio, que inclui os aportes do
+      período. Um mês de aporte alto sobe o índice sem que nenhum ativo tenha rendido. Comparar
+      este índice ao CDI portanto SUPERESTIMA o desempenho da carteira — serve para responder "meu
+      patrimônio cresceu mais que a inflação?", não "minha carteira bateu o CDI?".
+      Os rótulos RICO(S)/POBRE(S) das colunas comparativo_* são internos; em relatório, escreva
+      "acima do CDI" / "abaixo do IPCA".
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base de referência."
@@ -370,7 +398,13 @@ models:
         description: "'RICO' quando o índice do patrimônio de Jéssica supera o do CDI no mês; 'POBRE' caso contrário."
 
   - name: consumo
-    description: "Consumo diário débito e crédito por dia"
+    description: >
+      Despesa diária do casal por categoria, em reais: um registro por data de lançamento, somando
+      Lucas e Jéssica a partir de int_consumo_consolidado. O grão é o dia; para o fechamento mensal
+      com receita use `resultado`.
+      ATENÇÃO: contém meses futuros pré-lançados, com as despesas fixas recorrentes já agendadas.
+      Esses meses não são realizados e precisam ser cortados antes de qualquer média ou diagnóstico.
+      {{ doc('ciclo_fatura') }}
     columns:
       - name: mes
         description: "Primeiro dia do mês de débito/competência."
@@ -410,7 +444,14 @@ models:
         description: '{{ doc("categoria_educacao") }}'
 
   - name: resultado
-    description: "Receita x Despesas e tipos de despesas"
+    description: >
+      DRE mensal do casal, em reais: um registro por mês de débito/competência, com receita aberta
+      por origem, despesa aberta pelas oito categorias e o resultado do período (receita − despesa),
+      somando Lucas e Jéssica a partir de int_dre_consolidado.
+      ATENÇÃO: contém meses futuros pré-lançados, com as despesas fixas recorrentes já agendadas.
+      Esses meses não são realizados — filtre por mês de referência antes de calcular médias, taxa
+      de poupança ou variação.
+      {{ doc('ciclo_fatura') }}
     columns:
       - name: mes_debito
         description: "Primeiro dia do mês de débito/competência."
@@ -450,7 +491,12 @@ models:
         description: '{{ doc("categoria_educacao") }}'
 
   - name: luz
-    description: "Dados da conta de Luz"
+    description: >
+      Conta de energia do apartamento por mês de referência: valor faturado, consumo em kWh, dias do
+      período, consumo médio diário e preço médio por kWh. Serve para separar efeito preço
+      (preco_kwh) de efeito consumo (kwh_dia) quando a categoria apartamento sobe.
+      É o DETALHAMENTO de uma parcela da categoria `apartamento` em `resultado`/`consumo`, não uma
+      categoria à parte — nunca some os dois.
     columns:
       - name: mes
         description: "Primeiro dia do mês de referência da conta."

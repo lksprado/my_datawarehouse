@@ -1,4 +1,23 @@
 selectors:
+  # Finanças nasce de quatro pastas de staging (planilha, B3, Avenue e seeds) e
+  # converge para models/{intermediate,marts}/financas.
+  # Puxa junto os marts de livros: seeds_sources alimenta dim_datas, que é a
+  # dimensão conformada e tem dependentes fora do domínio.
+  - name: financas
+    definition:
+      union:
+        - method: path
+          value: models/staging/google
+          children: true
+        - method: path
+          value: models/staging/b3
+          children: true
+        - method: path
+          value: models/staging/avenue
+          children: true
+        - method: path
+          value: models/staging/seeds_sources
+          children: true
   - name: energia
     definition:
       union:

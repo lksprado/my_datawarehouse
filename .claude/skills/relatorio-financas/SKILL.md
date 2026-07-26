@@ -28,6 +28,11 @@ recomendação saem de lá. Se um parâmetro estiver marcado `[CONFIRMAR]`, use-
 mesmo assim e sinalize no relatório que é premissa a validar — não o substitua
 por um número inventado.
 
+Os parâmetros numéricos da política estão duplicados em `montar_relatorio.py`
+(`alvos_camada()`, `APORTE_ALVO`, `META_RESERVA_*`, `TEXTO_CATEGORIA`,
+`TEXTO_CAMADA`), porque o montador não lê Markdown. Se os dois discordarem,
+**vale o `_docs_financas.md`** — e corrija o Python na mesma passada.
+
 ## Passo 1 — Extrair os dados
 
 ```bash
@@ -59,8 +64,13 @@ recalcule agregados de cabeça — se faltar um corte, acrescente o bloco em
 - **`saude` e `educacao` não entram em sugestão de corte**, por decisão
   registrada no glossário.
 - **`camada = 'NAO CLASSIFICADO'`** não é alocação: é pendência operacional.
-  Vai para a lista de ações, e o percentual de cada camada deve ser reportado
-  com nota de que há valor não classificado fora da conta.
+  Vai para a lista de ações. Vale para saldo em conta também — o default de
+  qualquer posição nova, inclusive das disponibilidades, é `NAO CLASSIFICADO`.
+- **`RESERVA ESTRATEGICA` não tem alvo** (cripto, moeda estrangeira, cashback).
+  Ela e `NAO CLASSIFICADO` ficam **fora do denominador** da alocação por camada:
+  os alvos de 30/50/20 são sobre a carteira sem as duas. O montador já faz essa
+  conta e imprime a nota das duas bases — ao citar percentual de camada na
+  narrativa, use o da tabela, não o `pct_da_carteira` cru do JSON.
 - **`riqueza.comparativo_*`** usa `RICO`/`POBRE` como rótulo interno de
   superação de benchmark. Não reproduza esses termos no PDF — escreva "acima do
   CDI" / "abaixo do IPCA".
@@ -75,7 +85,9 @@ Trabalhe as duas frentes com o rigor de cada profissão.
   móvel de 6 meses e contra o mesmo mês do ano anterior quando houver base.
 - Separe fixo de variável e essencial de discricionário conforme o glossário —
   é isso que torna a recomendação acionável.
-- Cobertura da reserva de emergência em meses de despesa, contra a meta.
+- Cobertura da reserva de emergência, em meses de despesa, contra a reserva-alvo
+  da política: o maior entre N meses da **mediana** da despesa dos últimos 6
+  meses fechados e o piso de R$ 100.000. Diga qual das duas regras está valendo.
 - Conta de luz: separe efeito preço (`preco_kwh`) de efeito consumo (`kwh_dia`).
 
 **Assessor de investimentos** (todos):

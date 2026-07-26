@@ -251,7 +251,12 @@ models:
         data_tests:
           - not_null
       - name: camada
-        description: "Camada de alocação do ativo, em minúsculas: reserva, crescimento ou renda."
+        description: >
+          Camada de alocação atribuída manualmente na planilha, em MAIÚSCULAS. Só estes quatro
+          valores são aceitos — o teste abaixo falha em qualquer outro, inclusive na variação em
+          minúsculas. 'NAO CLASSIFICADO' não entra aqui: é o default que o downstream aplica a
+          quem ainda não tem linha nesta aba, não algo que se digite.
+          Significado de cada camada: {{ doc('camada_investimento') }}
         data_tests:
           - not_null
           - accepted_values:

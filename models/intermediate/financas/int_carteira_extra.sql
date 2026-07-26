@@ -11,10 +11,8 @@
   int_carteira para que os dois possam ser unidos por posição a jusante.
 
   A camada vem do mesmo join as-of (SCD2) contra stg_carteira_classificacao que
-  int_carteira usa, fechando o loop da planilha também para as disponibilidades.
-  O fallback aqui é 'RESERVA ESTRATEGICA' (e não 'NAO CLASSIFICADO' como em
-  int_carteira) porque saldo em conta já tem camada natural — não deve aparecer
-  como pendência de classificação na planilha.
+  int_carteira usa, fechando o loop da planilha também para as disponibilidades,
+  com o mesmo fallback 'NAO CLASSIFICADO'.
 -#}
 
 WITH

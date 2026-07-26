@@ -6,7 +6,7 @@ This repository serves as a **Git submodule** within an Airflow environment, imp
 
 ### Purpose & Architecture
 
-- **Data Centralization**: Consolidates distinct analytical domains (NHL Sports Analytics, Residential Solar Energy IoT, Weather Data, E-commerce products of interest);
+- **Data Centralization**: Consolidates distinct analytical domains (Personal Finance, Residential Solar Energy IoT, Weather Data, Inflation tracking, E-commerce products of interest, NHL Sports Analytics);
 - **Scalable Orchestration**: Integrated with Airflow DAGs for automated, scheduled transformations using Astro Cosmos;
 - **Analytics-Ready**: Follows **dbt** three-layer medallion architecture (staging → intermediate → marts);
 - **Production Patterns**: Implements incremental loading, Kimball modelling, testing and documentation best practices;
@@ -14,7 +14,21 @@ This repository serves as a **Git submodule** within an Airflow environment, imp
 
 ## The data projects I have been working on...
 
-### 1. 🏒 **NHL Hockey Analytics**
+### 0. 💰 **Personal Finance** *(main domain)*
+- **Sources**: Google Sheets exports (accounts, consolidated P&L, net worth, electricity bill,
+  portfolio classification), B3 position files, Avenue (US broker), and seeds (USD rate, FGC
+  institution mapping, special dates)
+- **Content**: Monthly net worth, income statement by category, investment portfolio by layer and
+  institution, passive income, FGC exposure, and wealth growth against CDI / IPCA / personal inflation
+- **Frequency**: Monthly close
+- **Key Models**:
+  - **Facts**: `resultado` (P&L), `consumo` (daily spend), `patrimonio` (net worth), `dividendos`
+  - **Portfolio**: `carteira_lucas_jessica`, `carteira_deusa`, `risco_fgc_*`
+  - **Features**: SCD2 allocation layer via as-of join, feedback loop back into the spreadsheet
+    (`carteira_classificacao`), and a semantic dictionary (`_docs_financas.md`) that drives both the
+    dbt docs and the monthly PDF report
+
+### 1. 🏒 **NHL Hockey Analytics** *(currently disabled in `dbt_project.yml`)*
 - **Sources**: \
   [nhl-extraction](https://github.com/lksprado/nhl-extraction) — Custom API extraction layer \
   [hockey-fights](https://github.com/lksprado/hockey-fights) — Webscraping [hockeyfights.com](https://www.hockeyfights.com/) website for fighting information
@@ -55,7 +69,7 @@ This repository serves as a **Git submodule** within an Airflow environment, imp
 |-------|------|---------|---------|
 | **Staging** | Tables + Indexes | Extract, clean, denormalize raw payloads | `stg_all_games_summary`, `stg_all_players` |
 | **Intermediate** | Views | Dimension/fact tables, business logic joins | `int_dim_games`, `int_fct_games_events` |
-| **Marts** | Materialized Views | Dashboard-ready, cross-domain analytics | `mrt_energia_clima` (solar + weather) |
+| **Marts** | Tables | Dashboard-ready, cross-domain analytics | `mrt_energia_clima` (solar + weather), `carteira_lucas_jessica` (finance) |
 
 
 ## Technical Highlights
@@ -70,7 +84,7 @@ This repository serves as a **Git submodule** within an Airflow environment, imp
 ### Key Technical Decisions
 - **PostgreSQL**: Single source-of-truth database with raw/staging/intermediate/marts schemas
 - **dbt**: Version-controlled, testable SQL transformations with documentation generation
-- **Materialized Views**: Performance optimization for analytics queries on high-cardinality facts
+- **Mart Tables**: marts are materialized as tables, rebuilt by `dbt run` — no manual refresh step
 - **Airflow Integration**: External orchestration triggers dbt runs via CLI/API
 - **Version Control**: Complete lineage and reproducibility through dbt manifest
 
@@ -87,8 +101,12 @@ sqlfluff: ^3.5.0 (SQL linting with dbt templating)
 ```
 ├── models/
 │   ├── staging/               # Raw → Clean
-│   │   ├── nhl/              # NHL models
-│   │   └── solar_weather_project/  # Solar + Weather models
+│   │   ├── google/           # Spreadsheet exports (finance)
+│   │   ├── b3/ avenue/       # Broker positions and dividends
+│   │   ├── seeds_sources/    # Seeds: FX, FGC mapping, special dates
+│   │   ├── solar/ weather/   # Solar + Weather models
+│   │   ├── inflation/ livros/
+│   │   └── nhl/              # NHL models (currently disabled)
 │   ├── intermediate/          # Clean → Business Logic
 │   │   ├── int_dim_*.sql     # Dimension tables
 │   │   └── int_fct_*.sql     # Fact tables
@@ -111,11 +129,12 @@ dbt debug
 # Run all models
 dbt run
 
-# Run specific domain (e.g., NHL data)
-dbt run --tag nhl
+# Run a specific domain
+dbt run --selector energia          # solar + weather
+dbt run --select tag:financas       # personal finance
 
 # Run specific layer (e.g., intermediate models)
-dbt run --models int_dim_* int_fct_*
+dbt run --select int_dim_* int_fct_*
 
 # Execute all tests
 dbt test
@@ -134,8 +153,9 @@ dbt docs generate && dbt docs serve
 | **Marts** | Materialized | Refreshed with staging updates (optimized for analytics) |
 
 
-## 🎯 Roadmap 2026+
+## 🎯 Roadmap
 
-### Planned Data Domains
-- **Consumer Price Index Data**: Inflation tracking and monitoring
-- **Utility Consumption**: Energy cost attribution and forecasting
+### Delivered since
+- **Consumer Price Index Data**: inflation tracking (Atacadão + Minha Inflação)
+- **Utility Consumption**: electricity bill, with price vs. consumption split (`luz`)
+- **Personal Finance**: net worth, DRE, investment portfolio and monthly PDF reporting

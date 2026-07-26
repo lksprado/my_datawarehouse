@@ -39,7 +39,7 @@ MES_CURTO = ["", "jan", "fev", "mar", "abr", "mai", "jun",
 SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100",
           "#e87ba4", "#008300", "#4a3aa7", "#e34948"]
 COR_CAMADA = {"RESERVA": SERIES[0], "CRESCIMENTO": SERIES[1], "RENDA": SERIES[2],
-              "NAO CLASSIFICADO": "#7a7975"}
+              "RESERVA ESTRATEGICA": SERIES[3], "NAO CLASSIFICADO": "#7a7975"}
 CATEGORIAS = ["mercado", "diversos", "assinaturas", "role",
               "transporte", "apartamento", "saude", "educacao"]
 ROTULO_CAT = {"mercado": "Mercado", "diversos": "Diversos",
@@ -48,33 +48,44 @@ ROTULO_CAT = {"mercado": "Mercado", "diversos": "Diversos",
               "saude": "Saúde", "educacao": "Educação"}
 COR_CAT = {c: SERIES[i] for i, c in enumerate(CATEGORIAS)}
 
+# Resumo de _docs_financas.md. Ao editar lá, propague para cá — a SKILL.md
+# exige que os dois não divirjam, e já divergiram uma vez.
 TEXTO_CAMADA = {
-    "RESERVA": "Liquidez e preservação de capital. Resgate imediato, sem "
-               "marcação a mercado negativa. Dimensionada em meses de despesa.",
+    "RESERVA": "Liquidez e preservação de capital. Resgate em até D+1, sem "
+               "marcação a mercado negativa, e destinado a cobrir despesa — "
+               "não a ser carregado até o vencimento.",
     "CRESCIMENTO": "Acumulação de patrimônio no longo prazo, aceitando "
                    "volatilidade. Horizonte de cinco anos ou mais.",
     "RENDA": "Geração de fluxo de caixa recorrente e previsível. O que "
-             "qualifica é a regularidade do pagamento, não o retorno total.",
+             "qualifica é a regularidade do pagamento, não o retorno total "
+             "nem o prazo.",
+    "RESERVA ESTRATEGICA": "Reserva de valor em cripto, moeda estrangeira e "
+                           "cashback. Líquida, mas dependente de cenário "
+                           "favorável para ser liquidada e sem novos aportes — "
+                           "por isso fica fora da alocação-alvo.",
     "NAO CLASSIFICADO": "Ativo ainda sem camada atribuída na planilha. Não é "
                         "uma alocação — é pendência de classificação.",
 }
 TEXTO_CATEGORIA = {
-    "mercado": "Supermercado, hortifruti, açougue, padaria, bebidas de casa, "
-               "limpeza e higiene. Não inclui refeição fora nem farmácia.",
-    "diversos": "Categoria residual: vestuário, presentes, eletrônicos, taxas "
-                "bancárias, imprevistos. O que não cabe nas demais.",
+    "mercado": "Supermercado, hortifruti, feira, açougue, peixaria, padaria, "
+               "marmitas, bebidas de casa, limpeza e higiene. Não inclui "
+               "refeição fora nem farmácia.",
+    "diversos": "Categoria residual: vestuário, presentes, eletrônicos, "
+                "objetos domésticos, taxas bancárias, imprevistos. O que não "
+                "cabe nas demais.",
     "assinaturas": "Serviços recorrentes de cobrança automática: streaming, "
                    "nuvem, software, telefonia, academia.",
     "role": "Lazer e consumo fora de casa: bares, restaurantes, delivery, "
             "cinema, eventos, viagens.",
     "transporte": "Combustível, aplicativos, transporte público, "
                   "estacionamento, pedágio, manutenção, seguro e IPVA.",
-    "apartamento": "Moradia: aluguel ou financiamento, condomínio, IPTU, luz, "
-                   "água, gás, internet fixa, móveis e reformas.",
+    "apartamento": "Moradia: prestação do imóvel, condomínio, IPTU, luz, "
+                   "água, gás, internet fixa, móveis, reformas, reparos e "
+                   "serviços domésticos.",
     "saude": "Plano de saúde, consultas, exames, odontologia, terapia e "
              "farmácia.",
-    "educacao": "Cursos, graduação, certificações, livros técnicos e material "
-                "didático.",
+    "educacao": "Cursos, graduação e pós, certificações, livros, material "
+                "didático e plataformas de ensino.",
 }
 
 
@@ -331,26 +342,61 @@ def media(vals):
     return sum(vals) / len(vals) if vals else 0.0
 
 
+def mediana(vals):
+    """Usada para dimensionar a reserva: a política pede mediana justamente
+    para que um mês atípico (IPVA, viagem, reforma) não infle a meta."""
+    vals = sorted(v for v in vals if v is not None)
+    if not vals:
+        return 0.0
+    meio = len(vals) // 2
+    if len(vals) % 2:
+        return float(vals[meio])
+    return (float(vals[meio - 1]) + float(vals[meio])) / 2
+
+
 def variacao(atual, base):
     return None if not base else (atual - base) / base * 100
 
 
 def alvos_camada(escopo):
-    """Alocação-alvo de _docs_financas.md. [CONFIRMAR]"""
+    """Alocação-alvo, cópia da tabela de `politica_investimentos` em
+    _docs_financas.md. Percentuais sobre a carteira EXCLUINDO
+    'RESERVA ESTRATEGICA' e 'NAO CLASSIFICADO' — as duas não têm alvo."""
     return {
-        "lucas":   {"RESERVA": 25, "CRESCIMENTO": 55, "RENDA": 20},
-        "jessica": {"RESERVA": 40, "CRESCIMENTO": 50, "RENDA": 10},
-        "deusa":   {"RESERVA": 40, "CRESCIMENTO": 25, "RENDA": 35},
+        "lucas":   {"RESERVA": 30, "CRESCIMENTO": 50, "RENDA": 20},
+        "jessica": {"RESERVA": 30, "CRESCIMENTO": 70, "RENDA": 0},
+        "deusa":   {"RESERVA": 30, "CRESCIMENTO": 60, "RENDA": 10},
     }
 
 
-APORTE_ALVO = {"lucas": 4000, "jessica": 2500, "deusa": 1000}
-META_RESERVA_MESES = {"casal": 6, "deusa": 12}
+# Camadas com alocação-alvo, na ordem em que saem no relatório.
+CAMADAS_COM_ALVO = ["RESERVA", "CRESCIMENTO", "RENDA"]
+# Camadas reportadas à parte, sem alvo (ver `camada_investimento`).
+CAMADAS_SEM_ALVO = ["RESERVA ESTRATEGICA", "NAO CLASSIFICADO"]
+# Os valores no banco não têm acento; o PDF tem.
+ROTULO_CAMADA = {"RESERVA": "Reserva", "CRESCIMENTO": "Crescimento",
+                 "RENDA": "Renda", "RESERVA ESTRATEGICA": "Reserva estratégica",
+                 "NAO CLASSIFICADO": "Não classificado"}
+
+APORTE_ALVO = {"lucas": 4000, "jessica": 2500, "deusa": 3000}
+# Reserva-alvo = max(N x mediana da despesa de 6 meses, R$ 100.000).
+META_RESERVA_MESES = {"casal": 6, "deusa": 12}  # [CONFIRMAR]
+META_RESERVA_PISO = 100000
 META_POUPANCA_PCT = 35
 FGC_FOLGA_MINIMA = 50000
 
 
 # ----------------------------------------------------------------- carteira ---
+
+def nota_bases(base_alvo, total):
+    """A tabela de camadas usa duas bases; sem esta nota ela engana."""
+    if base_alvo >= total:
+        return ""
+    return (f"<p class='sub'>As camadas com alvo somam 100% da base de "
+            f"rebalanceamento ({brl(base_alvo)}), que exclui reserva "
+            f"estratégica e não classificados. As duas últimas linhas estão em "
+            f"% da carteira total ({brl(total)}).</p>")
+
 
 def secao_carteira(d, pessoa, num_ref):
     camadas = [c for c in d["carteira_camada"] if c["pessoa"] == pessoa]
@@ -358,19 +404,25 @@ def secao_carteira(d, pessoa, num_ref):
     if not total:
         return ""
     alvos = alvos_camada(None)[pessoa]
-    atual = {c["camada"]: float(c["pct_da_carteira"]) for c in camadas}
     valores = {c["camada"]: c["valor"] for c in camadas}
 
-    dados_alvo = [(cm, COR_CAMADA[cm], atual.get(cm, 0.0), alvos.get(cm, 0))
-                  for cm in ["RESERVA", "CRESCIMENTO", "RENDA"]]
-    nc = atual.get("NAO CLASSIFICADO")
+    # O alvo da política é sobre a carteira SEM as camadas que não têm alvo, e
+    # `pct_da_carteira` vem do SQL calculado sobre o total — por isso o
+    # percentual comparável ao alvo é recalculado aqui sobre a base-alvo.
+    base_alvo = total - sum(valores.get(cm, 0) for cm in CAMADAS_SEM_ALVO)
+    dados_alvo = [(cm, COR_CAMADA[cm],
+                   float(valores.get(cm, 0)) / base_alvo * 100 if base_alvo else 0.0,
+                   alvos.get(cm, 0))
+                  for cm in CAMADAS_COM_ALVO]
+    # Estas seguem em % da carteira total — é o valor que elas de fato ocupam.
+    atual_total = {c["camada"]: float(c["pct_da_carteira"]) for c in camadas}
 
     lin = []
     for cm, cor, a, alvo in dados_alvo:
         desvio = a - alvo
         dentro = abs(desvio) <= 5
         lin.append([
-            f'<i class="chip" style="background:{cor}"></i>{cm.capitalize()}',
+            f'<i class="chip" style="background:{cor}"></i>{ROTULO_CAMADA[cm]}',
             brl(valores.get(cm, 0)), pct(a), f"{alvo}%",
             # desvio do alvo é ruim nos dois sentidos — nunca verde por ser positivo
             f'<span class="{"" if dentro else "delta-neg"}">'
@@ -378,11 +430,18 @@ def secao_carteira(d, pessoa, num_ref):
             '<span class="tag tag-ok">✓ na banda</span>' if dentro else
             '<span class="tag tag-atencao">▲ fora da banda</span>',
         ])
-    if nc:
+    # Camadas sem alvo: entram na tabela para que o valor não desapareça do
+    # relatório, mas com alvo "—" e percentual sobre a carteira toda.
+    for cm in CAMADAS_SEM_ALVO:
+        if not valores.get(cm):
+            continue
+        pendencia = cm == "NAO CLASSIFICADO"
         lin.append([
-            f'<i class="chip" style="background:{COR_CAMADA["NAO CLASSIFICADO"]}"></i>Não classificado',
-            brl(valores.get("NAO CLASSIFICADO", 0)), pct(nc), "—", "—",
-            '<span class="tag tag-atencao">▲ classificar</span>'])
+            f'<i class="chip" style="background:{COR_CAMADA[cm]}"></i>'
+            f'{ROTULO_CAMADA[cm]}',
+            brl(valores[cm]), pct(atual_total.get(cm, 0.0)), "—", "—",
+            '<span class="tag tag-atencao">▲ classificar</span>' if pendencia
+            else '<span class="tag">sem alvo</span>'])
 
     inst = [i for i in d["carteira_instituicao"] if i["pessoa"] == pessoa]
     tipos = [t for t in d["carteira_tipo"] if t["pessoa"] == pessoa]
@@ -400,6 +459,7 @@ def secao_carteira(d, pessoa, num_ref):
         "<h3>Alocação por camada contra a política</h3>",
         f"<figure>{barras_alvo(dados_alvo)}</figure>",
         tabela(["Camada", "Valor", "Atual", "Alvo", "Desvio", "Situação"], lin),
+        nota_bases(base_alvo, total),
         "<h3>Concentração</h3>",
         tabela(["Instituição", "Valor", "% da carteira"],
                [[i["instituicao"].title(), brl(i["valor"]), pct(i["pct_da_carteira"])]
@@ -481,9 +541,9 @@ def glossario(escopo):
                          f'{ROTULO_CAT[c]}</dt><dd>{TEXTO_CATEGORIA[c]}</dd>')
         itens.append("</dl>")
     itens.append("<h3>Camadas de investimento</h3><dl class='glossario'>")
-    for cm in ["RESERVA", "CRESCIMENTO", "RENDA", "NAO CLASSIFICADO"]:
+    for cm in CAMADAS_COM_ALVO + CAMADAS_SEM_ALVO:
         itens.append(f'<dt><i class="chip" style="background:{COR_CAMADA[cm]}"></i>'
-                     f'{cm.capitalize()}</dt><dd>{TEXTO_CAMADA[cm]}</dd>')
+                     f'{ROTULO_CAMADA[cm]}</dt><dd>{TEXTO_CAMADA[cm]}</dd>')
     itens.append("</dl>")
     itens.append(
         "<p class='sub'>A camada descreve o papel do ativo na carteira, não o que "
@@ -508,7 +568,10 @@ def montar_casal(d, n):
     pat = d["patrimonio"]
     upat = pat[-1]
 
+    # Média para comparar o gasto do mês; mediana para dimensionar a reserva —
+    # a política pede mediana para que um mês atípico não infle a meta.
     desp6 = media([r["total_despesas"] for r in dre[-7:-1]])
+    desp6_med = mediana([r["total_despesas"] for r in dre[-7:-1]])
     poupanca = ult["resultado"] / ult["total_receita"] * 100 if ult["total_receita"] else 0
     poupanca12 = (sum(r["resultado"] for r in dre) /
                   sum(r["total_receita"] for r in dre) * 100)
@@ -517,7 +580,10 @@ def montar_casal(d, n):
 
     reserva_casal = sum(c["valor"] for c in d["carteira_camada"]
                         if c["pessoa"] in ("lucas", "jessica") and c["camada"] == "RESERVA")
-    cobertura = reserva_casal / desp6 if desp6 else 0
+    # Reserva-alvo = max(N x mediana da despesa de 6 meses, piso em R$).
+    cobertura = reserva_casal / desp6_med if desp6_med else 0
+    meta_reserva = max(META_RESERVA_MESES["casal"] * desp6_med, META_RESERVA_PISO)
+    meta_meses = meta_reserva / desp6_med if desp6_med else 0
 
     partes = [cabecalho(
         "Relatório financeiro do casal",
@@ -536,8 +602,8 @@ def montar_casal(d, n):
               f'{sinal(variacao(ult["total_despesas"], desp6))} vs. média 6m',
               classe_delta(variacao(ult["total_despesas"], desp6), bom_se_sobe=False))
         + kpi("Reserva de emergência", f"{cobertura:.1f}".replace(".", ",") + " meses",
-              f'meta {META_RESERVA_MESES["casal"]} meses',
-              "delta-pos" if cobertura >= 6 else "delta-neg")
+              f'meta {meta_meses:.0f} meses ({brl(meta_reserva)})',
+              "delta-pos" if reserva_casal >= meta_reserva else "delta-neg")
         + "</div>"
         + (n.get("sumario") or "")))
 

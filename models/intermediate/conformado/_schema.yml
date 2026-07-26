@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: int_dates
+    description: >
+      Dimensão de datas conformada, gerada pela macro dbt_date.get_date_dimension para o intervalo
+      fixo 2020-01-01 a 2050-12-31, no fuso America/Sao_Paulo (var dbt_date:time_zone). Um registro
+      por dia. Não tem regra de negócio própria — é a base que dim_datas enriquece com as datas
+      especiais. Ao precisar de datas fora do intervalo, alterar os argumentos da macro no .sql.
+    columns:
+      - name: date_day
+        description: "Data do dia — chave natural da dimensão."
+      - name: day_of_month
+        description: "Dia do mês (1-31)."
+      - name: month_of_year
+        description: "Mês do ano (1-12)."
+      - name: year_number
+        description: "Ano com quatro dígitos."
+      - name: quarter_of_year
+        description: "Trimestre do ano (1-4)."
+      - name: week_of_year
+        description: "Semana do ano."

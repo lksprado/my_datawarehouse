@@ -8,14 +8,19 @@
     3. a política de investimento (aporte, alocação-alvo, metas e limites).
     4. demais conhecimentos que auxiliem calcular e interpretar os dados
 
-  É lido em dois lugares:
+  É lido em três lugares:
     - pelo `dbt docs generate` (os blocos `{% docs %}` abaixo são referenciados
       em `_schema.yml` via `{{ doc('...') }}`);
     - pela skill `/relatorio-financas`, que usa estas definições para escrever
-      o diagnóstico e as recomendações dos relatórios em PDF.
+      o diagnóstico e as recomendações dos relatórios em PDF;
+    - pelos dicionários `TEXTO_CATEGORIA`, `TEXTO_CAMADA`, `alvos_camada()`,
+      `APORTE_ALVO` e `META_RESERVA_MESES` de
+      `.claude/skills/relatorio-financas/scripts/montar_relatorio.py`, que são
+      cópia resumida deste arquivo e vão impressos no PDF.
 
   Ao mudar uma regra de classificação de gasto ou de camada, edite AQUI —
-  não no schema.yml e não na skill.
+  não no schema.yml e não na skill. Depois propague para os dicionários do
+  `montar_relatorio.py`: eles não leem este arquivo, e já divergiram dele.
 
   ============================================================================
 #}
@@ -43,8 +48,9 @@ preço.
 
 **Diversos** — categoria residual.
 
-Entra: vestuário e calçado, presentes, eletrônicos e acessórios pessoais, objetos domésticos, imprevistos e qualquer
-lançamento que não caiba nas demais categorias.
+Entra: vestuário e calçado, presentes, eletrônicos e acessórios pessoais, objetos
+domésticos, taxas e tarifas bancárias, imprevistos e qualquer lançamento que não
+caiba nas demais categorias.
 
 Não entra: nada que tenha categoria própria. Se um tipo de gasto aparece em
 `diversos` de forma recorrente, ele deixou de ser residual e merece categoria
@@ -117,8 +123,9 @@ sazonalidade antes de tratá-los como descontrole.
 
 **Apartamento** — moradia e sua manutenção.
 
-Entra: condomínio, IPTU, energia elétrica, internet fixa, móveis,
-reformas, reparos e serviços domésticos.
+Entra: prestação do imóvel (financiamento ou aluguel), condomínio, IPTU, energia
+elétrica, água, gás, internet fixa, móveis, reformas, reparos e serviços
+domésticos.
 
 Não entra: produtos de limpeza e itens de consumo da casa (→ `mercado`).
 
@@ -128,7 +135,8 @@ durável e devem ser lidos separadamente da despesa corrente de moradia.
 
 Referência cruzada: a conta de energia tem detalhamento próprio no mart `luz`
 (valor, kWh, consumo diário e preço por kWh), útil para separar aumento de
-tarifa de aumento de consumo.
+tarifa de aumento de consumo. `luz` **detalha uma parcela de `apartamento`** —
+não é uma nona categoria e nunca deve ser somada a ela.
 
 {% enddocs %}
 
@@ -153,7 +161,8 @@ não compressível. Nunca deve ser objeto de recomendação de corte: quando
 
 **Educação** — formação e desenvolvimento.
 
-Entra: cursos, certificações, livros, plataformas de ensino.
+Entra: cursos, graduação e pós-graduação, certificações, livros, material
+didático e plataformas de ensino.
 
 Não entra: assinatura de plataforma de conteúdo genérico (→ `assinaturas`);
 
@@ -167,12 +176,39 @@ não como consumo — não entra nas sugestões de corte por padrão.
 
 **Ajuste Realizado** — Equilíbrio de despesas conjuntas.
 
-Representa o valor transferido para o Lucas com o objetivo de equilibrar as despesas do casal de forma proporcional à renda de cada um.
-Como o Lucas centraliza o pagamento das despesas compartilhadas, é realizada uma compensação mensal pela Jéssica para equalizar a participação de ambos nesses custos.
-O valor da compensação já considera a dedução das despesas individuais do Lucas. Por ser um ajuste realizado posteriormente ao registro das receitas e despesas, ele não integra a composição dessas movimentações.
-Os saldos das contas correntes já refletem essa compensação, uma vez que o valor é considerado como crédito para o Lucas e débito para a Jéssica.
-Essa informação é apresentada apenas como referência para facilitar a análise financeira.
+Lucas centraliza o pagamento das despesas compartilhadas; a Jéssica compensa
+mensalmente para que cada um arque com uma parcela proporcional à sua renda. O
+valor da compensação já desconta as despesas individuais do Lucas.
 
+**Sinal:** positivo é o valor que a Jéssica transferiu ao Lucas no mês — crédito
+para ele, débito para ela.
+
+**Fora do DRE:** o ajuste **não** está dentro de `total_receita` nem de
+`total_despesas` — é lançado depois do registro das movimentações e aparece ao
+lado delas apenas como referência de análise. Somá-lo à receita conta o mesmo
+dinheiro duas vezes. Os saldos de conta corrente, esses sim, já o refletem.
+
+{% enddocs %}
+
+
+{% docs ciclo_fatura %}
+
+**Ciclo de fatura** — por que existem duas datas para o mesmo gasto.
+
+Uma despesa no cartão é paga num mês e pertence a outro. O domínio guarda os
+dois, e confundi-los troca o mês inteiro de lugar:
+
+| Campo | O que é |
+|---|---|
+| `mes_debito` | **Mês de competência** — a que mês o gasto pertence. É a chave de todas as análises: DRE, gasto por categoria, resultado, taxa de poupança. |
+| `mes_fatura` | Mês da fatura em que a despesa foi efetivamente cobrada. Serve para conciliar com o extrato do cartão, não para analisar comportamento. |
+| `dia_real` | Dia do calendário em que o gasto ocorreu. |
+| `dia_ajustado` | O mesmo dia deslocado para a posição que ocupa dentro do ciclo de fatura, para que gastos de ciclos diferentes sejam comparáveis dia a dia. |
+
+O dia de fechamento do cartão que define o ciclo é aplicado **na planilha de
+origem**: `dia_ajustado` e `dia_real` chegam prontos em `raw.luc_contas` e
+`raw.jsc_contas`, e nenhum modelo dbt os recalcula. Para mudar a regra do ciclo,
+edite a planilha — não os modelos.
 
 {% enddocs %}
 
@@ -189,28 +225,46 @@ que ele existe na carteira. É classificada manualmente por Lucas na aba
 
 | Camada | Objetivo | Horizonte | Instrumentos típicos |
 |---|---|---|---|
-| `RESERVA` | Liquidez e preservação de capital | D+0 a D+1 | CDB de liquidez diária aplicado por conta remunerada, RDB com liquidez diária, saldo em conta corrente |
-| `RESERVA ESTRATEGICA` | Reserva de valor | Indefinido | Criptoativos, saldo em conta de moeda estrangeira e cashback |
-| `CRESCIMENTO` | Acumulação de patrimônio, aceita volatilidade | 2 anos ou mais | RDB de vencimento, CDB, LCA, LCI, ações, ETFs, BDRs, fundos de ações, cripto, prefixado e IPCA+ longos |
-| `RENDA` | Geração de fluxo de caixa recorrente | 3 anos ou mais | FIIs, ações pagadores de dividendos |
+| `RESERVA` | Liquidez e preservação de capital | D+0 a D+1 | CDB e RDB de liquidez diária, conta remunerada, saldo em conta corrente |
+| `RESERVA ESTRATEGICA` | Reserva de valor | Indefinido | Criptoativos, saldo em moeda estrangeira, cashback |
+| `CRESCIMENTO` | Acumulação de patrimônio, aceita volatilidade | 5 anos ou mais | RDB de vencimento, CDB, LCA, LCI, ações, ETFs, BDRs, fundos de ações, cripto, prefixado e IPCA+ longos |
+| `RENDA` | Geração de fluxo de caixa recorrente | Indefinido — a posição é para carregar | FIIs, ações pagadoras de dividendos |
 | `NAO CLASSIFICADO` | — | — | Default automático a ser regularizado |
 
-`RESERVA` — o critério é liquidez e ausência de marcação a mercado negativa, não
-o rótulo do produto. Um CDB com vencimento em 3 anos mas com liquidez em D+1
-não é reserva pois a intenção é carregá-lo até o vencimento. O tamanho da reserva é definido em
-meses de despesa (ver política abaixo), não em percentual da carteira: reserva
-existe para cobrir despesa correntes e emergenciais, não para acompanhar o patrimônio uma vez que as metas estejam cumpridas.
+**Toda camada é atribuída manualmente**, na aba `classificacao` da planilha. O
+default automático de qualquer posição nova — inclusive das disponibilidades em
+conta — é `NAO CLASSIFICADO`. Nenhuma camada é inferida pelo modelo.
 
-`RESERVA ESTRATEGICA` — Referem-se a ativos financeiros voltados à reserva de valor (Cripto ou moeda estrangeira), possuem alta liquidez mas que dependem de um cenário favorável de valorização para serem liquidados. Sem perspectiva de novos aportes.
+`RESERVA` — um ativo é reserva quando cumpre os **três** critérios, nesta ordem:
+
+1. resgate em até D+1;
+2. sem marcação a mercado negativa no resgate;
+3. a intenção de uso é cobrir despesa, não carregar o papel até o vencimento.
+
+O critério (3) é o que decide os casos ambíguos, e é por ele que um CDB com
+vencimento em 3 anos **não** é reserva mesmo tendo liquidez em D+1: a intenção
+é levá-lo ao vencimento, então ele é `CRESCIMENTO`. Liquidez sozinha não basta.
+
+O tamanho da reserva é definido em meses de despesa com piso em reais (ver
+"Metas e limites"), não em percentual da carteira: reserva existe para cobrir
+despesas correntes e emergenciais, não para acompanhar o patrimônio uma vez que
+as metas estejam cumpridas.
+
+`RESERVA ESTRATEGICA` — ativos de reserva de valor (cripto, moeda estrangeira,
+cashback). Têm alta liquidez, mas dependem de um cenário favorável de valorização
+para serem liquidados, e não há perspectiva de novos aportes. Por isso **fica
+fora da alocação-alvo**: não faz sentido ter meta de rebalanceamento para uma
+posição que não recebe aporte. No relatório ela aparece com o valor e o
+percentual que representa, e com alvo `—`.
 
 `CRESCIMENTO` — é a camada que aceita perda temporária em troca de retorno
 esperado maior. Renda fixa longa entra aqui, e não em `RESERVA`, quando está
 sujeita a marcação a mercado. Investimentos no exterior que rendem dividendos
 também são considerados aqui.
 
-`RENDA` — o que qualifica é a previsibilidade do fluxo, não o rendimento total.
-Sobreposição com `CRESCIMENTO` é esperada (uma ação pagadora de dividendo também
-se valoriza); a classificação segue a intenção de uso do ativo.
+`RENDA` — o que qualifica é a previsibilidade do fluxo, não o rendimento total
+nem o prazo. Sobreposição com `CRESCIMENTO` é esperada (uma ação pagadora de
+dividendo também se valoriza); a classificação segue a intenção de uso do ativo.
 
 `NAO CLASSIFICADO` — não é uma camada, é ausência de classificação. Um ativo cai
 aqui quando é novo na carteira ou quando sua chave de identidade mudou (`pessoa`,
@@ -232,10 +286,10 @@ consegue dizer para onde vai o aporte do mês.
 
 ### Aporte mensal estimado
 
-| Pessoa | Aporte alvo (R$/mês) | Origem |
+| Pessoa | Aporte alvo estimado (R$/mês) | Origem |
 |---|---|---|
-| Lucas | 4.000 | Resultado mensal (receita − despesa) |
-| Jéssica | 2.500 | Resultado mensal (receita − despesa) |
+| Lucas | 4.000  | Resultado mensal (receita − despesa) |
+| Jéssica | 2.000  | Resultado mensal (receita − despesa) |
 | Deusa | 3.000 | Renda própria |
 
 Regra de aporte: o valor efetivo do mês é o resultado apurado no mart
@@ -245,27 +299,52 @@ diferença.
 
 ### Alocação-alvo por camada
 
-| Pessoa | RESERVA | CRESCIMENTO | RENDA | Perfil |
+| Pessoa | RESERVA | CRESCIMENTO | RENDA | Razão da alocação |
 |---|---|---|---|---|
-| Lucas | 30% | 50% | 20% | Arrojado — horizonte longo, tolera volatilidade |
-| Jéssica | 30% | 70% | 0% | Moderado — prioriza segurança na formação de patrimônio |
-| Deusa | 30% | 60% | 10% | Conservador — preservação de capital e geração de renda |
+| Lucas | 30% | 50% | 20% | Horizonte longo com tolerância a volatilidade; a fatia em `RENDA` existe para começar a formar fluxo de caixa antes de precisar dele |
+| Jéssica | 30% | 70% | 0% | Fase de acumulação pura — sem necessidade de fluxo corrente, todo o risco vai para crescimento |
+| Deusa | 30% | 60% | 10% | Aposentada, mas com reserva já formada e renda própria cobrindo a despesa; o crescimento serve à sucessão, não ao consumo |
+
+`RESERVA ESTRATEGICA` **não tem alvo** — ver `camada_investimento`. `NAO
+CLASSIFICADO` também não: é pendência, não alocação.
+
+**Denominador:** os percentuais acima são sobre a carteira **excluindo**
+`RESERVA ESTRATEGICA` e `NAO CLASSIFICADO`. As três camadas com alvo somam 100%
+dessa base. O valor das duas camadas sem alvo é reportado à parte, em reais e
+como percentual da carteira total.
 
 Banda de tolerância: ±5 pontos percentuais. Desvio dentro da banda não gera
 recomendação. Fora da banda, o rebalanceamento é feito **por aporte** (direcionar
 dinheiro novo à camada defasada), nunca por venda, exceto quando o desvio
-ultrapassa 15 pontos percentuais.
+ultrapassa 15 pontos percentuais **medidos contra o alvo** (não contra a borda
+da banda) — ou seja, uma camada com alvo 50% só autoriza venda abaixo de 35% ou
+acima de 65%.
 
 ### Metas e limites
 
+**Reserva-alvo** — uma regra só, em vez de duas unidades concorrentes:
+
+> Reserva-alvo = **o maior** entre
+> (a) N × mediana da despesa total dos últimos 6 meses fechados, e
+> (b) R$ 100.000.
+
+| Pessoa | N | Base de despesa |
+|---|---|---|
+| Lucas e Jéssica | 6 meses | Despesa do casal, avaliada em conjunto |
+| Deusa | 12 meses | Aposentada; não há lançamento de despesa dela no warehouse, então na prática vale o piso de R$ 100.000 |
+
+A mediana (e não a média) é o que dimensiona a reserva, para que um mês atípico
+— IPVA, viagem, reforma — não infle a meta permanentemente. Meses futuros
+pré-lançados em `resultado` não entram na base.
+
+**Demais parâmetros**
+
 | Parâmetro | Valor | Aplicação |
 |---|---|---|
-| Reserva | R$100.000 em conjunto ou despesa mediana dos últimos 6 meses | Lucas e Jéssica (separados) |
-| Reserva | R$100.000 | Deusa (aposentada) |
 | Limite FGC por conglomerado | R$ 250.000 | Todos |
-| Folga mínima sobre o limite FGC | R$ 50.000 | Alerta antes de estourar a garantia |
-| Exposição internacional alvo | 15% da carteira | Lucas e Jéssica |
-| Exposição internacional alvo | 10% da carteira | Deusa |
+| Folga mínima sobre o limite FGC | R$ 50.000 | Alerta antes de estourar a garantia; é o limiar usado nos marts `risco_fgc_*` |
+| Exposição internacional alvo | 15% da carteira  | Lucas e Jéssica |
+| Exposição internacional alvo | 10% da carteira  | Deusa |
 | Taxa de poupança alvo | 35% da receita líquida | Lucas e Jéssica (conjunta) |
 
 ### Benchmark

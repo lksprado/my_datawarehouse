@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: dim_datas
+    description: >
+      Dimensão de datas conformada do warehouse: int_dates acrescida da chave surrogate data_sk e
+      das marcações de data especial vindas do seed datas_especiais. Um registro por dia, de
+      2020-01-01 a 2050-12-31. É a dimensão de junção de todos os domínios — carteira, patrimônio,
+      consumo e DRE ligam-se a ela por mes_base/data.
+      As datas especiais são aniversários e efemérides da família; eventos com ano_inicio (ex.:
+      casamento) só passam a valer a partir daquele ano. Servem para explicar picos de gasto em
+      `role` e `diversos` como sazonalidade conhecida, e não como descontrole.
+    columns:
+      - name: data_sk
+        description: "Chave surrogate da data no formato AAAAMMDD como inteiro (ex.: 20260131)."
+      - name: date_day
+        description: "Data do dia — chave natural, herdada de int_dates."
+      - name: fl_data_especial
+        description: "1 quando o dia exato é uma data especial (dia + mês batem, respeitado o ano_inicio); 0 caso contrário."
+      - name: fl_mes_especial
+        description: "1 quando o MÊS contém alguma data especial vigente; 0 caso contrário. É mais abrangente que fl_data_especial — todo dia de um mês especial recebe 1."
+      - name: motivo
+        description: "Descrição da data especial em maiúsculas (ex.: ANIVERSARIO), ou 'NORMAL' quando o dia não é especial."
