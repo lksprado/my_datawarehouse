@@ -14,12 +14,18 @@ usd AS (
 
 avenue AS (
     SELECT
-        period_start                       AS mes_base,
+        period_start                                         AS mes_base,
         pessoa,
-        'AVENUE'                           AS instituicao,
-        'FUNDO'                            AS tipo_investimento,
-        symbol_cusip                       AS ticker,
-        (market_value::INT * vlr_usd)::INT AS vlr_atualizado_brl,
+        'AVENUE'                                             AS instituicao,
+        CASE 
+            WHEN symbol_cusip = 'CASH' 
+                THEN 'CONTA CORRENTE'
+        ELSE 'FUNDO' END                                     AS tipo_ativo,
+        CASE 
+            WHEN symbol_cusip = 'CASH' 
+                THEN 'SALDO EM CONTA'
+        ELSE symbol_cusip END                                AS ticker,
+        (market_value::INT * vlr_usd)::INT                   AS vlr_atualizado_brl,
         moeda_ativo
     FROM {{ ref('stg_assets') }}
     INNER JOIN {{ ref('stg_usd') }}
@@ -34,7 +40,7 @@ acoes AS (
         mes_base,
         pessoa,
         instituicao,
-        'ACAO' AS tipo_investimento,
+        'ACAO' AS tipo_ativo,
         ticker,
         vlr_atualizado_brl,
         moeda_ativo
@@ -46,7 +52,7 @@ bdr AS (
         mes_base,
         pessoa,
         instituicao,
-        'ACAO' AS tipo_investimento,
+        'ACAO' AS tipo_ativo,
         ticker,
         vlr_atualizado_brl,
         moeda_ativo
@@ -58,7 +64,7 @@ etf AS (
         mes_base,
         pessoa,
         instituicao,
-        'FUNDO' AS tipo_investimento,
+        'FUNDO' AS tipo_ativo,
         ticker,
         vlr_atualizado_brl,
         moeda_ativo
@@ -70,7 +76,7 @@ fundos AS (
         mes_base,
         pessoa,
         instituicao,
-        'FUNDO' AS tipo_investimento,
+        'FUNDO' AS tipo_ativo,
         ticker,
         vlr_atualizado_brl,
         moeda_ativo
@@ -107,11 +113,14 @@ final AS (
             WHEN instituicao = 'SOFISA' THEN 'SOFISA'
             WHEN instituicao = 'BANCO DO BRASIL S/A' THEN 'BANCO DO BRASIL'
             ELSE 'DESCONHECIDO'
-        END                      AS instituicao,
-        'RENDA VARIAVEL'         AS categoria_investimento,
-        tipo_investimento,
-        ticker                   AS investimento,
-        SUM(vlr_atualizado_brl)::INT AS vlr_atualizado_brl,
+        END                                    AS instituicao,
+        CASE
+            WHEN tipo_ativo = 'CONTA CORRENTE'
+                THEN 'DISPONIBILIDADE'
+        ELSE 'RENDA VARIAVEL' END              AS classe_ativo,
+        tipo_ativo,
+        ticker                                 AS ativo,
+        SUM(vlr_atualizado_brl)::INT           AS vlr_atualizado_brl,
         moeda_ativo
     FROM unioned
     GROUP BY 1, 2, 3, 4, 5, 6, 8

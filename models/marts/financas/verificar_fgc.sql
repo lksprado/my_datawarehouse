@@ -19,7 +19,7 @@ tb AS (
     WHERE
         t1.emissor IS NOT NULL
         AND t1.emissor <> ''
-        AND SPLIT_PART(UPPER(t1.investimento), ' ', 1) IN ('CDB', 'LCA', 'LCI', 'LC')
+        AND SPLIT_PART(UPPER(t1.ativo), ' ', 1) IN ('CDB', 'LCA', 'LCI', 'LC')
         AND t2.conglomerado IS NULL
 )
 

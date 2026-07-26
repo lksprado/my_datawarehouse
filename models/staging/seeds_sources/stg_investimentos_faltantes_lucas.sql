@@ -16,16 +16,16 @@ renamed AS (
         pessoa,
         instituicao,
         NULL::TEXT AS emissor,
-        categoria_investimento,
-        tipo_investimento,
-        investimento,
+        classe_ativo,
+        tipo_ativo,
+        ativo,
         indexador,
         NULL::DATE     AS data_emissao,
         data_vencimento,
         vlr_atualizado AS vlr_atualizado_brl,
         'BRL'          AS moeda_ativo
     FROM seed
-    ORDER BY mes_base, instituicao, investimento
+    ORDER BY mes_base, instituicao, ativo
 )
 
 SELECT * FROM renamed

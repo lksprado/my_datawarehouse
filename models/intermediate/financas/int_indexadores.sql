@@ -18,6 +18,6 @@ ativos as (
         igpm_acum,
         selic_acum,
         cdi_acum
-    FROM {{ ref ('stg_ativos') }}
+    FROM {{ ref('stg_patrimonio') }}
 )
 select * from ativos

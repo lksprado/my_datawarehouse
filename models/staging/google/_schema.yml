@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: stg_ativos
+  - name: stg_patrimonio
     description: "Patrimônio e saldos por conta/instituição extraídos da planilha do Google, com valores limpos e normalizados, indexadores mensais (minha inflação, IPCA, IGP-M, Selic e CDI) com seus respectivos índices acumulados, e mês de referência."
     columns:
       - name: mes_base
@@ -40,6 +40,8 @@ models:
         description: "Saldo em investimentos Nubank (Jéssica)."
       - name: saldo_avenue_jessica
         description: "Saldo na Avenue (Jéssica)."
+      - name: vlr_carro
+        description: "Valor de mercado do carro segundo a Fipe"
       - name: minha_inflacao
         description: "Inflação pessoal do mês. Vem da planilha em percentual e é dividida por 100 — fração decimal NUMERIC(18,3)."
       - name: ipca
@@ -222,7 +224,7 @@ models:
         description: "Primeiro dia do mês de referência da conta."
 
   - name: stg_carteira_classificacao
-    description: "Histórico de classificação manual de camada por posição (SCD2), lido de volta da planilha Google (metade de leitura do loop de retroalimentação). A planilha acumula uma linha por mes_base sempre que a camada de um ativo muda. Alimenta o campo `camada` de int_carteira (usado por carteira_lucas_jessica/carteira_deusa) por join as-of na identidade da posição (pessoa, investimento, categoria_investimento, tipo_investimento, instituicao): cada mês da carteira recebe a classificação vigente naquele mês."
+    description: "Histórico de classificação manual de camada por posição (SCD2), lido de volta da planilha Google (metade de leitura do loop de retroalimentação). A planilha acumula uma linha por mes_base sempre que a camada de um ativo muda. Alimenta o campo `camada` de int_carteira e de int_carteira_extra (usados por carteira_lucas_jessica/carteira_deusa) por join as-of na identidade da posição (pessoa, ativo, classe_ativo, tipo_ativo, instituicao): cada mês da carteira recebe a classificação vigente naquele mês. Em int_carteira o padrão sem classificação é 'NAO CLASSIFICADO'; em int_carteira_extra (disponibilidades em conta) é 'RESERVA ESTRATEGICA'."
     columns:
       - name: mes_base
         description: "Primeiro dia do mês a partir do qual esta classificação passa a valer (data de vigência SCD2). No join as-of, cada linha da carteira no mês M recebe a camada da última classificação com mes_base <= M."
@@ -232,20 +234,20 @@ models:
         description: "Dono do ativo (lucas / jessica / deusa), em minúsculas. Parte da chave de join com a carteira."
         data_tests:
           - not_null
-      - name: investimento
+      - name: ativo
         description: "Identificador do ativo (ticker para renda variável; produto normalizado para renda fixa). Parte da chave de join com a carteira."
         data_tests:
           - not_null
-      - name: categoria_investimento
-        description: "Categoria do investimento (ex.: RENDA FIXA, RENDA VARIÁVEL)."
+      - name: classe_ativo
+        description: "Classe do ativo (ex.: RENDA FIXA, RENDA VARIÁVEL)."
         data_tests:
           - not_null
-      - name: tipo_investimento
-        description: "Tipo do investimento (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+      - name: tipo_ativo
+        description: "Tipo do ativo (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
         data_tests:
           - not_null
       - name: instituicao
-        description: "Instituição onde o investimento está posicionado."
+        description: "Instituição onde o ativo está posicionado."
         data_tests:
           - not_null
       - name: camada

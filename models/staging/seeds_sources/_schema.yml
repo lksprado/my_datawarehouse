@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: stg_investimentos_faltantes
+  - name: stg_investimentos_faltantes_lucas
     description: "Investimentos não capturados pelos scrapers, carregados via seed, com categoria, tipo, indexador, vencimento e valor atualizado."
     columns:
       - name: mes_base
@@ -9,19 +9,45 @@ models:
       - name: pessoa
         description: "Titular da posição (deusa, jessica ou lucas)."
       - name: instituicao
-        description: "Instituição onde o investimento está posicionado."
-      - name: categoria_investimento
-        description: "Categoria do investimento (ex.: RENDA FIXA, RENDA VARIÁVEL)."
-      - name: tipo_investimento
-        description: "Tipo do investimento (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
-      - name: investimento
-        description: "Nome/identificação do investimento."
+        description: "Instituição onde o ativo está posicionado."
+      - name: classe_ativo
+        description: "Classe do ativo (ex.: RENDA FIXA, RENDA VARIÁVEL)."
+      - name: tipo_ativo
+        description: "Tipo do ativo (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+      - name: ativo
+        description: "Nome/identificação do ativo."
       - name: indexador
         description: "Indexador de rentabilidade (ex.: CDI, IPCA, PREFIXADO)."
       - name: data_emissao
-        description: "Data de emissão do investimento (nula na seed atual)."
+        description: "Data de emissão do ativo (nula na seed atual)."
       - name: data_vencimento
-        description: "Data de vencimento do investimento."
+        description: "Data de vencimento do ativo."
+      - name: vlr_atualizado_brl
+        description: "Valor de mercado atualizado da posição, em reais."
+      - name: moeda_ativo
+        description: "Moeda do ativo (BRL)."
+
+  - name: stg_investimentos_faltantes_jessica
+    description: "Investimentos não capturados pelos scrapers, carregados via seed, com categoria, tipo, indexador, vencimento e valor atualizado."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição."
+      - name: pessoa
+        description: "Titular da posição (deusa, jessica ou lucas)."
+      - name: instituicao
+        description: "Instituição onde o ativo está posicionado."
+      - name: classe_ativo
+        description: "Classe do ativo (ex.: RENDA FIXA, RENDA VARIÁVEL)."
+      - name: tipo_ativo
+        description: "Tipo do ativo (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+      - name: ativo
+        description: "Nome/identificação do ativo."
+      - name: indexador
+        description: "Indexador de rentabilidade (ex.: CDI, IPCA, PREFIXADO)."
+      - name: data_emissao
+        description: "Data de emissão do ativo (nula na seed atual)."
+      - name: data_vencimento
+        description: "Data de vencimento do ativo."
       - name: vlr_atualizado_brl
         description: "Valor de mercado atualizado da posição, em reais."
       - name: moeda_ativo
@@ -35,19 +61,19 @@ models:
       - name: pessoa
         description: "Titular da posição (deusa)."
       - name: instituicao
-        description: "Instituição onde o investimento está posicionado."
-      - name: categoria_investimento
-        description: "Categoria do investimento (ex.: RENDA FIXA, RENDA VARIÁVEL)."
-      - name: tipo_investimento
-        description: "Tipo do investimento (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
-      - name: investimento
-        description: "Nome/identificação do investimento."
+        description: "Instituição onde o ativo está posicionado."
+      - name: classe_ativo
+        description: "Classe do ativo (ex.: RENDA FIXA, RENDA VARIÁVEL)."
+      - name: tipo_ativo
+        description: "Tipo do ativo (ex.: TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+      - name: ativo
+        description: "Nome/identificação do ativo."
       - name: indexador
         description: "Indexador de rentabilidade (ex.: CDI, IPCA, PREFIXADO)."
       - name: data_emissao
-        description: "Data de emissão do investimento (nula na seed atual)."
+        description: "Data de emissão do ativo (nula na seed atual)."
       - name: data_vencimento
-        description: "Data de vencimento do investimento."
+        description: "Data de vencimento do ativo."
       - name: vlr_atualizado_brl
         description: "Valor de mercado atualizado da posição, em reais."
       - name: moeda_ativo

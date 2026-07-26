@@ -1,8 +1,8 @@
 version: 2
 
 models:
-  - name: int_ativos_agregado
-    description: "Consolida o patrimônio mensal a partir de stg_ativos, expondo patrimônio bruto e líquido e saldos por conta/instituição de Lucas e Jéssica, ordenado por mês-base. Faz join com dim_datas para trazer mês final, trimestre e ano, e sinaliza o mês mais recente disponível. Consumido por ativos, ativos_mom e pelos CTEs de disponibilidade de carteira_lucas_jessica. Os indexadores macroeconômicos ficam em int_indexadores."
+  - name: int_patrimonio_mensal
+    description: "Consolida o patrimônio mensal a partir de stg_patrimonio, expondo patrimônio bruto e líquido e saldos por conta/instituição de Lucas e Jéssica, ordenado por mês-base. Faz join com dim_datas para trazer mês final, trimestre e ano, e sinaliza o mês mais recente disponível. Consumido por patrimonio, patrimonio_mom e pelos CTEs de disponibilidade de carteira_lucas_jessica. Os indexadores macroeconômicos ficam em int_indexadores."
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base de referência do patrimônio (chave de junção com a dimensão de datas)."
@@ -13,7 +13,7 @@ models:
       - name: ano
         description: "Ano de referência."
       - name: fl_mes_atual
-        description: "Indica se a linha pertence ao mês-base mais recente disponível em stg_ativos."
+        description: "Indica se a linha pertence ao mês-base mais recente disponível em stg_patrimonio."
       - name: total_patrimonio_bruto
         description: "Patrimônio bruto total do casal no mês."
       - name: total_patrimonio_liquido
@@ -48,6 +48,8 @@ models:
         description: "Saldo em investimentos Nubank (Jéssica)."
       - name: saldo_avenue_jessica
         description: "Saldo na Avenue (Jéssica)."
+      - name: vlr_carro
+        description: "Valor de mercado do carro segundo a Fipe"
 
   - name: int_carteira
     description: "Carteira consolidada de investimentos por mês (união de int_renda_variavel e int_renda_fixa), com camada de alocação aplicada via join as-of (SCD2) contra stg_carteira_classificacao e flag do mês mais recente disponível. Base única para todos os marts de carteira (carteira_lucas_jessica, carteira_deusa, carteira_classificacao, risco_fgc_*, carteira_*_agregada) — materializado como table por ser fortemente reutilizado a jusante."
@@ -66,14 +68,14 @@ models:
         description: "Instituição emissora do título (apenas renda fixa)."
       - name: conglomerado
         description: "Conglomerado financeiro FGC do emissor (apenas renda fixa)."
-      - name: categoria_investimento
-        description: "Categoria do investimento (RENDA FIXA ou RENDA VARIAVEL)."
-      - name: tipo_investimento
-        description: "Tipo do investimento (ex.: ACAO, FUNDO, TÍTULO PÚBLICO, TÍTULO PRIVADO)."
+      - name: classe_ativo
+        description: "Classe do ativo (RENDA FIXA ou RENDA VARIAVEL)."
+      - name: tipo_ativo
+        description: "Tipo do ativo (ex.: ACAO, FUNDO, TÍTULO PÚBLICO, TÍTULO PRIVADO)."
       - name: camada
-        description: "Camada de alocação (RESERVA/CRESCIMENTO/RENDA) classificada manualmente na planilha e lida de volta via stg_carteira_classificacao, aplicada por join as-of (SCD2) na identidade da posição (pessoa, investimento, categoria_investimento, tipo_investimento, instituicao): cada mês recebe a classificação vigente naquele mês (última com mes_base <= o mês da posição). Meses anteriores à primeira classificação ficam como 'NAO CLASSIFICADO'."
-      - name: investimento
-        description: "Nome/identificação do investimento."
+        description: "Camada de alocação (RESERVA/CRESCIMENTO/RENDA) classificada manualmente na planilha e lida de volta via stg_carteira_classificacao, aplicada por join as-of (SCD2) na identidade da posição (pessoa, ativo, classe_ativo, tipo_ativo, instituicao): cada mês recebe a classificação vigente naquele mês (última com mes_base <= o mês da posição). Meses anteriores à primeira classificação ficam como 'NAO CLASSIFICADO'."
+      - name: ativo
+        description: "Nome/identificação do ativo."
       - name: indexador
         description: "Indexador de rentabilidade (apenas renda fixa)."
       - name: data_vencimento
@@ -89,8 +91,48 @@ models:
       - name: pessoa
         description: "Titular da posição (deusa, jessica ou lucas)."
 
+  - name: int_carteira_extra
+    description: "Disponibilidades em conta derivadas de int_patrimonio_mensal (saldo Bradesco, Wise e Bitcoin do Lucas; Banco do Brasil da Jéssica) expostas no mesmo layout e na mesma ordem de colunas de int_carteira, para que os dois possam ser unidos por posição a jusante (carteira_lucas_jessica, carteira_classificacao). A camada usa o mesmo join as-of (SCD2) contra stg_carteira_classificacao de int_carteira, mas com fallback 'RESERVA ESTRATEGICA' em vez de 'NAO CLASSIFICADO', porque saldo em conta já tem camada natural e não deve aparecer como pendência na planilha."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base do saldo (chave de junção com a dimensão de datas)."
+      - name: mes_final
+        description: "Último dia do mês de referência."
+      - name: trimestre
+        description: "Trimestre do ano de referência."
+      - name: ano
+        description: "Ano de referência."
+      - name: instituicao
+        description: "Instituição onde o saldo é mantido (BRADESCO, WISE, AUTOCUSTODIA ou BANCO DO BRASIL)."
+      - name: emissor
+        description: "Sempre nulo — não se aplica a disponibilidades."
+      - name: conglomerado
+        description: "Conglomerado financeiro FGC quando o saldo está em banco (BRADESCO, BANCO DO BRASIL); nulo para Wise e autocustódia."
+      - name: classe_ativo
+        description: "Sempre 'DISPONIBILIDADE'."
+      - name: tipo_ativo
+        description: "Sempre 'CONTA CORRENTE'."
+      - name: camada
+        description: "Camada de alocação vigente, resolvida por join as-of contra stg_carteira_classificacao na identidade da posição (pessoa, ativo, classe_ativo, tipo_ativo, instituicao); 'RESERVA ESTRATEGICA' enquanto não houver classificação manual na planilha."
+      - name: ativo
+        description: "Sempre 'SALDO EM CONTA' — as quatro linhas se distinguem por pessoa + instituicao."
+      - name: indexador
+        description: "'TIR' para as contas remuneradas de banco (Bradesco, Banco do Brasil); nulo para Wise e bitcoin, salvo se preenchido na planilha de classificação."
+      - name: data_vencimento
+        description: "Sempre nulo — não se aplica a disponibilidades."
+      - name: vencimento_em_dias
+        description: "Sempre nulo — não se aplica a disponibilidades."
+      - name: vlr_atualizado_brl
+        description: "Saldo do mês, em reais."
+      - name: moeda_ativo
+        description: "Moeda de origem do saldo (BRL, USD ou BTC)."
+      - name: fl_mes_atual
+        description: "Indica se a linha pertence ao mês-base mais recente disponível em stg_patrimonio (herdado de int_patrimonio_mensal — pode divergir do fl_mes_atual de int_carteira se as duas fontes estiverem dessincronizadas)."
+      - name: pessoa
+        description: "Titular do saldo (jessica ou lucas)."
+
   - name: int_indexadores
-    description: "Isola os indexadores macroeconômicos mensais vindos de stg_ativos — taxas do mês e índices acumulados de minha inflação, IPCA, IGP-M, Selic e CDI. Serve de referência de comparação para o mart riqueza."
+    description: "Isola os indexadores macroeconômicos mensais vindos de stg_patrimonio — taxas do mês e índices acumulados de minha inflação, IPCA, IGP-M, Selic e CDI. Serve de referência de comparação para o mart riqueza."
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base de referência."
@@ -202,12 +244,12 @@ models:
         description: "Instituição emissora do título, normalizada."
       - name: conglomerado
         description: "Conglomerado financeiro FGC do emissor (via de-para)."
-      - name: categoria_investimento
-        description: "Categoria do investimento (RENDA FIXA)."
-      - name: tipo_investimento
-        description: "Tipo do investimento (TÍTULO PÚBLICO ou TÍTULO PRIVADO)."
-      - name: investimento
-        description: "Nome/identificação do investimento (com ano de vencimento para títulos privados)."
+      - name: classe_ativo
+        description: "Classe do ativo (RENDA FIXA)."
+      - name: tipo_ativo
+        description: "Tipo do ativo (TÍTULO PÚBLICO ou TÍTULO PRIVADO)."
+      - name: ativo
+        description: "Nome/identificação do ativo (com ano de vencimento para títulos privados)."
       - name: indexador
         description: "Indexador de rentabilidade (ex.: CDI, IPCA, PREFIXADO)."
       - name: data_emissao
@@ -230,11 +272,11 @@ models:
         description: "Titular da posição (deusa, jessica ou lucas)."
       - name: instituicao
         description: "Corretora/custodiante padronizada (ex.: NUBANK, BRADESCO, AVENUE)."
-      - name: categoria_investimento
-        description: "Categoria do investimento (RENDA VARIAVEL)."
-      - name: tipo_investimento
-        description: "Tipo do investimento (ACAO ou FUNDO)."
-      - name: investimento
+      - name: classe_ativo
+        description: "Classe do ativo (RENDA VARIAVEL)."
+      - name: tipo_ativo
+        description: "Tipo do ativo (ACAO ou FUNDO)."
+      - name: ativo
         description: "Ticker/identificação do ativo."
       - name: vlr_atualizado_brl
         description: "Valor de mercado atualizado da posição, somado por grupo, em reais."
@@ -250,8 +292,6 @@ models:
         description: "Titular que recebeu a renda passiva (deusa, jessica ou lucas)."
       - name: instituicao
         description: "Instituição pagadora padronizada (ex.: NUBANK, BRADESCO, AVENUE)."
-      - name: categoria_investimento
-        description: "Categoria do investimento (RENDA PASSIVA)."
       - name: vlr_liquido_brl
         description: "Valor líquido de proventos/dividendos recebidos no mês, em reais."
       - name: moeda_ativo

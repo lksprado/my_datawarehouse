@@ -30,8 +30,9 @@ ativos AS (
         saldo_sofisa_investimentos_jessica,
         saldo_itau_investimentos_jessica,
         saldo_nubank_investimentos_jessica,
-        saldo_avenue_jessica
-    FROM {{ ref('int_ativos_agregado') }}
+        saldo_avenue_jessica,
+        vlr_carro
+    FROM {{ ref('int_patrimonio_mensal') }}
 )
 
 SELECT * FROM ativos ORDER BY mes_base

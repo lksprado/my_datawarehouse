@@ -6,7 +6,7 @@
 
 WITH
 source AS (
-    SELECT * FROM {{ source('raw','ativos') }}
+    SELECT * FROM {{ source('raw','patrimonio') }}
 ),
 
 renamed AS (
@@ -47,6 +47,7 @@ renamed AS (
         REGEXP_REPLACE(itau, '[^0-9]', '', 'g')::INT                   AS saldo_itau_investimentos_jessica,
         REGEXP_REPLACE(nubank, '[^0-9]', '', 'g')::INT                 AS saldo_nubank_investimentos_jessica,
         REGEXP_REPLACE(avenue_j, '[^0-9]', '', 'g')::INT               AS saldo_avenue_jessica,
+        REGEXP_REPLACE(carro, '[^0-9]', '', 'g')::INT                  AS vlr_carro,
         (REPLACE(
             REPLACE(REGEXP_REPLACE(minha_inflacao, '[^0-9,.]', '', 'g'), '.', ''),
             ',',

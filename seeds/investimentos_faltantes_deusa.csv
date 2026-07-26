@@ -1,4 +1,4 @@
-mes_base,pessoa,instituicao,categoria_investimento,tipo_investimento,investimento,indexador,data_emissao,data_vencimento,vlr_atualizado
+mes_base,pessoa,instituicao,classe_ativo,tipo_ativo,ativo,indexador,data_emissao,data_vencimento,vlr_atualizado
 2023-05-01,deusa,NUBANK,RENDA FIXA,TITULO PRIVADO,CAIXINHA NU GARANTIDO,DI,,,4922
 2023-06-01,deusa,NUBANK,RENDA FIXA,TITULO PRIVADO,CAIXINHA NU GARANTIDO,DI,,,4975
 2023-07-01,deusa,NUBANK,RENDA FIXA,TITULO PRIVADO,CAIXINHA NU GARANTIDO,DI,,,5028

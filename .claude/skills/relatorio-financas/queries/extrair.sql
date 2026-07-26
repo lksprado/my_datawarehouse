@@ -87,7 +87,7 @@ b_patrimonio AS (
     SELECT COALESCE(json_agg(t ORDER BY t.mes_base), '[]'::json) AS j
     FROM (
         SELECT *
-        FROM marts.ativos
+        FROM marts.patrimonio
         WHERE mes_base <= (SELECT mes_ref FROM params)
           AND mes_base >  (SELECT mes_ref FROM params) - interval '13 months'
     ) AS t
@@ -101,7 +101,7 @@ b_patrimonio_mom AS (
                ROUND(total_patrimonio_liquido * 100, 2) AS pct_patrimonio_liquido,
                ROUND(patrimonio_liquido_lucas * 100, 2) AS pct_lucas,
                ROUND(patrimonio_liquido_jessica * 100, 2) AS pct_jessica
-        FROM marts.ativos_mom
+        FROM marts.patrimonio_mom
         WHERE mes_base <= (SELECT mes_ref FROM params)
           AND mes_base >  (SELECT mes_ref FROM params) - interval '13 months'
     ) AS t
@@ -158,21 +158,21 @@ b_carteira_tipo AS (
     SELECT COALESCE(json_agg(t ORDER BY t.pessoa, t.valor DESC), '[]'::json) AS j
     FROM (
         SELECT c.pessoa,
-               c.categoria_investimento,
-               c.tipo_investimento,
+               c.classe_ativo,
+               c.tipo_ativo,
                SUM(c.vlr_atualizado_brl) AS valor,
                ROUND(100.0 * SUM(c.vlr_atualizado_brl) / NULLIF(p.total, 0), 1) AS pct_da_carteira
         FROM carteira_ref AS c
         JOIN total_por_pessoa AS p USING (pessoa)
-        GROUP BY c.pessoa, c.categoria_investimento, c.tipo_investimento, p.total
+        GROUP BY c.pessoa, c.classe_ativo, c.tipo_ativo, p.total
     ) AS t
 ),
 
 b_posicoes AS (
     SELECT COALESCE(json_agg(t ORDER BY t.pessoa, t.vlr_atualizado_brl DESC), '[]'::json) AS j
     FROM (
-        SELECT pessoa, camada, categoria_investimento, tipo_investimento,
-               investimento, instituicao, emissor, conglomerado, indexador,
+        SELECT pessoa, camada, classe_ativo, tipo_ativo,
+               ativo, instituicao, emissor, conglomerado, indexador,
                data_vencimento, vencimento_em_dias, vlr_atualizado_brl, moeda_ativo
         FROM carteira_ref
     ) AS t
@@ -181,7 +181,7 @@ b_posicoes AS (
 b_nao_classificados AS (
     SELECT COALESCE(json_agg(t ORDER BY t.pessoa, t.vlr_atualizado_brl DESC), '[]'::json) AS j
     FROM (
-        SELECT pessoa, investimento, categoria_investimento, tipo_investimento,
+        SELECT pessoa, ativo, classe_ativo, tipo_ativo,
                instituicao, vlr_atualizado_brl
         FROM carteira_ref
         WHERE camada = 'NAO CLASSIFICADO'
@@ -191,7 +191,7 @@ b_nao_classificados AS (
 b_vencimentos AS (
     SELECT COALESCE(json_agg(t ORDER BY t.data_vencimento), '[]'::json) AS j
     FROM (
-        SELECT pessoa, investimento, emissor, indexador, instituicao,
+        SELECT pessoa, ativo, emissor, indexador, instituicao,
                data_vencimento, vencimento_em_dias, vlr_atualizado_brl, camada
         FROM carteira_ref
         WHERE data_vencimento IS NOT NULL

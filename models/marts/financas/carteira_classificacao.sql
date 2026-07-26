@@ -7,32 +7,42 @@
 
 {#-
   Mart auxiliar de INPUT do loop de classificação de camada (SCD2).
-  Lista os ativos do mês atual (distintos) já com a camada vigente preenchida:
-  os já classificados vêm com a camada as-of de stg_carteira_classificacao; os
-  novos vêm como 'NAO CLASSIFICADO'. O Lucas copia estas linhas para a aba
+  Lista os ativos do mês atual (distintos) — investimentos de int_carteira mais
+  as disponibilidades em conta de int_carteira_extra — já com a camada vigente
+  preenchida: os já classificados vêm com a camada as-of de
+  stg_carteira_classificacao; os novos vêm como 'NAO CLASSIFICADO' (ou
+  'RESERVA ESTRATEGICA', no caso das disponibilidades, que já têm camada
+  natural). O Lucas copia estas linhas para a aba
   "classificacao" da planilha, que ACUMULA histórico: para classificar um ativo
   novo, preenche a camada da linha (com o mes_base atual); para reclassificar,
   ACRESCENTA uma nova linha com o mes_base atual e a nova camada, mantendo as
-  linhas antigas (a chave da posição — pessoa, investimento, categoria, tipo,
+  linhas antigas (a chave da posição — pessoa, ativo, categoria, tipo,
   instituicao — nunca é editada). O ETL do Google lê a aba de volta para
   raw.carteira_classificacao; o downstream faz join as-of (última classificação
   com mes_base <= o mês da posição), fechando o loop e preservando a composição
   por camada ao longo do tempo.
 -#}
 WITH
+base AS (
+    SELECT * FROM {{ ref('int_carteira') }}
+    UNION ALL
+    SELECT * FROM {{ ref('int_carteira_extra') }}
+),
+
 final AS (
     SELECT DISTINCT
         mes_base,
         pessoa,
-        investimento,
-        categoria_investimento,
-        tipo_investimento,
+        ativo,
+        indexador,
+        classe_ativo,
+        tipo_ativo,
         instituicao,
         data_vencimento,
         camada
-    FROM {{ ref('int_carteira') }}
+    FROM base
     WHERE fl_mes_atual IS TRUE
 )
 
 SELECT * FROM final
-ORDER BY pessoa, camada, categoria_investimento, tipo_investimento, investimento
+ORDER BY pessoa, camada, classe_ativo, tipo_ativo, ativo

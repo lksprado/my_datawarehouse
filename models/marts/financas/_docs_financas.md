@@ -182,7 +182,7 @@ Essa informação é apresentada apenas como referência para facilitar a análi
 
 **Camada de alocação** — o papel que o ativo cumpre na carteira conforme intenção do investidor.
 
-A camada não descreve o que o ativo é (isso é `tipo_investimento`), e sim para
+A camada não descreve o que o ativo é (isso é `tipo_ativo`), e sim para
 que ele existe na carteira. É classificada manualmente por Lucas na aba
 `classificacao` da planilha e volta ao warehouse via
 `stg_carteira_classificacao`, com histórico SCD2 (join as-of por `mes_base`).
@@ -214,7 +214,7 @@ se valoriza); a classificação segue a intenção de uso do ativo.
 
 `NAO CLASSIFICADO` — não é uma camada, é ausência de classificação. Um ativo cai
 aqui quando é novo na carteira ou quando sua chave de identidade mudou (`pessoa`,
-`investimento`, `categoria_investimento`, `tipo_investimento`, `instituicao`).
+`ativo`, `classe_ativo`, `tipo_ativo`, `instituicao`).
 Tickers de renda variável são estáveis; descrições de renda fixa podem mudar e
 quebrar o vínculo. Todo `NAO CLASSIFICADO` no mês corrente é pendência
 operacional e deve aparecer no relatório como item de ação, não como alocação.

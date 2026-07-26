@@ -7,4 +7,4 @@
 
 SELECT * FROM {{ ref('int_carteira') }}
 WHERE pessoa = 'deusa'
-ORDER BY mes_base, pessoa, instituicao, categoria_investimento, tipo_investimento, investimento
+ORDER BY mes_base, pessoa, instituicao, classe_ativo, tipo_ativo, ativo

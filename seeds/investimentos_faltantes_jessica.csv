@@ -1,4 +1,4 @@
-mes_base,pessoa,instituicao,categoria_investimento,tipo_investimento,investimento,indexador,data_emissao,data_vencimento,vlr_atualizado
+mes_base,pessoa,instituicao,classe_ativo,tipo_ativo,ativo,indexador,data_emissao,data_vencimento,vlr_atualizado
 2023-07-01,jessica,NUBANK,RENDA FIXA,TITULO PRIVADO,CAIXINHA,DI,,,501
 2023-08-01,jessica,ITAU,RENDA FIXA,TITULO PRIVADO,COFRINHO DIFERENCA,DI,,,35103
 2023-09-01,jessica,ITAU,RENDA FIXA,TITULO PRIVADO,COFRINHO DIFERENCA,DI,,,8172

@@ -17,7 +17,7 @@ datas AS (
 mes_base_mais_recente AS (
     SELECT
     MAX(mes_base) as mes_base_mais_recente
-    FROM {{ ref('stg_ativos') }}
+    FROM {{ ref('stg_patrimonio') }}
 ),
 
 ativos AS (
@@ -48,8 +48,9 @@ ativos AS (
         t1.saldo_sofisa_investimentos_jessica,
         t1.saldo_itau_investimentos_jessica,
         t1.saldo_nubank_investimentos_jessica,
-        t1.saldo_avenue_jessica
-    FROM {{ ref('stg_ativos') }} t1
+        t1.saldo_avenue_jessica,
+        t1.vlr_carro
+    FROM {{ ref('stg_patrimonio') }} t1
     INNER JOIN datas t2 
     ON t1.mes_base = t2.month_start_date
     LEFT JOIN mes_base_mais_recente t3

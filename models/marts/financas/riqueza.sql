@@ -39,7 +39,7 @@ WITH var_acum AS (
             )
         )::NUMERIC(18,3) AS patrimonio_liquido_jessica_acum
 
-    FROM {{ ref('ativos_mom') }}
+    FROM {{ ref('patrimonio_mom') }}
     WHERE mes_base >= DATE '2023-11-01'
 ),
 indexadores AS (

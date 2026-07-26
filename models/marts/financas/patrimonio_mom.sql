@@ -26,9 +26,10 @@ ativos AS (
         (saldo_sofisa_investimentos_jessica::NUMERIC / NULLIF(LAG(saldo_sofisa_investimentos_jessica) OVER (ORDER BY mes_base), 0) - 1)::NUMERIC(18, 3) AS saldo_sofisa_investimentos_jessica,
         (saldo_itau_investimentos_jessica::NUMERIC / NULLIF(LAG(saldo_itau_investimentos_jessica) OVER (ORDER BY mes_base), 0) - 1)::NUMERIC(18, 3)     AS saldo_itau_investimentos_jessica,
         (saldo_nubank_investimentos_jessica::NUMERIC / NULLIF(LAG(saldo_nubank_investimentos_jessica) OVER (ORDER BY mes_base), 0) - 1)::NUMERIC(18, 3) AS saldo_nubank_investimentos_jessica,
-        (saldo_avenue_jessica::NUMERIC / NULLIF(LAG(saldo_avenue_jessica) OVER (ORDER BY mes_base), 0) - 1)::NUMERIC(18, 3)                             AS saldo_avenue_jessica
+        (saldo_avenue_jessica::NUMERIC / NULLIF(LAG(saldo_avenue_jessica) OVER (ORDER BY mes_base), 0) - 1)::NUMERIC(18, 3)                             AS saldo_avenue_jessica,
+        (vlr_carro::NUMERIC / NULLIF(LAG(vlr_carro) OVER (ORDER BY mes_base), 0) - 1)::NUMERIC(18, 3)                                                   AS vlr_carro
 
-    FROM {{ ref('int_ativos_agregado') }}
+    FROM {{ ref('int_patrimonio_mensal') }}
 )
 
 SELECT * FROM ativos ORDER BY mes_base

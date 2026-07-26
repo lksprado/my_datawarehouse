@@ -61,7 +61,6 @@ final AS (
             WHEN instituicao = 'BANCO DO BRASIL S/A' THEN 'BANCO DO BRASIL'
             ELSE 'DESCONHECIDO'
         END                      AS instituicao,
-        'RENDA PASSIVA'          AS categoria_investimento,
         vlr_liquido_brl,
         moeda_ativo
     FROM unioned

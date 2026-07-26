@@ -5,7 +5,7 @@ models:
     description: >
       Carteira consolidada do casal (Lucas e Jéssica) por mês, com instituição, categoria, tipo,
       indexador, vencimento e valor atualizado por pessoa. Une as posições de renda fixa e renda
-      variável de int_carteira com as disponibilidades em conta derivadas de int_ativos_agregado
+      variável de int_carteira com as disponibilidades em conta derivadas de int_patrimonio_mensal
       (Bradesco, Wise e Bitcoin do Lucas; Banco do Brasil da Jéssica), que entram como categoria
       DISPONIBILIDADE / camada RESERVA ESTRATEGICA. Só então filtra pessoa IN ('lucas', 'jessica');
       Deusa fica em carteira_deusa.
@@ -25,14 +25,14 @@ models:
         description: "Instituição emissora do título (apenas renda fixa; nulo em renda variável e disponibilidades)."
       - name: conglomerado
         description: "Conglomerado financeiro FGC do emissor (apenas renda fixa e conta corrente de banco; nulo nos demais)."
-      - name: categoria_investimento
-        description: "Categoria do investimento (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
-      - name: tipo_investimento
-        description: "Tipo do investimento (ex.: ACAO, FUNDO, TÍTULO PÚBLICO, TÍTULO PRIVADO, CONTA CORRENTE)."
+      - name: classe_ativo
+        description: "Classe do ativo (RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE)."
+      - name: tipo_ativo
+        description: "Tipo do ativo (ex.: ACAO, FUNDO, TÍTULO PÚBLICO, TÍTULO PRIVADO, CONTA CORRENTE)."
       - name: camada
         description: '{{ doc("camada_investimento") }}'
-      - name: investimento
-        description: "Nome/identificação do investimento ('SALDO EM CONTA' para as disponibilidades)."
+      - name: ativo
+        description: "Nome/identificação do ativo ('SALDO EM CONTA' para as disponibilidades)."
       - name: indexador
         description: "Indexador de rentabilidade (renda fixa e conta corrente remunerada; nulo nos demais)."
       - name: data_vencimento
@@ -68,14 +68,14 @@ models:
         description: "Instituição emissora do título (apenas renda fixa)."
       - name: conglomerado
         description: "Conglomerado financeiro FGC do emissor (apenas renda fixa)."
-      - name: categoria_investimento
-        description: "Categoria do investimento (RENDA FIXA ou RENDA VARIAVEL)."
-      - name: tipo_investimento
-        description: "Tipo do investimento."
+      - name: classe_ativo
+        description: "Classe do ativo (RENDA FIXA ou RENDA VARIAVEL)."
+      - name: tipo_ativo
+        description: "Tipo do ativo."
       - name: camada
         description: '{{ doc("camada_investimento") }}'
-      - name: investimento
-        description: "Nome/identificação do investimento."
+      - name: ativo
+        description: "Nome/identificação do ativo."
       - name: indexador
         description: "Indexador de rentabilidade (apenas renda fixa)."
       - name: data_vencimento
@@ -146,20 +146,26 @@ models:
     # instituições novas viram colunas automaticamente no próximo dbt run.
 
   - name: carteira_classificacao
-    description: "Mart auxiliar de INPUT do loop de classificação: lista os ativos do mês atual (distintos) já com a camada vigente preenchida ('NAO CLASSIFICADO' para os novos). É copiado para a aba 'classificacao' da planilha, onde o Lucas preenche/edita a camada; o ETL do Google lê a aba de volta para raw.carteira_classificacao, fechando o loop de retroalimentação."
+    description: "Mart auxiliar de INPUT do loop de classificação: lista os ativos do mês atual (distintos) já com a camada vigente preenchida ('NAO CLASSIFICADO' para os novos). Cobre os investimentos de int_carteira e também as disponibilidades em conta de int_carteira_extra (saldo Bradesco/Wise/Bitcoin do Lucas, Banco do Brasil da Jéssica), que entram com camada 'RESERVA ESTRATEGICA' por padrão mas podem ser reclassificadas na planilha como qualquer outro ativo. É copiado para a aba 'classificacao' da planilha, onde o Lucas preenche/edita a camada; o ETL do Google lê a aba de volta para raw.carteira_classificacao, fechando o loop de retroalimentação."
     columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base da posição — o mes_base que o Lucas registra na planilha ao classificar ou reclassificar."
       - name: pessoa
         description: "Dono do ativo (deusa, jessica ou lucas)."
-      - name: investimento
-        description: "Identificador do ativo (ticker para RV; produto normalizado para RF). Chave que o Lucas usa para classificar."
-      - name: categoria_investimento
-        description: "RENDA FIXA ou RENDA VARIAVEL — contexto para a classificação manual."
-      - name: tipo_investimento
-        description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO)."
+      - name: ativo
+        description: "Identificador do ativo (ticker para RV; produto normalizado para RF; 'SALDO EM CONTA' para as disponibilidades). Chave que o Lucas usa para classificar."
+      - name: indexador
+        description: "Indexador de rentabilidade vigente (renda fixa e contas remuneradas); nulo nos demais."
+      - name: classe_ativo
+        description: "RENDA FIXA, RENDA VARIAVEL ou DISPONIBILIDADE — contexto para a classificação manual."
+      - name: tipo_ativo
+        description: "Tipo do ativo (ACAO, FUNDO, TITULO PUBLICO, TITULO PRIVADO, CONTA CORRENTE)."
       - name: instituicao
-        description: "Instituição/corretora onde o ativo é mantido."
+        description: "Instituição/corretora onde o ativo é mantido. Junto com pessoa, é o que distingue as quatro linhas de 'SALDO EM CONTA'."
+      - name: data_vencimento
+        description: "Data de vencimento do título (apenas renda fixa); nula nos demais."
       - name: camada
-        description: "Camada vigente do ativo (reserva/crescimento/renda) ou 'NAO CLASSIFICADO' se ainda não classificado — os brancos que o Lucas deve preencher na planilha."
+        description: "Camada vigente do ativo (reserva/crescimento/renda) ou 'NAO CLASSIFICADO' se ainda não classificado — os brancos que o Lucas deve preencher na planilha. As disponibilidades vindas de int_carteira_extra (saldo Bradesco/Wise/Bitcoin/BB) já chegam como 'RESERVA ESTRATEGICA' por default; as da Avenue vêm por int_carteira e entram como 'NAO CLASSIFICADO', a classificar na planilha."
 
   - name: dividendos
     description: "Série mensal de renda passiva por pessoa, com spine de datas contínuo entre o primeiro e o último mês com dividendos (zero quando não há recebimento)."
@@ -219,7 +225,7 @@ models:
       - name: conglomerado
         description: "Conglomerado FGC (sempre nulo nesta saída — é justamente o que precisa ser mapeado)."
 
-  - name: ativos_mom
+  - name: patrimonio_mom
     description: "Variação Month over Month dos ativos"
     columns:
       - name: mes_base
@@ -258,8 +264,10 @@ models:
         description: "Variação percentual mês a mês dos investimentos Nubank (Jéssica)."
       - name: saldo_avenue_jessica
         description: "Variação percentual mês a mês do saldo Avenue (Jéssica)."
+      - name: vlr_carro
+        description: "Variação percentual mês a mês do valor de mercado do carro."
 
-  - name: ativos
+  - name: patrimonio
     description: "Saldos das contas que contabiliza os ativos"
     columns:
       - name: mes_base
@@ -271,7 +279,7 @@ models:
       - name: ano
         description: "Ano de referência."
       - name: fl_mes_atual
-        description: "Indica se a linha pertence ao mês-base mais recente disponível em stg_ativos."
+        description: "Indica se a linha pertence ao mês-base mais recente disponível em stg_patrimonio."
       - name: total_patrimonio_bruto
         description: "Patrimônio bruto total do casal no mês."
       - name: total_patrimonio_liquido
@@ -306,9 +314,11 @@ models:
         description: "Saldo em investimentos Nubank (Jéssica)."
       - name: saldo_avenue_jessica
         description: "Saldo na Avenue (Jéssica)."
+      - name: vlr_carro
+        description: "Valor de mercado do carro segundo a fipe"
 
   - name: riqueza
-    description: "Compara mês a mês o crescimento acumulado do patrimônio líquido (composto a partir das variações MoM de ativos_mom, a partir de 2023-11) contra os índices acumulados de int_indexadores, classificando cada mês como RICO(S) ou POBRE(S) por indexador."
+    description: "Compara mês a mês o crescimento acumulado do patrimônio líquido (composto a partir das variações MoM de patrimonio_mom, a partir de 2023-11) contra os índices acumulados de int_indexadores, classificando cada mês como RICO(S) ou POBRE(S) por indexador."
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base de referência."

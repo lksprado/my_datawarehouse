@@ -406,12 +406,12 @@ def secao_carteira(d, pessoa, num_ref):
                 for i in inst],
                ["Total", brl(total), "100,0%"]),
         tabela(["Categoria", "Tipo", "Valor", "% da carteira"],
-               [[t["categoria_investimento"].title(), t["tipo_investimento"].title(),
+               [[t["classe_ativo"].title(), t["tipo_ativo"].title(),
                  brl(t["valor"]), pct(t["pct_da_carteira"])] for t in tipos],
                None, ["l", "l", "n", "n"]),
         "<h3>Posições</h3>",
         tabela(["Investimento", "Camada", "Instituição", "Indexador", "Vencimento", "Valor"],
-               [[esc(p["investimento"]), p["camada"].capitalize(),
+               [[esc(p["ativo"]), p["camada"].capitalize(),
                  p["instituicao"].title(), p["indexador"] or "—",
                  data_br(p["data_vencimento"]) if p["data_vencimento"] else "—",
                  brl(p["vlr_atualizado_brl"])] for p in posicoes],
@@ -675,7 +675,7 @@ def bloco_riscos(d, pessoas):
     h.append("<h3>Vencimentos nos próximos 12 meses</h3>")
     if venc:
         h.append(tabela(["Titular", "Investimento", "Camada", "Vencimento", "Em", "Valor"],
-                        [[v["pessoa"].capitalize(), esc(v["investimento"]),
+                        [[v["pessoa"].capitalize(), esc(v["ativo"]),
                           v["camada"].capitalize(), data_br(v["data_vencimento"]),
                           f'{v["vencimento_em_dias"]} d', brl(v["vlr_atualizado_brl"])]
                          for v in venc],
@@ -687,7 +687,7 @@ def bloco_riscos(d, pessoas):
     h.append("<h3>Ativos sem camada atribuída</h3>")
     if nc:
         h.append(tabela(["Titular", "Investimento", "Instituição", "Valor"],
-                        [[x["pessoa"].capitalize(), esc(x["investimento"]),
+                        [[x["pessoa"].capitalize(), esc(x["ativo"]),
                           x["instituicao"].title(), brl(x["vlr_atualizado_brl"])]
                          for x in nc]))
         h.append('<p class="sub">Classificar na aba <code>classificacao</code> '

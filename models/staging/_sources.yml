@@ -73,12 +73,12 @@ sources:
       description: "Gastos por categoria em cartão de crédito e à vista"
     - name: luz
       description: "Consumo de energia elétrica"
-    - name: ativos
-      description: "Total de Ativos Financeiros"
+    - name: patrimonio
+      description: "Total de ativos que compõe o patrimônio"
     - name: dividends_interest
       description: "Dividendos e Impostos pagos"
     - name: carteira_classificacao
-      description: "Classificação manual de camada por posição, lida de volta da planilha Google (loop de retroalimentação). Colunas: mes_base, pessoa, investimento, categoria_investimento, tipo_investimento, instituicao, camada."
+      description: "Classificação manual de camada por posição, lida de volta da planilha Google (loop de retroalimentação). Colunas: mes_base, pessoa, ativo, classe_ativo, tipo_ativo, instituicao, camada."
     - name: ajuste
       description: "Transferências para equilíbrio de despesas proporcional à renda."
 

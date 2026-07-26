@@ -1,4 +1,4 @@
-mes_base,pessoa,instituicao,categoria_investimento,tipo_investimento,investimento,indexador,data_emissao,data_vencimento,vlr_atualizado
+mes_base,pessoa,instituicao,classe_ativo,tipo_ativo,ativo,indexador,data_emissao,data_vencimento,vlr_atualizado
 2023-05-01,lucas,NUBANK,RENDA FIXA,TITULO PRIVADO,CAIXINHA,DI,,,3010
 2023-06-01,lucas,NUBANK,RENDA FIXA,TITULO PRIVADO,CAIXINHA,DI,,,3043
 2023-07-01,lucas,NUBANK,RENDA FIXA,TITULO PRIVADO,CAIXINHA,DI,,,3517

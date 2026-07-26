@@ -25,9 +25,9 @@ variavel AS (
         instituicao,
         NULL::TEXT AS emissor,
         NULL::TEXT AS conglomerado,
-        categoria_investimento,
-        tipo_investimento,
-        investimento,
+        classe_ativo,
+        tipo_ativo,
+        ativo,
         NULL::TEXT AS indexador,
         NULL::DATE AS data_vencimento,
         NULL::INT AS vencimento_em_dias,
@@ -43,9 +43,9 @@ fixa AS (
         instituicao,
         emissor,
         conglomerado,
-        categoria_investimento,
-        tipo_investimento,
-        investimento,
+        classe_ativo,
+        tipo_ativo,
+        ativo,
         indexador,
         data_vencimento,
         vencimento_em_dias,
@@ -75,11 +75,11 @@ final AS (
         t1.instituicao,
         t1.emissor,
         t1.conglomerado,
-        t1.categoria_investimento,
-        t1.tipo_investimento,
-        COALESCE(cls.camada, 'NAO CLASSIFICADO') AS camada,
-        t1.investimento,
-        t1.indexador,
+        t1.classe_ativo,
+        t1.tipo_ativo,
+        COALESCE(cls.camada, 'NAO CLASSIFICADO')             AS camada,
+        t1.ativo,
+        COALESCE(t1.indexador, cls.indexador)                AS indexador,
         t1.data_vencimento,
         t1.vencimento_em_dias,
         t1.vlr_atualizado_brl,
@@ -96,12 +96,12 @@ final AS (
     LEFT JOIN mes_base_mais_recente t3
         ON t1.mes_base = t3.mes_base_mais_recente
     LEFT JOIN LATERAL (
-        SELECT c.camada
+        SELECT c.camada, c.indexador
         FROM {{ ref('stg_carteira_classificacao') }} AS c
         WHERE c.pessoa = t1.pessoa
-          AND c.investimento = t1.investimento
-          AND c.categoria_investimento = t1.categoria_investimento
-          AND c.tipo_investimento = t1.tipo_investimento
+          AND c.ativo = t1.ativo
+          AND c.classe_ativo = t1.classe_ativo
+          AND c.tipo_ativo = t1.tipo_ativo
           AND c.instituicao = t1.instituicao
           AND c.mes_base <= t1.mes_base
         ORDER BY c.mes_base DESC
@@ -110,4 +110,4 @@ final AS (
 )
 
 SELECT * FROM final
-ORDER BY mes_base, pessoa, instituicao, categoria_investimento, tipo_investimento, investimento
+ORDER BY mes_base, pessoa, instituicao, classe_ativo, tipo_ativo, ativo
