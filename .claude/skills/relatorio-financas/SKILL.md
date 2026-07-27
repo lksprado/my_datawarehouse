@@ -17,6 +17,12 @@ recomendado para o aporte.
 Deusa não tem lançamento de despesa no warehouse — só carteira e dividendos.
 O relatório dela é de investimentos, sem seção de orçamento. Não invente gastos.
 
+**Acionamento: sob demanda, só.** Não há agendador — nem cron, nem DAG. O
+usuário pede, você roda. Por isso o mês de referência é decidido aqui dentro
+(Passo 1) e o mês incompleto é barrado aqui dentro (Passo 2). Para refazer
+meses antigos em lote, sem sessão interativa, existe
+`scripts/gerar_relatorios_financas.sh`.
+
 ## Passo 0 — Ler as regras do domínio
 
 **Antes de qualquer análise**, leia `models/marts/financas/_docs_financas.md`.
@@ -33,18 +39,59 @@ Os parâmetros numéricos da política estão duplicados em `montar_relatorio.py
 `TEXTO_CAMADA`), porque o montador não lê Markdown. Se os dois discordarem,
 **vale o `_docs_financas.md`** — e corrija o Python na mesma passada.
 
-## Passo 1 — Extrair os dados
+## Passo 1 — Resolver o mês de referência
+
+O relatório fala sempre de **um mês fechado**, e é acionado sob demanda — não há
+DAG passando a data. Descobrir de que mês se trata é o primeiro trabalho.
+
+```bash
+date +%Y-%m-%d
+```
+
+**Rode o comando. Não use a data que você acha que é** — a data do contexto pode
+estar velha, e o mês errado contamina cada número em silêncio.
+
+Regra, em ordem:
+
+1. **Mês pedido pelo usuário vence.** Mês sem ano ("relatório de junho") é a
+   ocorrência mais recente que não está no futuro.
+2. Sem pedido explícito, é o mês anterior ao corrente:
+   `date -d "$(date +%Y-%m-01) -1 month" +%Y-%m`.
+3. **Nunca o mês corrente por default.** Ele está aberto: só tem gasto até hoje,
+   e toda média, variação e taxa de poupança sai subestimada.
+
+Declare o mês resolvido antes de extrair, para o usuário poder corrigir.
+
+## Passo 2 — Extrair os dados
 
 ```bash
 .claude/skills/relatorio-financas/scripts/extrair_dados.sh <AAAA-MM> <saida.json>
 ```
 
-Sem argumento de mês, usa o mês anterior ao atual. Grave o JSON no diretório de
-scratchpad da sessão, não no repositório.
+Grave o JSON no diretório de scratchpad da sessão, não no repositório.
 
 **Todo número dos relatórios sai desse JSON.** Não consulte o banco por fora nem
 recalcule agregados de cabeça — se faltar um corte, acrescente o bloco em
 `queries/extrair.sql` e rode de novo.
+
+### Portão de prontidão — antes de qualquer análise
+
+Leia `meta.prontidao`. Se `pronto` for **falso**, **pare**: relate as
+`pendencias` em português claro, diga qual foi o último mês fechado
+(`ultimo_mes_fechado`) e ofereça gerar aquele. Não decida sozinho gerar mesmo
+assim.
+
+O portão distingue três situações que, nos números, se parecem:
+
+| situação | como aparece |
+|---|---|
+| mês fechado | 26–28 dias com gasto, lançamento até o último dia |
+| mês em andamento | lançamentos param no dia de hoje |
+| mês pré-lançado | só as fixas (dia 25), `role`/`diversos`/`transporte` zerados |
+
+Se o usuário mandar gerar mesmo assim, siga — o montador imprime a tarja de
+dados incompletos na capa e no rodapé automaticamente, e o diagnóstico precisa
+dizer que os valores estão parciais.
 
 ### Armadilhas dos dados — leia antes de interpretar
 
@@ -61,6 +108,9 @@ recalcule agregados de cabeça — se faltar um corte, acrescente o bloco em
 - **`transporte` tem sazonalidade forte** (IPVA, seguro, licenciamento
   concentram-se em poucos meses). Compare contra o mesmo mês do ano anterior
   antes de chamar de aumento.
+- **Mês com data especial** (`meta.motivos_especiais` não nulo, ex.: aniversário
+  de casamento) costuma elevar `role` e `diversos`. Cite o motivo em vez de
+  tratar o pico como desvio de conduta.
 - **`saude` e `educacao` não entram em sugestão de corte**, por decisão
   registrada no glossário.
 - **`camada = 'NAO CLASSIFICADO'`** não é alocação: é pendência operacional.
@@ -75,7 +125,7 @@ recalcule agregados de cabeça — se faltar um corte, acrescente o bloco em
   superação de benchmark. Não reproduza esses termos no PDF — escreva "acima do
   CDI" / "abaixo do IPCA".
 
-## Passo 2 — Analisar
+## Passo 3 — Analisar
 
 Trabalhe as duas frentes com o rigor de cada profissão.
 
@@ -106,7 +156,7 @@ Regras de conduta:
   "CDB do banco X a 112% do CDI" não).
 - Quando os dados não sustentarem uma conclusão, diga que não sustentam.
 
-## Passo 3 — Escrever a narrativa
+## Passo 4 — Escrever a narrativa
 
 **Você não escreve HTML.** `scripts/montar_relatorio.py` renderiza KPIs, tabelas
 e gráficos direto do JSON, para que nenhum número do PDF dependa de transcrição
@@ -135,8 +185,10 @@ Sobre o texto:
   Confira contra o JSON antes de escrever, não de memória.
 - No máximo 6 recomendações, cada uma com valor em R$ quando couber e a razão
   em uma frase. Recomendação sem número é opinião.
-- Liste em `premissas` toda marcação `[CONFIRMAR]` do glossário que sustentou
-  alguma conclusão. Elas saem no rodapé do PDF.
+- Liste em `premissas` os critérios que sustentaram alguma conclusão e que o
+  leitor não deduziria dos números: qual das duas regras de reserva-alvo está
+  valendo, qualquer marcação `[CONFIRMAR]` do glossário que você tenha usado,
+  e as limitações do dado que afetaram o diagnóstico. Saem no rodapé do PDF.
 - Quando os dados não sustentarem uma conclusão, escreva que não sustentam. O
   índice de `riqueza`, por exemplo, compõe variação de patrimônio que **inclui
   aportes** — não é rentabilidade, e compará-lo ao CDI superestima o desempenho
@@ -173,7 +225,7 @@ entre fatias, e formatação pt-BR de moeda, percentual e data.
 Só carregue a skill `dataviz` se precisar **acrescentar** um gráfico ao
 montador. Para gerar um relatório com os cortes que já existem, não precisa.
 
-## Passo 4 — Montar e converter
+## Passo 5 — Montar e converter
 
 ```bash
 S=<scratchpad>
@@ -195,7 +247,7 @@ done
 Destino padrão: `relatorios/AAAA-MM/` na raiz do projeto (fora do git — já está
 no `.gitignore`). Respeite `RELATORIOS_DIR` se estiver definida.
 
-## Passo 5 — Conferir antes de entregar
+## Passo 6 — Conferir antes de entregar
 
 Obrigatório, não opcional:
 

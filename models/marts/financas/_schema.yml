@@ -48,6 +48,8 @@ models:
         description: "Indica se a linha pertence ao mês-base mais recente disponível na carteira."
       - name: pessoa
         description: "Titular da posição (jessica ou lucas)."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: carteira_deusa
     description: >
@@ -91,6 +93,8 @@ models:
         description: "Indica se a linha pertence ao mês-base mais recente disponível na carteira."
       - name: pessoa
         description: "Titular da posição (deusa)."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: carteira_lucas_agregada
     description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, a partir de int_carteira; a lista de instituições é fixa — ver observação abaixo) para Lucas."
@@ -107,6 +111,8 @@ models:
         description: "Total investido na Daycoval no mês."
       - name: avenue
         description: "Total investido na Avenue no mês."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
     # ATENÇÃO: o pivot é dinâmico, mas o CTE `final` do .sql lista as instituições
     # uma a uma. Instituição nova vira coluna no pivot e é DESCARTADA em seguida —
     # não aparece no mart nem entra em total_investido. Ao abrir conta em uma
@@ -127,6 +133,8 @@ models:
         description: "Total investido na Nubank no mês."
       - name: avenue
         description: "Total investido na Avenue no mês."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
     # ATENÇÃO: o pivot é dinâmico, mas o CTE `final` do .sql lista as instituições
     # uma a uma. Instituição nova vira coluna no pivot e é DESCARTADA em seguida —
     # não aparece no mart nem entra em total_investido. Ao abrir conta em uma
@@ -147,6 +155,8 @@ models:
         description: "Total investido na Nubank no mês."
       - name: avenue
         description: "Total investido na Avenue no mês."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
     # ATENÇÃO: o pivot é dinâmico, mas o CTE `final` do .sql lista as instituições
     # uma a uma. Instituição nova vira coluna no pivot e é DESCARTADA em seguida —
     # não aparece no mart nem entra em total_investido. Ao abrir conta em uma
@@ -173,6 +183,8 @@ models:
         description: "Data de vencimento do título (apenas renda fixa); nula nos demais."
       - name: camada
         description: "Camada vigente do ativo ou 'NAO CLASSIFICADO' se ainda não classificado — os brancos que o Lucas deve preencher na planilha. Nenhuma camada é inferida pelo modelo: tanto os investimentos de int_carteira quanto as disponibilidades de int_carteira_extra (saldo Bradesco/Wise/Bitcoin/BB) chegam como 'NAO CLASSIFICADO' até receberem classificação manual. Ver o bloco camada_investimento em _docs_financas.md para o significado de cada camada."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: dividendos
     description: "Série mensal de renda passiva por pessoa, com spine de datas contínuo entre o primeiro e o último mês com dividendos (zero quando não há recebimento)."
@@ -187,6 +199,8 @@ models:
         description: "Titular que recebeu os dividendos (deusa, jessica ou lucas)."
       - name: vlr_liquido_brl
         description: "Valor líquido de dividendos/proventos recebidos no mês (0 quando não há recebimento)."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: risco_fgc_lucas
     description: "Exposição ao FGC por conglomerado no mês atual (Lucas), comparando o total investido ao limite de garantia de R$ 250.000 e sinalizando risco."
@@ -199,6 +213,8 @@ models:
         description: "Valor ainda coberto pela garantia (limite de R$ 250.000 menos o total investido no conglomerado)."
       - name: risco_fgc
         description: "Classificação do risco: 'OK' quando há folga acima de R$ 50.000, 'PERIGO!' caso contrário."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: risco_fgc_deusa
     description: "Exposição ao FGC por conglomerado no mês atual (Deusa), comparando o total investido ao limite de garantia de R$ 250.000 e sinalizando risco."
@@ -211,6 +227,8 @@ models:
         description: "Valor ainda coberto pela garantia (limite de R$ 250.000 menos o total investido no conglomerado)."
       - name: risco_fgc
         description: "Classificação do risco: 'OK' quando há folga acima de R$ 50.000, 'PERIGO!' caso contrário."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: risco_fgc_jessica
     description: "Exposição ao FGC por conglomerado no mês atual (Jéssica), comparando o total investido ao limite de garantia de R$ 250.000 e sinalizando risco."
@@ -223,6 +241,8 @@ models:
         description: "Valor ainda coberto pela garantia (limite de R$ 250.000 menos o total investido no conglomerado)."
       - name: risco_fgc
         description: "Classificação do risco: 'OK' quando há folga acima de R$ 50.000, 'PERIGO!' caso contrário."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: verificar_fgc
     description: "Modelo de auditoria: lista emissores de CDB/LCA/LCI/LC ainda sem conglomerado FGC mapeado. Saída vazia significa que o de-para está completo."
@@ -231,6 +251,8 @@ models:
         description: "Emissor de renda fixa sem conglomerado FGC associado."
       - name: conglomerado
         description: "Conglomerado FGC (sempre nulo nesta saída — é justamente o que precisa ser mapeado)."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: patrimonio_mom
     description: >
@@ -279,6 +301,8 @@ models:
         description: "Variação MoM, em fração decimal, do saldo Avenue (Jéssica)."
       - name: vlr_carro
         description: "Variação MoM, em fração decimal, do valor de mercado do carro."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: patrimonio
     description: >
@@ -335,6 +359,8 @@ models:
         description: "Saldo na Avenue (Jéssica)."
       - name: vlr_carro
         description: "Valor de mercado do carro segundo a tabela Fipe, em reais."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: riqueza
     description: >
@@ -396,6 +422,8 @@ models:
         description: "'RICO' quando o índice do patrimônio de Lucas supera o do CDI no mês; 'POBRE' caso contrário."
       - name: comparativo_cdi_jessica
         description: "'RICO' quando o índice do patrimônio de Jéssica supera o do CDI no mês; 'POBRE' caso contrário."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: consumo
     description: >
@@ -442,6 +470,8 @@ models:
         description: '{{ doc("categoria_saude") }}'
       - name: total_educacao
         description: '{{ doc("categoria_educacao") }}'
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: resultado
     description: >
@@ -454,7 +484,16 @@ models:
       {{ doc('ciclo_fatura') }}
     columns:
       - name: mes_debito
-        description: "Primeiro dia do mês de débito/competência."
+        description: "Primeiro dia do mês de débito/competência. Chave do modelo."
+        data_tests:
+          - unique
+          - not_null
+      - name: fl_mes_especial
+        description: "1 quando o mês contém alguma data especial de dim_datas; 0 caso contrário."
+      - name: motivo
+        description: >
+          Datas especiais do mês, separadas por ' / ', ou 'NORMAL' quando não há nenhuma.
+          Serve para explicar picos sazonais em role e diversos — não afeta os valores.
       - name: trimestre
         description: "Trimestre do ano."
       - name: ano
@@ -489,6 +528,8 @@ models:
         description: '{{ doc("categoria_saude") }}'
       - name: total_educacao
         description: '{{ doc("categoria_educacao") }}'
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: luz
     description: >
@@ -514,3 +555,5 @@ models:
         description: "Consumo médio diário de energia, em kWh."
       - name: preco_kwh
         description: "Preço médio por kWh no período."
+      - name: model_updated_at
+        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."

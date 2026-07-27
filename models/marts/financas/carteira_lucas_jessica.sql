@@ -11,5 +11,8 @@ unioned AS (
   UNION ALL
   SELECT * FROM {{ ref('int_carteira_extra') }} 
 )
-select * from unioned WHERE pessoa IN ('lucas', 'jessica')
+select
+    unioned.*,
+    CURRENT_TIMESTAMP AS model_updated_at
+from unioned WHERE pessoa IN ('lucas', 'jessica')
 ORDER BY mes_base, pessoa, instituicao, classe_ativo, tipo_ativo, ativo

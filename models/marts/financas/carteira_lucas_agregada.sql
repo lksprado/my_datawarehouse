@@ -50,4 +50,7 @@ final as (
     avenue
   FROM agregrada
 )
-SELECT * FROM final order by mes_final
+SELECT
+  final.*,
+  CURRENT_TIMESTAMP AS model_updated_at
+FROM final order by mes_final

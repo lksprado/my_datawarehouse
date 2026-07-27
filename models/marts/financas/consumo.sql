@@ -44,4 +44,7 @@ consolidados AS (
     ORDER BY data_debito
 )
 
-SELECT * FROM consolidados
+SELECT
+    consolidados.*,
+    CURRENT_TIMESTAMP AS model_updated_at
+FROM consolidados

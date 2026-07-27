@@ -30,4 +30,7 @@ luz AS (
         ON t1.mes = t2.month_start_date
 )
 
-SELECT * FROM luz ORDER BY mes
+SELECT
+    luz.*,
+    CURRENT_TIMESTAMP AS model_updated_at
+FROM luz ORDER BY mes

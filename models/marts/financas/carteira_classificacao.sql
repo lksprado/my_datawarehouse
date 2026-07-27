@@ -44,5 +44,8 @@ final AS (
     WHERE fl_mes_atual IS TRUE
 )
 
-SELECT * FROM final
+SELECT
+    final.*,
+    CURRENT_TIMESTAMP AS model_updated_at
+FROM final
 ORDER BY pessoa, camada, classe_ativo, tipo_ativo, ativo

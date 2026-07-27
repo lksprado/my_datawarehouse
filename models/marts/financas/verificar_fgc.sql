@@ -23,4 +23,7 @@ tb AS (
         AND t2.conglomerado IS NULL
 )
 
-SELECT * FROM tb
+SELECT
+    tb.*,
+    CURRENT_TIMESTAMP AS model_updated_at
+FROM tb

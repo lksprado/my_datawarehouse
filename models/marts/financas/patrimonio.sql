@@ -35,4 +35,7 @@ ativos AS (
     FROM {{ ref('int_patrimonio_mensal') }}
 )
 
-SELECT * FROM ativos ORDER BY mes_base
+SELECT
+    ativos.*,
+    CURRENT_TIMESTAMP AS model_updated_at
+FROM ativos ORDER BY mes_base

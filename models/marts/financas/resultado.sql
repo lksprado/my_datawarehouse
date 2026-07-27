@@ -6,15 +6,21 @@
 }}
 
 WITH
+-- Um registro por mês. dim_datas tem uma linha por dia e `motivo` varia dentro
+-- do mês, então DISTINCT com motivo na chave duplicaria o mês no join abaixo e
+-- repetiria o valor cheio em cada linha.
 datas AS (
-    SELECT DISTINCT
+    SELECT
         month_start_date,
-        month_of_year,
-        quarter_of_year,
-        year_number,
-        fl_mes_especial,
-        motivo
+        MAX(quarter_of_year) AS quarter_of_year,
+        MAX(year_number)     AS year_number,
+        MAX(fl_mes_especial) AS fl_mes_especial,
+        COALESCE(
+            STRING_AGG(DISTINCT NULLIF(motivo, 'NORMAL'), ' / '),
+            'NORMAL'
+        )                    AS motivo
     FROM {{ ref('dim_datas') }}
+    GROUP BY month_start_date
 ),
 
 consolidados AS (
@@ -53,4 +59,7 @@ consolidados AS (
     ORDER BY t1.mes_debito
 )
 
-SELECT * FROM consolidados
+SELECT
+    consolidados.*,
+    CURRENT_TIMESTAMP AS model_updated_at
+FROM consolidados

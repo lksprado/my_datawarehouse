@@ -83,4 +83,7 @@ final AS (
         INNER JOIN indexadores t2
         ON t1.mes_base = t2.mes_base
 )
-SELECT * FROM final ORDER BY mes_base
+SELECT
+    final.*,
+    CURRENT_TIMESTAMP AS model_updated_at
+FROM final ORDER BY mes_base

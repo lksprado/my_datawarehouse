@@ -33,4 +33,7 @@ calc AS (
     FROM carteira
 )
 
-SELECT * FROM calc
+SELECT
+    calc.*,
+    CURRENT_TIMESTAMP AS model_updated_at
+FROM calc

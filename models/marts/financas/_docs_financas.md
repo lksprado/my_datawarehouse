@@ -152,7 +152,9 @@ Não entra: academia (→ `assinaturas`).
 
 Natureza: mista — plano de saúde é fixo e essencial; o restante é variável e
 não compressível. Nunca deve ser objeto de recomendação de corte: quando
-`saude` sobe, o relatório reporta e explica, não sugere reduzir.
+`saude` sobe, o relatório reporta e explica, não sugere reduzir. É esperado um
+volume anormal no segundo semestre, em torno de R$25.000 devido a um transplante capilar
+que Lucas irá realizar.
 
 {% enddocs %}
 
@@ -248,7 +250,10 @@ vencimento em 3 anos **não** é reserva mesmo tendo liquidez em D+1: a intenç�
 O tamanho da reserva é definido em meses de despesa com piso em reais (ver
 "Metas e limites"), não em percentual da carteira: reserva existe para cobrir
 despesas correntes e emergenciais, não para acompanhar o patrimônio uma vez que
-as metas estejam cumpridas.
+as metas estejam cumpridas. Como relatado no gasto `Saúde`: É esperado um
+volume anormal no segundo semestre, em torno de R$25.000 devido a um transplante capilar
+que Lucas irá realizar, por isso a calibragem da carteira deve considerar que em breve essa
+quantia irá sair das reservas de Lucas.
 
 `RESERVA ESTRATEGICA` — ativos de reserva de valor (cripto, moeda estrangeira,
 cashback). Têm alta liquidez, mas dependem de um cenário favorável de valorização

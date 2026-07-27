@@ -78,6 +78,8 @@ Other domains:
 
 Its numeric parameters are duplicated in `.claude/skills/relatorio-financas/scripts/montar_relatorio.py` (`alvos_camada()`, `APORTE_ALVO`, `META_RESERVA_*`, `TEXTO_CATEGORIA`, `TEXTO_CAMADA`) because the report builder cannot read Markdown. **Edit both in the same pass** — they silently diverged once and the monthly PDF rendered targets that contradicted the written policy.
 
+The monthly PDFs come from the `relatorio-financas` skill. It is **on-demand only** — nothing schedules it, no DAG, no cron. The skill resolves its own reference month from `date` (never `MAX(mes)`, never the current month) and refuses a month that has not finished loading; `meta.prontidao` in `queries/extrair.sql` is that gate. `scripts/gerar_relatorios_financas.sh` is the batch path for backfilling old months.
+
 ### Key patterns
 
 **JSON denormalization at staging:** Scraper and API sources store a single `payload jsonb` column. Staging models cast every field explicitly, e.g. `(payload ->> 'id')::int as game_id`. Never reference raw `payload` columns downstream of staging. Google Sheets and seed sources are not JSON — they arrive as text columns and are cleaned with the `clean_string` / `clean_integer` macros.

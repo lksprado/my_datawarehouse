@@ -55,5 +55,8 @@ final AS (
     FROM agregrada
 )
 
-SELECT * FROM final
+SELECT
+    final.*,
+    CURRENT_TIMESTAMP AS model_updated_at
+FROM final
 ORDER BY mes_final

@@ -378,12 +378,14 @@ ROTULO_CAMADA = {"RESERVA": "Reserva", "CRESCIMENTO": "Crescimento",
                  "RENDA": "Renda", "RESERVA ESTRATEGICA": "Reserva estratégica",
                  "NAO CLASSIFICADO": "Não classificado"}
 
-APORTE_ALVO = {"lucas": 4000, "jessica": 2500, "deusa": 3000}
+APORTE_ALVO = {"lucas": 4000, "jessica": 2000, "deusa": 3000}
 # Reserva-alvo = max(N x mediana da despesa de 6 meses, R$ 100.000).
-META_RESERVA_MESES = {"casal": 6, "deusa": 12}  # [CONFIRMAR]
+META_RESERVA_MESES = {"casal": 6, "deusa": 12}
 META_RESERVA_PISO = 100000
 META_POUPANCA_PCT = 35
 FGC_FOLGA_MINIMA = 50000
+# Exposição internacional alvo, % da carteira.
+META_INTERNACIONAL_PCT = {"lucas": 15, "jessica": 15, "deusa": 10}
 
 
 # ----------------------------------------------------------------- carteira ---
@@ -454,7 +456,8 @@ def secao_carteira(d, pessoa, num_ref):
         kpi("Carteira total", brl(total), f"{len(posicoes)} posições"),
         kpi("Maior instituição", inst[0]["instituicao"].title() if inst else "—",
             f'{pct(inst[0]["pct_da_carteira"])} da carteira' if inst else ""),
-        kpi("Exposição em dólar", pct(moedas.get("USD", 0)), "alvo 15% [CONFIRMAR]"),
+        kpi("Exposição em dólar", pct(moedas.get("USD", 0)),
+            f"alvo {META_INTERNACIONAL_PCT[pessoa]}%"),
         "</div>",
         "<h3>Alocação por camada contra a política</h3>",
         f"<figure>{barras_alvo(dados_alvo)}</figure>",
@@ -483,7 +486,26 @@ def secao_carteira(d, pessoa, num_ref):
 
 # ------------------------------------------------------------------ montagem ---
 
-def cabecalho(titulo, subtitulo, meta, destinatarios):
+def aviso_prontidao(meta):
+    """Tarja de mês não fechado. Só aparece quando o relatório foi gerado
+    contra a recusa do portão — o número está incompleto e o leitor precisa
+    saber disso antes de qualquer conclusão."""
+    pr = meta.get("prontidao") or {}
+    if pr.get("pronto", True):
+        return ""
+    itens = "".join(f"<li>{esc(p)}</li>" for p in pr.get("pendencias") or [])
+    fechado = pr.get("ultimo_mes_fechado")
+    alt = (f"<p>Último mês integralmente carregado: "
+           f"<strong>{mes_extenso(fechado)}</strong>.</p>") if fechado else ""
+    return (f'<div class="destaque-bloco alerta">'
+            f'<h4>Dados incompletos — mês não fechado</h4>'
+            f'<p>Este relatório foi gerado sobre um mês de referência que ainda '
+            f'não terminou de carregar. Totais, médias e taxa de poupança estão '
+            f'subestimados e nenhuma comparação com meses anteriores é válida.</p>'
+            f'<ul>{itens}</ul>{alt}</div>')
+
+
+def cabecalho(titulo, subtitulo, meta, destinatarios, escopo="casal"):
     css = CSS.read_text(encoding="utf-8")
     defasagem = meta["defasagem_carteira_meses"]
     aviso = ""
@@ -493,16 +515,24 @@ def cabecalho(titulo, subtitulo, meta, destinatarios):
                  f"patrimônio posicionados em {mes_extenso(meta['mes_carteira'])} "
                  f"— o fechamento da carteira está {defasagem} mês à frente de ser "
                  f"conciliado.</p>")
+    # Deusa não tem lançamento de despesa no warehouse: prometer apuração de
+    # orçamento na capa seria anunciar uma seção que não existe.
+    conteudo = ("Reúne a apuração do orçamento, a posição consolidada da "
+                "carteira, a leitura de riscos e o destino recomendado para o "
+                "aporte do período."
+                if escopo == "casal" else
+                "Reúne a posição consolidada da carteira, a renda passiva do "
+                "período, a leitura de riscos e o destino recomendado para o "
+                "aporte.")
     return f"""<meta charset="utf-8"><title>{esc(titulo)}</title><style>{css}</style>
 <div class="capa">
   <div class="eyebrow">Relatório de planejamento financeiro e investimentos</div>
   <h1>{esc(titulo)}</h1>
   <div class="periodo">{esc(subtitulo)}</div>
   <p style="max-width:120mm;color:var(--text-secondary)">
-    Preparado para {esc(destinatarios)}. Reúne a apuração do orçamento, a
-    posição consolidada da carteira, a leitura de riscos e o destino recomendado
-    para o aporte do período.{aviso}
+    Preparado para {esc(destinatarios)}. {conteudo}{aviso}
   </p>
+  {aviso_prontidao(meta)}
   <div class="rodape-capa">
     Gerado em {data_br(meta['gerado_em'])} a partir da camada <code>marts</code>
     do data warehouse · mês de referência {meta['mes_ref'][:7]}
@@ -510,18 +540,38 @@ def cabecalho(titulo, subtitulo, meta, destinatarios):
 </div>"""
 
 
-def rodape(meta, premissas):
+def rodape(meta, premissas, escopo="casal"):
     pr = ""
     if premissas:
         itens = "".join(f"<li>{esc(p)}</li>" for p in premissas)
-        pr = (f"<p><strong>Premissas marcadas [CONFIRMAR] usadas neste "
+        pr = (f"<p><strong>Premissas e critérios adotados neste "
               f"relatório:</strong></p><ul>{itens}</ul>")
+
+    prd = meta.get("prontidao") or {}
+    incompleto = ""
+    if not prd.get("pronto", True):
+        pend = "; ".join(prd.get("pendencias") or [])
+        incompleto = (f"<p><strong>Mês não fechado.</strong> O portão de prontidão "
+                      f"reprovou {mes_extenso(meta['mes_ref'])} e o relatório foi "
+                      f"gerado mesmo assim: {esc(pend)}</p>")
+
+    esp = meta.get("motivos_especiais")
+    sazonal = (f"<p>{mes_extenso(meta['mes_ref'])} é mês de data especial "
+               f"({esc(esp.capitalize())}), o que costuma elevar rolê e "
+               f"diversos.</p>") if esp else ""
+
+    procedencia = (
+        f"Orçamento e consumo em {mes_extenso(meta['mes_ref'])}; carteira, "
+        f"patrimônio e renda passiva em {mes_extenso(meta['mes_carteira'])}."
+        if escopo == "casal" else
+        f"Carteira e renda passiva em {mes_extenso(meta['mes_carteira'])}. "
+        f"Não há lançamento de receita ou despesa registrado no warehouse para "
+        f"esta carteira, portanto não há apuração de orçamento.")
+
     return f"""<section class="quebra"><h2><span class="num">—</span>Notas e procedência</h2>
-<div class="rodape-doc">
-  {pr}
+<div class="rodape-doc">{incompleto}{pr}{sazonal}
   <p>Origem: camada <code>marts</code> do data warehouse pessoal (PostgreSQL),
-  domínio finanças. Orçamento e consumo em {mes_extenso(meta['mes_ref'])};
-  carteira, patrimônio e renda passiva em {mes_extenso(meta['mes_carteira'])}.</p>
+  domínio finanças. {procedencia}</p>
   <p>Definições de categoria de gasto e de camada de investimento conforme
   <code>models/marts/financas/_docs_financas.md</code>, fonte única do domínio.
   Meses posteriores ao de referência existem na base como lançamentos futuros
@@ -715,7 +765,7 @@ def montar_casal(d, n):
     # 9 — recomendações
     partes.append(secao(9, "Recomendações",
         f"Destino sugerido para o aporte · aporte-alvo conjunto "
-        f"{brl(APORTE_ALVO['lucas'] + APORTE_ALVO['jessica'])}/mês [CONFIRMAR]",
+        f"{brl(APORTE_ALVO['lucas'] + APORTE_ALVO['jessica'])}/mês",
         recomendacoes_html(n.get("recomendacoes", [])), quebra=True))
 
     # 10 — glossário
@@ -799,7 +849,7 @@ def montar_deusa(d, n):
 
     partes = [cabecalho("Relatório de investimentos",
                         mes_extenso(meta["mes_carteira"]).capitalize(),
-                        meta, "Deusa")]
+                        meta, "Deusa", escopo="deusa")]
 
     partes.append(secao(1, "Sumário executivo",
         f"Posição da carteira em {mes_extenso(meta['mes_carteira'])}",
@@ -831,13 +881,13 @@ def montar_deusa(d, n):
         bloco_riscos(d, ["deusa"]) + bloco("", n.get("diagnostico_riscos", ""))))
 
     partes.append(secao(5, "Recomendações",
-        f"Destino sugerido para o aporte · aporte-alvo {brl(APORTE_ALVO['deusa'])}/mês [CONFIRMAR]",
+        f"Destino sugerido para o aporte · aporte-alvo {brl(APORTE_ALVO['deusa'])}/mês",
         recomendacoes_html(n.get("recomendacoes", [])), quebra=True))
 
     partes.append(secao(6, "Glossário", "O que significa cada camada de investimento",
         glossario("deusa")))
 
-    partes.append(rodape(meta, n.get("premissas", [])))
+    partes.append(rodape(meta, n.get("premissas", []), escopo="deusa"))
     return "\n".join(partes)
 
 

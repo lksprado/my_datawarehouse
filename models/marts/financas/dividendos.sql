@@ -62,4 +62,7 @@ final AS (
     ORDER BY spine.month_start_date
 )
 
-SELECT * FROM final
+SELECT
+    final.*,
+    CURRENT_TIMESTAMP AS model_updated_at
+FROM final
