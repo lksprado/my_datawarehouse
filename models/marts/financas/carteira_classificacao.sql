@@ -45,7 +45,6 @@ final AS (
 )
 
 SELECT
-    final.*,
-    CURRENT_TIMESTAMP AS model_updated_at
+    final.*
 FROM final
 ORDER BY pessoa, camada, classe_ativo, tipo_ativo, ativo

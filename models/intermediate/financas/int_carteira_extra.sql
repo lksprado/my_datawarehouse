@@ -38,6 +38,28 @@ ativos_bradesco_lucas AS (
   FROM {{ ref('int_patrimonio_mensal') }}
 ),
 
+ativos_cashback_lucas AS (
+  SELECT
+  mes_base,
+  mes_final,
+  trimestre,
+  ano,
+  'NUBANK' AS instituicao,
+  NULL::TEXT AS emissor,
+  'BRADESCO' AS conglomerado,
+  'DISPONIBILIDADE'    AS classe_ativo,
+  'CONTA CORRENTE' AS tipo_ativo,
+  'SALDO EM CONTA' AS ativo,
+  NULL::TEXT AS indexador,
+  NULL::DATE AS data_vencimento,
+  NULL::INT AS vencimento_em_dias,
+  saldo_nubank_cashback_lucas as vlr_atualizado_brl,
+  'BRL' as moeda_ativo,
+  fl_mes_atual,
+  'lucas' as pessoa
+  FROM {{ ref('int_patrimonio_mensal') }}
+),
+
 ativos_wise_lucas AS (
   SELECT
   mes_base,
@@ -106,6 +128,8 @@ ativos_bb_jessica AS (
 
 unioned AS (
   select * from ativos_bradesco_lucas
+  union all
+  select * from ativos_cashback_lucas
   union all
   select * from ativos_wise_lucas
   union all

@@ -183,8 +183,6 @@ models:
         description: "Data de vencimento do título (apenas renda fixa); nula nos demais."
       - name: camada
         description: "Camada vigente do ativo ou 'NAO CLASSIFICADO' se ainda não classificado — os brancos que o Lucas deve preencher na planilha. Nenhuma camada é inferida pelo modelo: tanto os investimentos de int_carteira quanto as disponibilidades de int_carteira_extra (saldo Bradesco/Wise/Bitcoin/BB) chegam como 'NAO CLASSIFICADO' até receberem classificação manual. Ver o bloco camada_investimento em _docs_financas.md para o significado de cada camada."
-      - name: model_updated_at
-        description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: dividendos
     description: "Série mensal de renda passiva por pessoa, com spine de datas contínuo entre o primeiro e o último mês com dividendos (zero quando não há recebimento)."
