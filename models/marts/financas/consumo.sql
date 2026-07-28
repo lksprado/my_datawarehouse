@@ -18,6 +18,7 @@ consolidados AS (
         t2.day_of_month     AS dia_mes,
         t2.week_of_year     AS semana,
         t2.quarter_of_year  AS trimestre,
+        t2.year_number      AS ano,
         SUM(t1.mercado)     AS total_mercado,
         SUM(t1.diversos)    AS total_diversos,
         SUM(t1.assinaturas) AS total_assinaturas,
@@ -40,7 +41,8 @@ consolidados AS (
         t1.dia_real,
         t2.day_of_month,
         t2.week_of_year,
-        t2.quarter_of_year
+        t2.quarter_of_year,
+        t2.year_number
     ORDER BY data_debito
 )
 
