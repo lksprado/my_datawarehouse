@@ -6,57 +6,25 @@
 }}
 
 {#-
-  Lista de instituições obtida em tempo de compilação a partir de int_carteira.
-  O `default` garante colunas mesmo numa build do zero, quando int_carteira
-  ainda não foi materializada e a consulta retornaria vazio.
-
-  ATENÇÃO: o pivot é dinâmico, mas o CTE `final` abaixo lista as instituições uma
-  a uma. Instituição nova vira coluna aqui e é descartada logo em seguida — não
-  chega ao mart nem entra em `total_investido`. Ao abrir conta em uma instituição
-  nova, editar o CTE `final` à mão.
+  Recorte por pessoa de int_carteira_agregada, que já resolve o pivot dinâmico
+  por instituição. Instituição nova entra como coluna aqui sem edição manual e
+  entra nos totais — antes o CTE `final` listava as instituições uma a uma e
+  descartava as que não estivessem na lista.
 -#}
-{%- set instituicoes = dbt_utils.get_column_values(
-    ref('int_carteira'),
-    'instituicao',
-    order_by = 'instituicao',
-    default = ['BRADESCO', 'NUBANK', 'BANCO DO BRASIL','AVENUE', 'DESCONHECIDO']
-) -%}
-
-WITH
-agregrada AS (
-    SELECT
-        mes_final,
-    {{ dbt_utils.pivot(
-        'instituicao',
-        instituicoes,
-        agg = 'sum',
-        then_value = 'vlr_atualizado_brl',
-        quote_identifiers = False
-    ) }}
-    FROM {{ ref('int_carteira') }}
-    WHERE pessoa = 'deusa'
-    GROUP BY mes_final
-    ORDER BY mes_final
-),
-
-final AS (
-    SELECT
-        mes_final,
-        banco_do_brasil,
-        bradesco,
-        nubank,
-        avenue,
-        (
-            banco_do_brasil
-            + bradesco
-            + nubank
-            + avenue
-        ) AS total_investido
-    FROM agregrada
-)
 
 SELECT
-    final.*,
+    mes_base,
+    mes_final,
+    pessoa,
+    total_geral,
+    total_disponibilidades,
+    total_investido,
+    banco_do_brasil,
+    bradesco,
+    nubank,
+    avenue,
+    vlr_liquido_usd,
     CURRENT_TIMESTAMP AS model_updated_at
-FROM final
+FROM {{ ref('int_carteira_agregada') }}
+WHERE pessoa = 'deusa'
 ORDER BY mes_final

@@ -97,70 +97,67 @@ models:
         description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
   - name: carteira_lucas_agregada
-    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, a partir de int_carteira; a lista de instituições é fixa — ver observação abaixo) para Lucas."
+    description: >
+      Recorte do Lucas sobre int_carteira_agregada: totais mensais de valor atualizado com
+      uma coluna por instituição. A lista de instituições é dinâmica — resolvida em tempo de
+      compilação a partir de int_carteira e int_carteira_extra —, então instituição nova vira
+      coluna e entra nos totais sem edição manual. Todas as colunas de int_carteira_agregada
+      são propagadas; ver aquele modelo para a descrição de cada uma.
     columns:
       - name: mes_final
         description: "Último dia do mês de referência."
+      - name: pessoa
+        description: "Sempre 'lucas'."
       - name: total_investido
-        description: "Total investido no mês, somando as instituições (bradesco, nubank, daycoval, avenue)."
-      - name: bradesco
-        description: "Total investido na Bradesco no mês."
-      - name: nubank
-        description: "Total investido na Nubank no mês."
-      - name: daycoval
-        description: "Total investido na Daycoval no mês."
-      - name: avenue
-        description: "Total investido na Avenue no mês."
+        description: "Total das posições de investimento (int_carteira) no mês."
+      - name: total_disponibilidades
+        description: "Total do saldo em conta (int_carteira_extra) no mês."
+      - name: total_geral
+        description: "Soma dos dois anteriores, equivalente à soma das colunas por instituição."
       - name: model_updated_at
         description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
-    # ATENÇÃO: o pivot é dinâmico, mas o CTE `final` do .sql lista as instituições
-    # uma a uma. Instituição nova vira coluna no pivot e é DESCARTADA em seguida —
-    # não aparece no mart nem entra em total_investido. Ao abrir conta em uma
-    # instituição nova, editar o CTE `final` à mão.
 
   - name: carteira_jessica_agregada
-    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, a partir de int_carteira; a lista de instituições é fixa — ver observação abaixo) para Jéssica."
+    description: >
+      Recorte da Jéssica sobre int_carteira_agregada: totais mensais de valor atualizado com
+      uma coluna por instituição. A lista de instituições é dinâmica — resolvida em tempo de
+      compilação a partir de int_carteira e int_carteira_extra —, então instituição nova vira
+      coluna e entra nos totais sem edição manual. Todas as colunas de int_carteira_agregada
+      são propagadas; ver aquele modelo para a descrição de cada uma.
     columns:
       - name: mes_final
         description: "Último dia do mês de referência."
+      - name: pessoa
+        description: "Sempre 'jessica'."
       - name: total_investido
-        description: "Total investido no mês, somando as instituições (sofisa, itau, nubank, avenue)."
-      - name: sofisa
-        description: "Total investido na Sofisa no mês."
-      - name: itau
-        description: "Total investido no Itaú no mês."
-      - name: nubank
-        description: "Total investido na Nubank no mês."
-      - name: avenue
-        description: "Total investido na Avenue no mês."
+        description: "Total das posições de investimento (int_carteira) no mês."
+      - name: total_disponibilidades
+        description: "Total do saldo em conta (int_carteira_extra) no mês."
+      - name: total_geral
+        description: "Soma dos dois anteriores, equivalente à soma das colunas por instituição."
       - name: model_updated_at
         description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
-    # ATENÇÃO: o pivot é dinâmico, mas o CTE `final` do .sql lista as instituições
-    # uma a uma. Instituição nova vira coluna no pivot e é DESCARTADA em seguida —
-    # não aparece no mart nem entra em total_investido. Ao abrir conta em uma
-    # instituição nova, editar o CTE `final` à mão.
 
   - name: carteira_deusa_agregada
-    description: "Totais mensais de valor atualizado pivotados por instituição (uma coluna por instituição, a partir de int_carteira; a lista de instituições é fixa — ver observação abaixo) para Deusa."
+    description: >
+      Recorte da Deusa sobre int_carteira_agregada: totais mensais de valor atualizado com
+      uma coluna por instituição. A lista de instituições é dinâmica — resolvida em tempo de
+      compilação a partir de int_carteira e int_carteira_extra —, então instituição nova vira
+      coluna e entra nos totais sem edição manual. Todas as colunas de int_carteira_agregada
+      são propagadas; ver aquele modelo para a descrição de cada uma.
     columns:
       - name: mes_final
         description: "Último dia do mês de referência."
+      - name: pessoa
+        description: "Sempre 'deusa'."
       - name: total_investido
-        description: "Total investido no mês, somando as instituições (banco_do_brasil, bradesco, nubank, avenue)."
-      - name: banco_do_brasil
-        description: "Total investido no Banco do Brasil no mês."
-      - name: bradesco
-        description: "Total investido na Bradesco no mês."
-      - name: nubank
-        description: "Total investido na Nubank no mês."
-      - name: avenue
-        description: "Total investido na Avenue no mês."
+        description: "Total das posições de investimento (int_carteira) no mês."
+      - name: total_disponibilidades
+        description: "Sempre zero — a Deusa não tem disponibilidades mapeadas em int_carteira_extra."
+      - name: total_geral
+        description: "Soma dos dois anteriores, equivalente à soma das colunas por instituição."
       - name: model_updated_at
         description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
-    # ATENÇÃO: o pivot é dinâmico, mas o CTE `final` do .sql lista as instituições
-    # uma a uma. Instituição nova vira coluna no pivot e é DESCARTADA em seguida —
-    # não aparece no mart nem entra em total_investido. Ao abrir conta em uma
-    # instituição nova, editar o CTE `final` à mão.
 
   - name: carteira_classificacao
     description: "Mart auxiliar de INPUT do loop de classificação: lista os ativos do mês atual (distintos) já com a camada vigente preenchida ('NAO CLASSIFICADO' para os novos). Cobre os investimentos de int_carteira e também as disponibilidades em conta de int_carteira_extra (saldo Bradesco/Wise/Bitcoin do Lucas, Banco do Brasil da Jéssica), que seguem a mesma regra dos demais ativos e também chegam como 'NAO CLASSIFICADO' até serem classificadas na planilha. É copiado para a aba 'classificacao' da planilha, onde o Lucas preenche/edita a camada; o ETL do Google lê a aba de volta para raw.carteira_classificacao, fechando o loop de retroalimentação."

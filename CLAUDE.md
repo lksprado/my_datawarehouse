@@ -84,6 +84,8 @@ The monthly PDFs come from the `relatorio-financas` skill. It is **on-demand onl
 
 **JSON denormalization at staging:** Scraper and API sources store a single `payload jsonb` column. Staging models cast every field explicitly, e.g. `(payload ->> 'id')::int as game_id`. Never reference raw `payload` columns downstream of staging. Google Sheets and seed sources are not JSON — they arrive as text columns and are cleaned with the `clean_string` / `clean_integer` macros.
 
+**De-para de instituições:** `macros/normaliza_instituicao.sql` é a fonte única do mapeamento variante → nome padronizado da instituição, chamada por `int_renda_variavel`, `int_renda_fixa` e `int_renda_passiva`. Grafia nova de uma fonte se resolve com uma linha no dicionário `de_para` da macro — antes o mesmo `CASE` estava copiado nos três modelos e as cópias divergiram. O fallback `'DESCONHECIDO'` é o detector: saldo diferente de zero nessa instituição em `int_carteira_agregada` significa variante não mapeada.
+
 **Ephemeral base models:** Some staging models have a helper that does the parsing shared by two sibling staging tables — `stg_base_*` in the NHL domain, `bases/` subfolder in the inflation domain.
 
 **SCD2 by as-of join:** The investment layer (`camada`) is classified by hand in a spreadsheet and read back through `stg_carteira_classificacao`. `int_carteira` and `int_carteira_extra` resolve it with a `LEFT JOIN LATERAL` picking the last classification with `mes_base <= ` the position's month, so past months keep the classification that was in force then. Unclassified positions fall back to `'NAO CLASSIFICADO'`.
@@ -115,7 +117,7 @@ The monthly PDFs come from the `relatorio-financas` skill. It is **on-demand onl
 
 ## Known Gaps (fora do escopo atual)
 
-- `carteira_lucas_agregada` / `_jessica_` / `_deusa_`: o pivot por instituição é dinâmico, mas o CTE `final` lista as instituições uma a uma. Instituição nova vira coluna no pivot e é descartada em seguida — não chega ao mart nem entra em `total_investido`.
+- `dbt_utils.get_column_values(..., default=[...])` devolve `Undefined` — e não o `default` — na fase de parse (dbt_utils 1.4.1 + Jinja 3.1). O `default` só vale em runtime, quando a relação não existe. Operar sobre o retorno (`+`, `| unique`) sem um guard em `execute` quebra o parse; ver o header de `int_carteira_agregada.sql`.
 - `int_carteira_extra.sql`: o fallback de camada é `'NAO CLASSIFICADO'`, mas a intenção registrada era `'RESERVA ESTRATEGICA'` — saldo em conta, que tem camada natural, aparece como pendência de classificação na planilha.
 - Reserva-alvo: o N em meses de despesa (6 casal / 12 Deusa) está marcado `[CONFIRMAR]` na política — nunca foi validado.
 - Sources sem `freshness:` — nenhuma source em `_sources.yml` tem alerta de dados desatualizados configurado.

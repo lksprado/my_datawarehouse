@@ -91,7 +91,7 @@ permanente, ao contrário de `mercado` ou `role`, que exigem disciplina mensal.
 Entra: bares e restaurantes, delivery e aplicativos de comida, cafés, cinema,
 shows, eventos, viagens (hospedagem e passeios), compras de mercado exclusivamente para eventos, hobbies e lazer em geral.
 
-Não entra: transporte usado para chegar ao rolê (→ `transporte`);
+Não entra: transporte terrestre usado para chegar ao rolê (→ `transporte`);
 
 Natureza: variável, discricionário. É o item que mais responde a decisão
 consciente no curto prazo e o primeiro a ser revisto quando o resultado do mês
@@ -114,7 +114,8 @@ Não entra: viagem de lazer com hospedagem (→ `role`).
 Natureza: mista — combustível e aplicativos são variáveis; seguro, IPVA e
 licenciamento são fixos anuais e concentram-se em poucos meses, o que distorce
 a comparação mês a mês. O relatório deve tratar picos de `transporte` como
-sazonalidade antes de tratá-los como descontrole.
+sazonalidade antes de tratá-los como descontrole. É esperado um
+volume anormal no segundo semestre, em torno de R$15.000 devido a troca de carro.
 
 {% enddocs %}
 
@@ -250,8 +251,9 @@ vencimento em 3 anos **não** é reserva mesmo tendo liquidez em D+1: a intenç�
 O tamanho da reserva é definido em meses de despesa com piso em reais (ver
 "Metas e limites"), não em percentual da carteira: reserva existe para cobrir
 despesas correntes e emergenciais, não para acompanhar o patrimônio uma vez que
-as metas estejam cumpridas. Como relatado no gasto `Saúde`: É esperado um
-volume anormal no segundo semestre, em torno de R$25.000 devido a um transplante capilar
+as metas estejam cumpridas. 2 fatores podem impactar severamente o volume de reservas de Lucas,
+como relatado no gasto `Saúde`: é esperado uma
+queda anormal no segundo semestre, em torno de R$25.000 devido a um transplante capilar
 que Lucas irá realizar, por isso a calibragem da carteira deve considerar que em breve essa
 quantia irá sair das reservas de Lucas.
 

@@ -1,4 +1,10 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(timeout 300 dbt run --select int_carteira_completa)",
+      "Bash(timeout 180 dbt show --select int_carteira_completa --limit 8)"
+    ]
+  },
   "enabledPlugins": {
     "dbt@dbt-agent-marketplace": true
   }

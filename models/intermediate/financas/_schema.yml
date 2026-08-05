@@ -52,7 +52,7 @@ models:
         description: "Valor de mercado do carro segundo a Fipe"
 
   - name: int_carteira
-    description: "Carteira consolidada de investimentos por mês (união de int_renda_variavel e int_renda_fixa), com camada de alocação aplicada via join as-of (SCD2) contra stg_carteira_classificacao e flag do mês mais recente disponível. Base única para todos os marts de carteira (carteira_lucas_jessica, carteira_deusa, carteira_classificacao, risco_fgc_*, carteira_*_agregada) — materializado como table por ser fortemente reutilizado a jusante."
+    description: "Carteira consolidada de investimentos por mês (união de int_renda_variavel e int_renda_fixa), com camada de alocação aplicada via join as-of (SCD2) contra stg_carteira_classificacao e flag do mês mais recente disponível. Base única para todos os marts de carteira (carteira_lucas_jessica, carteira_deusa, carteira_classificacao, risco_fgc_*) e para int_carteira_agregada, que alimenta os três carteira_*_agregada — materializado como table por ser fortemente reutilizado a jusante."
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base da posição (chave de junção com a dimensão de datas)."
@@ -144,6 +144,84 @@ models:
         description: "Indica se a linha pertence ao mês-base mais recente disponível em stg_patrimonio (herdado de int_patrimonio_mensal — pode divergir do fl_mes_atual de int_carteira se as duas fontes estiverem dessincronizadas)."
       - name: pessoa
         description: "Titular do saldo (jessica ou lucas)."
+
+  - name: int_carteira_usd
+    description: >
+      Posição na Avenue em moeda original, no grão mês x pessoa: soma o market_value de stg_assets
+      com o líquido de stg_dividends_interest do período. Reatribui para a Deusa os papéis que ficam
+      registrados na conta do Lucas (TFLO, GOVT e US TREASURY) antes de agregar. Consumido por
+      int_carteira_agregada, que o junta DEPOIS da agregação — o grão único abaixo é o que garante
+      que esse join seja 1:1.
+    columns:
+      - name: period_start
+        description: "Primeiro dia do mês da posição; equivale ao mes_base dos demais modelos de carteira."
+      - name: period_end
+        description: "Último dia do período do extrato da Avenue."
+      - name: pessoa
+        description: "Titular da posição depois da reatribuição dos papéis da Deusa (deusa, jessica ou lucas)."
+      - name: vlr_liquido_usd
+        description: "Posição em dólares no mês, arredondada para inteiro."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - period_start
+              - pessoa
+
+  - name: int_carteira_agregada
+    description: >
+      Carteira agregada no grão mês x pessoa, com uma coluna por instituição gerada por
+      dbt_utils.pivot a partir da união das instituições de int_carteira e int_carteira_extra.
+      Base única dos três marts carteira_*_agregada, que passaram a ser apenas um filtro por
+      pessoa sobre este modelo — instituição nova vira coluna e entra nos totais sem edição
+      manual. Materializado como table (foge do default view do intermediate) porque os três
+      marts leem o resultado inteiro.
+      ATENÇÃO: o conjunto de colunas por instituição é dinâmico — resolvido em tempo de
+      compilação, não fixo. As colunas documentadas abaixo são as existentes hoje; abrir ou
+      encerrar conta em uma instituição muda o schema da tabela no próximo dbt run.
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base das posições agregadas."
+      - name: mes_final
+        description: "Último dia do mês de referência."
+      - name: pessoa
+        description: "Titular das posições (deusa, jessica ou lucas)."
+      - name: total_investido
+        description: "Soma das posições vindas de int_carteira no mês. É a métrica que os marts carteira_*_agregada sempre expuseram — o corte é por modelo de origem, não por classe_ativo, então as poucas linhas 'DISPONIBILIDADE' que int_carteira herda de int_renda_variavel (tipo_ativo CONTA CORRENTE) continuam aqui dentro."
+      - name: total_disponibilidades
+        description: "Soma das posições vindas de int_carteira_extra no mês (saldo em conta Bradesco/Nubank/Wise/autocustódia do Lucas, Banco do Brasil da Jéssica). Zero para a Deusa, que não tem disponibilidades mapeadas."
+      - name: total_geral
+        description: "total_investido + total_disponibilidades. Equivale à soma de todas as colunas por instituição."
+        data_tests:
+          - not_null
+      - name: autocustodia
+        description: "Total no mês na instituição AUTOCUSTODIA, somando investimentos e disponibilidades."
+      - name: avenue
+        description: "Total no mês na Avenue, somando investimentos e disponibilidades."
+      - name: banco_do_brasil
+        description: "Total no mês no Banco do Brasil, somando investimentos e disponibilidades."
+      - name: bradesco
+        description: "Total no mês no Bradesco, somando investimentos e disponibilidades."
+      - name: daycoval
+        description: "Total no mês no Daycoval, somando investimentos e disponibilidades."
+      - name: desconhecido
+        description: "Total no mês em posições cuja instituição não foi reconhecida pelo CASE de normalização de int_renda_variavel/int_renda_fixa. Saldo diferente de zero aqui é pendência de mapeamento, não uma instituição real."
+      - name: itau
+        description: "Total no mês no Itaú, somando investimentos e disponibilidades."
+      - name: nubank
+        description: "Total no mês no Nubank, somando investimentos e disponibilidades."
+      - name: sofisa
+        description: "Total no mês no Sofisa, somando investimentos e disponibilidades."
+      - name: wise
+        description: "Total no mês na Wise, somando investimentos e disponibilidades."
+      - name: vlr_liquido_usd
+        description: "Posição na Avenue em dólares no mês, vinda de int_carteira_usd. Não é conversão de total_geral — é uma métrica paralela em moeda original, e a parte em reais dessa mesma posição já está dentro da coluna `avenue`. Zero quando a pessoa não tem posição na Avenue no mês."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - mes_final
+              - pessoa
 
   - name: int_indexadores
     description: "Isola os indexadores macroeconômicos mensais vindos de stg_patrimonio — taxas do mês e índices acumulados de minha inflação, IPCA, IGP-M, Selic e CDI. Serve de referência de comparação para o mart riqueza."
