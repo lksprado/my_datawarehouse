@@ -17,21 +17,34 @@ params AS (
     SELECT :'mes_ref'::date AS mes_ref
 ),
 
--- Último mês de carteira disponível que não ultrapassa o mês de referência.
-mes_carteira AS (
-    SELECT COALESCE(MAX(mes_base), (SELECT mes_ref FROM params)) AS mes_carteira
-    FROM (
-        SELECT mes_base FROM marts.carteira_lucas_jessica
-        UNION ALL
-        SELECT mes_base FROM marts.carteira_deusa
-    ) AS c
-    WHERE c.mes_base <= (SELECT mes_ref FROM params)
+-- Carteira do casal + Deusa. Os três marts por pessoa substituíram o antigo
+-- carteira_lucas_jessica; a união é por colunas nomeadas, não SELECT *, porque
+-- casar por posição já trocou camada por ativo em silêncio (ambas TEXT).
+carteira AS (
+    SELECT
+        mes_base, mes_final, trimestre, ano, instituicao, emissor, conglomerado,
+        classe_ativo, tipo_ativo, camada, ativo, indexador, data_vencimento,
+        vencimento_em_dias, vlr_atualizado_brl, moeda_ativo, fl_mes_atual, pessoa
+    FROM marts.carteira_lucas
+    UNION ALL
+    SELECT
+        mes_base, mes_final, trimestre, ano, instituicao, emissor, conglomerado,
+        classe_ativo, tipo_ativo, camada, ativo, indexador, data_vencimento,
+        vencimento_em_dias, vlr_atualizado_brl, moeda_ativo, fl_mes_atual, pessoa
+    FROM marts.carteira_jessica
+    UNION ALL
+    SELECT
+        mes_base, mes_final, trimestre, ano, instituicao, emissor, conglomerado,
+        classe_ativo, tipo_ativo, camada, ativo, indexador, data_vencimento,
+        vencimento_em_dias, vlr_atualizado_brl, moeda_ativo, fl_mes_atual, pessoa
+    FROM marts.carteira_deusa
 ),
 
-carteira AS (
-    SELECT * FROM marts.carteira_lucas_jessica
-    UNION ALL
-    SELECT * FROM marts.carteira_deusa
+-- Último mês de carteira disponível que não ultrapassa o mês de referência.
+mes_carteira AS (
+    SELECT COALESCE(MAX(c.mes_base), (SELECT mes_ref FROM params)) AS mes_carteira
+    FROM carteira AS c
+    WHERE c.mes_base <= (SELECT mes_ref FROM params)
 ),
 
 carteira_ref AS (

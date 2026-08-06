@@ -53,8 +53,10 @@ unioned AS (
         pessoa
     FROM {{ ref('int_carteira_extra') }}
 )
-select
+
+SELECT
     unioned.*,
     CURRENT_TIMESTAMP AS model_updated_at
-from unioned WHERE pessoa = 'deusa'
-ORDER BY mes_base, pessoa, instituicao, classe_ativo, tipo_ativo, ativo
+FROM unioned
+WHERE unioned.pessoa = 'lucas'
+ORDER BY unioned.mes_base, unioned.pessoa, unioned.instituicao, unioned.classe_ativo, unioned.tipo_ativo, unioned.ativo

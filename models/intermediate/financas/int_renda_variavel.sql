@@ -30,9 +30,7 @@ avenue AS (
     FROM {{ ref('stg_assets') }}
     INNER JOIN {{ ref('stg_usd') }}
         ON period_end = data_referencia
-    WHERE
-        (asset_class = 'EQUITIES' OR asset_class = 'CASH')
-        AND symbol_cusip NOT IN ('GOVT', 'TFLO')
+    WHERE asset_class = 'EQUITIES' OR asset_class = 'CASH'
 ),
 
 acoes AS (

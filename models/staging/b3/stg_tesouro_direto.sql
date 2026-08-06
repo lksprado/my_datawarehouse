@@ -36,7 +36,7 @@ renamed AS (
         {{ clean_string("produto", "upper") }}      AS produto,
         {{ clean_string("instituicao", "upper") }}  AS instituicao,
         codigo_isin,
-        NULLIF(indexador, '-')                      AS indexador,
+        NULLIF(UPPER(indexador), '-')               AS indexador,
         TO_DATE(vencimento, 'dd/MM/yyyy')           AS data_vencimento,
         quantidade,
         quantidade_disponivel,

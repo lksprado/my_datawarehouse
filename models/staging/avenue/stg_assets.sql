@@ -31,9 +31,13 @@ final AS (
         period_end,
         asset_class,
         market_value,
-        pessoa,
+        CASE 
+            WHEN symbol_cusip IN ('TFLO', 'GOVT') AND pessoa = 'lucas' THEN 'deusa'
+            WHEN symbol_cusip IN ('91282CLH2', '7009170', '7381496', '7009637') AND pessoa = 'lucas' THEN 'deusa'
+            ELSE pessoa 
+        END AS pessoa,
         CASE
-            WHEN symbol_cusip IN ('91282CLH2', '7009170', '7381496')
+            WHEN symbol_cusip IN ('91282CLH2', '7009170', '7381496', '7009637')
                 THEN 'US TREASURY'
             ELSE description
         END       AS description,

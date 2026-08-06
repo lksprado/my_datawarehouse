@@ -28,7 +28,7 @@ avenue AS (
     FROM {{ ref('stg_assets') }}
     INNER JOIN {{ ref('stg_usd') }}
         ON period_end = data_referencia
-    WHERE asset_class = 'FIXED INCOME' AND pessoa <> 'lucas'
+    WHERE asset_class = 'FIXED INCOME'
 ),
 
 rf AS (

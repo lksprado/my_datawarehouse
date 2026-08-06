@@ -74,11 +74,12 @@ sources:
     - name: luz
       description: "Consumo de energia elétrica"
     - name: patrimonio
-      description: "Total de ativos que compõe o patrimônio"
+      description: "Total de ativos que compõe o patrimônio do Lucas e Jessica"
     - name: dividends_interest
       description: "Dividendos e Impostos pagos"
     - name: carteira_classificacao
       description: "Classificação manual de camada por posição, lida de volta da planilha Google (loop de retroalimentação). Colunas: mes_base, pessoa, ativo, classe_ativo, tipo_ativo, instituicao, camada."
     - name: ajuste
       description: "Transferências para equilíbrio de despesas proporcional à renda."
-
+    - name: patrimonio_deusa
+      description: "Total de ativos que compõe o patrimônio da Deusa"

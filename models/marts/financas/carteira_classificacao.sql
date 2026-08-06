@@ -22,11 +22,38 @@
   com mes_base <= o mês da posição), fechando o loop e preservando a composição
   por camada ao longo do tempo.
 -#}
+{#- União por colunas nomeadas, não SELECT *: os dois modelos têm o mesmo layout,
+    mas casar por posição já trocou camada por ativo em silêncio (ambas TEXT). Só
+    as colunas usadas abaixo entram. -#}
 WITH
 base AS (
-    SELECT * FROM {{ ref('int_carteira') }}
+    SELECT
+        mes_base,
+        pessoa,
+        ativo,
+        indexador,
+        classe_ativo,
+        tipo_ativo,
+        instituicao,
+        data_vencimento,
+        camada,
+        fl_mes_atual
+    FROM {{ ref('int_carteira') }}
+
     UNION ALL
-    SELECT * FROM {{ ref('int_carteira_extra') }}
+
+    SELECT
+        mes_base,
+        pessoa,
+        ativo,
+        indexador,
+        classe_ativo,
+        tipo_ativo,
+        instituicao,
+        data_vencimento,
+        camada,
+        fl_mes_atual
+    FROM {{ ref('int_carteira_extra') }}
 ),
 
 final AS (

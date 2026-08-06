@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: int_patrimonio_mensal
-    description: "Consolida o patrimônio mensal a partir de stg_patrimonio, expondo patrimônio bruto e líquido e saldos por conta/instituição de Lucas e Jéssica, ordenado por mês-base. Faz join com dim_datas para trazer mês final, trimestre e ano, e sinaliza o mês mais recente disponível. Consumido por patrimonio, patrimonio_mom e pelos CTEs de disponibilidade de carteira_lucas_jessica. Os indexadores macroeconômicos ficam em int_indexadores."
+    description: "Consolida o patrimônio mensal a partir de stg_patrimonio, expondo patrimônio bruto e líquido e saldos por conta/instituição de Lucas e Jéssica, ordenado por mês-base. Faz join com dim_datas para trazer mês final, trimestre e ano, e sinaliza o mês mais recente disponível. Consumido por patrimonio, patrimonio_mom e pelos CTEs de disponibilidade de int_carteira_extra. Os indexadores macroeconômicos ficam em int_indexadores."
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base de referência do patrimônio (chave de junção com a dimensão de datas)."
@@ -52,7 +52,7 @@ models:
         description: "Valor de mercado do carro segundo a Fipe"
 
   - name: int_carteira
-    description: "Carteira consolidada de investimentos por mês (união de int_renda_variavel e int_renda_fixa), com camada de alocação aplicada via join as-of (SCD2) contra stg_carteira_classificacao e flag do mês mais recente disponível. Base única para todos os marts de carteira (carteira_lucas_jessica, carteira_deusa, carteira_classificacao, risco_fgc_*) e para int_carteira_agregada, que alimenta os três carteira_*_agregada — materializado como table por ser fortemente reutilizado a jusante."
+    description: "Carteira consolidada de investimentos por mês (união de int_renda_variavel e int_renda_fixa), com camada de alocação aplicada via join as-of (SCD2) contra stg_carteira_classificacao e flag do mês mais recente disponível. Base única para todos os marts de carteira (carteira_lucas, carteira_jessica, carteira_deusa, carteira_classificacao, risco_fgc_*) e para int_carteira_agregada, que alimenta os três carteira_*_agregada — materializado como table por ser fortemente reutilizado a jusante."
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base da posição (chave de junção com a dimensão de datas)."
@@ -99,11 +99,13 @@ models:
 
   - name: int_carteira_extra
     description: >
-      Disponibilidades em conta derivadas de int_patrimonio_mensal (saldo Bradesco, Wise e Bitcoin
-      do Lucas; Banco do Brasil da Jéssica) expostas no mesmo layout e na mesma ordem de colunas de
-      int_carteira, para que os dois possam ser unidos por posição a jusante (carteira_lucas_jessica,
-      carteira_classificacao). A camada usa o mesmo join as-of (SCD2) contra
-      stg_carteira_classificacao de int_carteira, com o mesmo fallback 'NAO CLASSIFICADO'.
+      Disponibilidades em conta expostas no mesmo layout de int_carteira, para que os dois possam
+      ser unidos a jusante (carteira_lucas, carteira_jessica, carteira_deusa,
+      carteira_classificacao). Vêm de duas fontes: int_patrimonio_mensal (saldo Bradesco, cashback
+      Nubank, Wise e Bitcoin do Lucas; Banco do Brasil da Jéssica) e int_patrimonio_mensal_deusa
+      (Bradesco, Nubank, cashback Nubank e Banco do Brasil da Deusa). A camada usa o mesmo join
+      as-of (SCD2) contra stg_carteira_classificacao de int_carteira, com o mesmo fallback
+      'NAO CLASSIFICADO'.
       PENDÊNCIA CONHECIDA: a intenção registrada era usar fallback 'RESERVA ESTRATEGICA' aqui, para
       que saldo em conta — que tem camada natural — não aparecesse como pendência de classificação
       na planilha. O SQL nunca implementou isso. Esta descrição documenta o comportamento real.
@@ -117,11 +119,11 @@ models:
       - name: ano
         description: "Ano de referência."
       - name: instituicao
-        description: "Instituição onde o saldo é mantido (BRADESCO, WISE, AUTOCUSTODIA ou BANCO DO BRASIL)."
+        description: "Instituição onde o saldo é mantido (BRADESCO, NUBANK, WISE, AUTOCUSTODIA ou BANCO DO BRASIL)."
       - name: emissor
         description: "Sempre nulo — não se aplica a disponibilidades."
       - name: conglomerado
-        description: "Conglomerado financeiro FGC quando o saldo está em banco (BRADESCO, BANCO DO BRASIL); nulo para Wise e autocustódia."
+        description: "Conglomerado financeiro FGC quando o saldo está em banco (BRADESCO, NUBANK, BANCO DO BRASIL); nulo para Wise e autocustódia."
       - name: classe_ativo
         description: "Sempre 'DISPONIBILIDADE'."
       - name: tipo_ativo
@@ -129,9 +131,9 @@ models:
       - name: camada
         description: "Camada de alocação vigente, resolvida por join as-of contra stg_carteira_classificacao na identidade da posição (pessoa, ativo, classe_ativo, tipo_ativo, instituicao); 'NAO CLASSIFICADO' enquanto não houver classificação manual na planilha."
       - name: ativo
-        description: "Sempre 'SALDO EM CONTA' — as quatro linhas se distinguem por pessoa + instituicao."
+        description: "Sempre 'SALDO EM CONTA' — as linhas se distinguem por pessoa + instituicao."
       - name: indexador
-        description: "'TIR' para as contas remuneradas de banco (Bradesco, Banco do Brasil); nulo para Wise e bitcoin, salvo se preenchido na planilha de classificação."
+        description: "'TIR' para as contas remuneradas de banco (Bradesco, Banco do Brasil); nulo para Nubank, Wise e bitcoin, salvo se preenchido na planilha de classificação."
       - name: data_vencimento
         description: "Sempre nulo — não se aplica a disponibilidades."
       - name: vencimento_em_dias
@@ -141,9 +143,9 @@ models:
       - name: moeda_ativo
         description: "Moeda de origem do saldo (BRL, USD ou BTC)."
       - name: fl_mes_atual
-        description: "Indica se a linha pertence ao mês-base mais recente disponível em stg_patrimonio (herdado de int_patrimonio_mensal — pode divergir do fl_mes_atual de int_carteira se as duas fontes estiverem dessincronizadas)."
+        description: "Indica se a linha pertence ao mês-base mais recente disponível na fonte de patrimônio (herdado de int_patrimonio_mensal / int_patrimonio_mensal_deusa — pode divergir do fl_mes_atual de int_carteira se as fontes estiverem dessincronizadas)."
       - name: pessoa
-        description: "Titular do saldo (jessica ou lucas)."
+        description: "Titular do saldo (deusa, jessica ou lucas)."
 
   - name: int_carteira_usd
     description: >
@@ -189,7 +191,7 @@ models:
       - name: total_investido
         description: "Soma das posições vindas de int_carteira no mês. É a métrica que os marts carteira_*_agregada sempre expuseram — o corte é por modelo de origem, não por classe_ativo, então as poucas linhas 'DISPONIBILIDADE' que int_carteira herda de int_renda_variavel (tipo_ativo CONTA CORRENTE) continuam aqui dentro."
       - name: total_disponibilidades
-        description: "Soma das posições vindas de int_carteira_extra no mês (saldo em conta Bradesco/Nubank/Wise/autocustódia do Lucas, Banco do Brasil da Jéssica). Zero para a Deusa, que não tem disponibilidades mapeadas."
+        description: "Soma das posições vindas de int_carteira_extra no mês: saldo em conta Bradesco/Nubank/Wise/autocustódia do Lucas, Banco do Brasil da Jéssica, e Bradesco/Nubank/Banco do Brasil da Deusa."
       - name: total_geral
         description: "total_investido + total_disponibilidades. Equivale à soma de todas as colunas por instituição."
         data_tests:
@@ -331,7 +333,11 @@ models:
         description: "Titular do consolidado (lucas ou jessica)."
 
   - name: int_renda_fixa
-    description: "Consolida posições de renda fixa (renda fixa B3, tesouro direto, Avenue e faltantes) por mês-base e pessoa, padronizando instituição e somando o valor atualizado."
+    description: >
+      Consolida posições de renda fixa (renda fixa B3, tesouro direto, Avenue e faltantes) por
+      mês-base e pessoa, padronizando instituição e somando o valor atualizado. A renda fixa da
+      Avenue entra por asset_class, sem filtro por pessoa: os títulos registrados na conta do Lucas
+      são reatribuídos à Deusa no CASE de stg_assets, que é o único lugar onde essa regra mora.
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base da posição."
@@ -363,7 +369,12 @@ models:
         description: "Moeda do ativo (BRL)."
 
   - name: int_renda_variavel
-    description: "Consolida posições de renda variável (ações, BDRs, ETFs, fundos e Avenue) por mês-base e pessoa, padronizando instituição e somando o valor atualizado."
+    description: >
+      Consolida posições de renda variável (ações, BDRs, ETFs, fundos e Avenue) por mês-base e
+      pessoa, padronizando instituição e somando o valor atualizado. Da Avenue entra tudo que é
+      EQUITIES ou CASH, incluindo os ETFs de treasury GOVT e TFLO, que ficam registrados na conta do
+      Lucas e são reatribuídos à Deusa no CASE de stg_assets. O `ativo` da Avenue é o symbol_cusip,
+      não a description, porque a grafia da description muda ao longo do histórico.
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base da posição."

@@ -63,6 +63,28 @@ models:
       - name: cdi_acum
         description: "Índice acumulado (base 1) do CDI, lido pronto da planilha — só troca vírgula por ponto."
 
+  - name: stg_patrimonio_deusa
+    description: "Patrimônio e saldos por conta/instituição extraídos da planilha do Google, com valores limpos e normalizados e mês de referência da Deusa."
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base de referência (a partir de 2019-09)."
+      - name: total_patrimonio_liquido
+        description: "Patrimônio líquido total do casal no mês"
+      - name: saldo_banco_brasil_deusa
+        description: "Saldo em conta corrente de Deusa no mês"
+      - name: saldo_banco_brasil_investimentos_deusa
+        description: "Saldo em investimentos Banco do Brasil."
+      - name: saldo_bradesco_deusa
+        description: "Saldo em conta corrente Bradesco"
+      - name: saldo_bradesco_investimentos_deusa
+        description: "Saldo em investimentos Bradesco"
+      - name: saldo_nubank_deusa
+        description: "Saldo em conta corrente"
+      - name: saldo_nubank_investimentos_deusa
+        description: "Saldo em investimentos"
+      - name: saldo_nubank_cashback_deusa
+        description: "Saldo de cashback"
+
   - name: stg_jsc_consolidado
     description: "Consolidação mensal de receitas e despesas por categoria da Jéssica, com valores limpos e meses de fatura e débito normalizados."
     columns:
@@ -224,7 +246,7 @@ models:
         description: "Primeiro dia do mês de referência da conta."
 
   - name: stg_carteira_classificacao
-    description: "Histórico de classificação manual de camada por posição (SCD2), lido de volta da planilha Google (metade de leitura do loop de retroalimentação). A planilha acumula uma linha por mes_base sempre que a camada de um ativo muda. Alimenta o campo `camada` de int_carteira e de int_carteira_extra (usados por carteira_lucas_jessica/carteira_deusa) por join as-of na identidade da posição (pessoa, ativo, classe_ativo, tipo_ativo, instituicao): cada mês da carteira recebe a classificação vigente naquele mês. Em int_carteira o padrão sem classificação é 'NAO CLASSIFICADO'; em int_carteira_extra (disponibilidades em conta) é 'RESERVA ESTRATEGICA'."
+    description: "Histórico de classificação manual de camada por posição (SCD2), lido de volta da planilha Google (metade de leitura do loop de retroalimentação). A planilha acumula uma linha por mes_base sempre que a camada de um ativo muda. Alimenta o campo `camada` de int_carteira e de int_carteira_extra (usados por carteira_lucas/carteira_jessica/carteira_deusa) por join as-of na identidade da posição (pessoa, ativo, classe_ativo, tipo_ativo, instituicao): cada mês da carteira recebe a classificação vigente naquele mês. Em int_carteira o padrão sem classificação é 'NAO CLASSIFICADO'; em int_carteira_extra (disponibilidades em conta) é 'RESERVA ESTRATEGICA'."
     columns:
       - name: mes_base
         description: "Primeiro dia do mês a partir do qual esta classificação passa a valer (data de vigência SCD2). No join as-of, cada linha da carteira no mês M recebe a camada da última classificação com mes_base <= M."

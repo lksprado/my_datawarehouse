@@ -56,5 +56,5 @@ unioned AS (
 select
     unioned.*,
     CURRENT_TIMESTAMP AS model_updated_at
-from unioned WHERE pessoa = 'deusa'
+from unioned WHERE pessoa = 'jessica'
 ORDER BY mes_base, pessoa, instituicao, classe_ativo, tipo_ativo, ativo

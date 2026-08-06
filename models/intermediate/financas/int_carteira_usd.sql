@@ -10,21 +10,9 @@ assets AS (
     SELECT
         period_start,
         period_end,
-        CASE 
-            WHEN symbol_cusip in ('TFLO', 'GOVT') and pessoa = 'lucas' then 'deusa'
-            WHEN description ='US TREASURY' and pessoa = 'lucas' then 'deusa'
-            ELSE pessoa 
-        END AS pessoa,
-        market_value
-    FROM {{ ref('stg_assets') }}
-),
-assets_corrigido AS (
-    SELECT
-        period_start,
-        period_end,
         pessoa,
         SUM(market_value)::INT AS vlr_liquido_usd
-    FROM assets
+    FROM {{ ref('stg_assets') }}
     GROUP BY
         period_start,
         period_end,
@@ -45,7 +33,7 @@ dividends AS (
 ),
 
 unioned AS (
-    SELECT * FROM assets_corrigido
+    SELECT * FROM assets
     UNION ALL
     SELECT * FROM dividends
 ),
