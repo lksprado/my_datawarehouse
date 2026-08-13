@@ -5,8 +5,19 @@
   Este arquivo é a FONTE ÚNICA de verdade sobre:
     1. o que cada categoria de gasto engloba;
     2. o que significa cada camada de investimento;
-    3. a política de investimento (aporte, alocação-alvo, metas e limites).
+    3. a política de investimento (aporte, alocação-alvo, metas e limites);
     4. demais conhecimentos que auxiliem calcular e interpretar os dados
+
+  FATOS RELEVANTES — cada categoria de gasto tem, no fim do seu bloco, uma
+  subseção `Fatos relevantes`: eventos datados, fora da rotina, que explicam
+  variação brusca e não existem em nenhum campo do dado. Uma linha por fato:
+
+      - <período> — <justificativa breve>, <ordem de grandeza> (<status>).
+
+  Status é `previsto` (pode não acontecer), ou `realizado` (ocorreu; anote o valor efetivo). Previsão e fato
+  consumado convivem na mesma lista — quando a previsão se realiza muda só o
+  status, não o lugar. Fato nenhum altera número: altera a leitura do número.
+  Revise a cada fechamento e apague o que já não explica nada.
 
   É lido em três lugares:
     - pelo `dbt docs generate` (os blocos `{% docs %}` abaixo são referenciados
@@ -41,6 +52,8 @@ Natureza: variável, essencial. É o principal item de despesa compressível do
 orçamento — variações relevantes mês a mês costumam ser volume de compra, não
 preço.
 
+Fatos relevantes: nenhum registrado.
+
 {% enddocs %}
 
 
@@ -49,19 +62,21 @@ preço.
 **Diversos** — categoria residual.
 
 Entra: vestuário e calçado, presentes, eletrônicos e acessórios pessoais, objetos
-domésticos, taxas e tarifas bancárias, imprevistos e qualquer lançamento que não
+domésticos, imprevistos, clube de tiro, charutos, salão de beleza, e qualquer lançamento que não
 caiba nas demais categorias.
 
 Não entra: nada que tenha categoria própria. Se um tipo de gasto aparece em
-`diversos` de forma recorrente, ele deixou de ser residual e merece categoria
+`diversos` de forma recorrente e que não pode ser eliminado então ele deixou de ser residual e merece categoria
 nova.
 
 Natureza: variável, majoritariamente discricionário. Flags `fl_data_especial`e `fl_mes_especial` podem sinalizar
 picos desse gasto.
 
-Sinal de alerta: `diversos` acima de ~20% da despesa total do mês indica perda
-de granularidade — o relatório não consegue recomendar corte sobre uma
-categoria que não diz o que é.
+Sinal de alerta: `diversos` acima de ~20% da despesa total do mês indica abuso de compras desnecessárias.
+Relatório deve focar nessa categoria para redução de gastos.
+
+Fatos relevantes:
+- **06/08/2026 - 11/08/2026** — Viagem à Ouro Preto (Evento realizado)
 
 {% enddocs %}
 
@@ -81,6 +96,8 @@ Natureza: fixa, discricionário na maior parte. É a categoria com maior razão
 entre facilidade de corte e esforço — cancelamento é decisão única com efeito
 permanente, ao contrário de `mercado` ou `role`, que exigem disciplina mensal.
 
+Fatos relevantes: nenhum registrado.
+
 {% enddocs %}
 
 
@@ -89,14 +106,18 @@ permanente, ao contrário de `mercado` ou `role`, que exigem disciplina mensal.
 **Rolê** — lazer e consumo fora de casa.
 
 Entra: bares e restaurantes, delivery e aplicativos de comida, cafés, cinema,
-shows, eventos, viagens (hospedagem e passeios), compras de mercado exclusivamente para eventos, hobbies e lazer em geral.
+shows, eventos, viagens (hospedagem, aluguel de veículos, passeios), 
+compras de mercado exclusivamente para eventos, hobbies e lazer em geral.
 
-Não entra: transporte terrestre usado para chegar ao rolê (→ `transporte`);
+Não entra: transporte terrestre usado para chegar ao rolê (→ `transporte`), exceto aluguel de veículos;
 
 Natureza: variável, discricionário. É o item que mais responde a decisão
 consciente no curto prazo e o primeiro a ser revisto quando o resultado do mês
 fica abaixo da meta de poupança. Flags `fl_data_especial`e `fl_mes_especial` podem sinalizar
 picos desse gasto.
+
+Fatos relevantes:
+- **06/08/2026 - 11/08/2026** — Viagem à Ouro Preto (Evento realizado)
 
 {% enddocs %}
 
@@ -114,8 +135,11 @@ Não entra: viagem de lazer com hospedagem (→ `role`).
 Natureza: mista — combustível e aplicativos são variáveis; seguro, IPVA e
 licenciamento são fixos anuais e concentram-se em poucos meses, o que distorce
 a comparação mês a mês. O relatório deve tratar picos de `transporte` como
-sazonalidade antes de tratá-los como descontrole. É esperado um
-volume anormal no segundo semestre, em torno de R$15.000 devido a troca de carro.
+sazonalidade antes de tratá-los como descontrole.
+
+Fatos relevantes:
+
+- **ago–set/2026** — troca de carro, ~R$ 15.000 (Evento previsto).
 
 {% enddocs %}
 
@@ -124,9 +148,7 @@ volume anormal no segundo semestre, em torno de R$15.000 devido a troca de carro
 
 **Apartamento** — moradia e sua manutenção.
 
-Entra: prestação do imóvel (financiamento ou aluguel), condomínio, IPTU, energia
-elétrica, água, gás, internet fixa, móveis, reformas, reparos e serviços
-domésticos.
+Entra: Condomínio, IPTU, energia elétrica, internet fixa, móveis, reformas e reparos.
 
 Não entra: produtos de limpeza e itens de consumo da casa (→ `mercado`).
 
@@ -138,6 +160,8 @@ Referência cruzada: a conta de energia tem detalhamento próprio no mart `luz`
 (valor, kWh, consumo diário e preço por kWh), útil para separar aumento de
 tarifa de aumento de consumo. `luz` **detalha uma parcela de `apartamento`** —
 não é uma nona categoria e nunca deve ser somada a ela.
+
+Fatos relevantes: nenhum registrado.
 
 {% enddocs %}
 
@@ -153,9 +177,15 @@ Não entra: academia (→ `assinaturas`).
 
 Natureza: mista — plano de saúde é fixo e essencial; o restante é variável e
 não compressível. Nunca deve ser objeto de recomendação de corte: quando
-`saude` sobe, o relatório reporta e explica, não sugere reduzir. É esperado um
-volume anormal no segundo semestre, em torno de R$25.000 devido a um transplante capilar
-que Lucas irá realizar.
+`saude` sobe, o relatório reporta e explica, não sugere reduzir.
+
+Fatos relevantes:
+
+- **set–dez/2026** — transplante capilar de Lucas, ~R$ 25.000 (evento previsto). Sai da
+  `RESERVA` dele, ainda que a despesa seja lançada no casal.
+- **até out/2026** — sobreposição do plano de saúde da empresa com o particular,
+  ~R$ 650/mês adicional (evento previsto) descontado em folha de pagamento a partir de Set/2026. 
+  Quando encerrar, a queda de `saude` não é mérito de contenção de gasto.
 
 {% enddocs %}
 
@@ -172,6 +202,9 @@ Não entra: assinatura de plataforma de conteúdo genérico (→ `assinaturas`);
 Natureza: variável, discricionário no curto prazo mas com retorno esperado no
 longo prazo. Deve ser tratado no relatório como investimento em capital humano,
 não como consumo — não entra nas sugestões de corte por padrão.
+
+Fatos relevantes:
+- **Maio/2026** Festa do Livro UNESP 50% desconto (Evento realizado).
 
 {% enddocs %}
 
@@ -251,11 +284,13 @@ vencimento em 3 anos **não** é reserva mesmo tendo liquidez em D+1: a intenç�
 O tamanho da reserva é definido em meses de despesa com piso em reais (ver
 "Metas e limites"), não em percentual da carteira: reserva existe para cobrir
 despesas correntes e emergenciais, não para acompanhar o patrimônio uma vez que
-as metas estejam cumpridas. 2 fatores podem impactar severamente o volume de reservas de Lucas,
-como relatado no gasto `Saúde`: é esperado uma
-queda anormal no segundo semestre, em torno de R$25.000 devido a um transplante capilar
-que Lucas irá realizar, por isso a calibragem da carteira deve considerar que em breve essa
-quantia irá sair das reservas de Lucas.
+as metas estejam cumpridas.
+
+A reserva pode estar comprometida com saída já planejada — hoje, o transplante
+capilar de Lucas (ver "Fatos relevantes" em `categoria_saude`). Quando houver um
+fato desses, a calibragem da carteira usa a reserva **menos** o compromisso, não
+o saldo bruto, e a queda no mês da saída é execução do plano, não
+desenquadramento da alocação-alvo.
 
 `RESERVA ESTRATEGICA` — ativos de reserva de valor (cripto, moeda estrangeira,
 cashback). Têm alta liquidez, mas dependem de um cenário favorável de valorização

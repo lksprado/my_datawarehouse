@@ -76,9 +76,9 @@ Other domains:
 
 `models/marts/financas/_docs_financas.md` is the single source of truth for spending categories, investment layers and the investment policy (target allocation, contribution targets, reserve, FGC limits). Change a rule **there**, not in a `schema.yml`.
 
-Its numeric parameters are duplicated in `.claude/skills/relatorio-financas/scripts/montar_relatorio.py` (`alvos_camada()`, `APORTE_ALVO`, `META_RESERVA_*`, `TEXTO_CATEGORIA`, `TEXTO_CAMADA`) because the report builder cannot read Markdown. **Edit both in the same pass** — they silently diverged once and the monthly PDF rendered targets that contradicted the written policy.
+Its numeric parameters are duplicated in `.claude/skills/relatorio-financas/scripts/montar_relatorio.py` (`ALVOS_CAMADA`, `APORTE_ALVO`, `META_RESERVA_*`, `TEXTO_CATEGORIA`, `TEXTO_CAMADA`) because the report builder cannot read Markdown. **Edit both in the same pass** — they silently diverged once and the monthly PDF rendered targets that contradicted the written policy.
 
-The monthly PDFs come from the `relatorio-financas` skill. It is **on-demand only** — nothing schedules it, no DAG, no cron. The skill resolves its own reference month from `date` (never `MAX(mes)`, never the current month) and refuses a month that has not finished loading; `meta.prontidao` in `queries/extrair.sql` is that gate. `scripts/gerar_relatorios_financas.sh` is the batch path for backfilling old months.
+The monthly PDFs come from the `relatorio-financas` skill. It is **on-demand only** — nothing schedules it, no DAG, no cron. It emits **four** reports per month: one of investments per titular (`--escopo lucas|jessica|deusa`) and one of the couple's budget (`--escopo orcamento`) — investment is individual, receita/despesa is joint, and the emergency reserve lives in the budget one because it is sized by the couple's median expense. The skill resolves its own reference month from `date` (never `MAX(mes)`, never the current month) and refuses a month that has not finished loading; `meta.prontidao` in `queries/extrair.sql` is that gate, and it carries **two independent flags** — `pronto_orcamento` (needs the DRE) and `pronto_investimentos` (needs the carteira in date), so a still-loading spend month no longer holds back the carteira reports. `scripts/gerar_relatorios_financas.sh` is the batch path for backfilling old months.
 
 ### Key patterns
 
@@ -121,5 +121,4 @@ The monthly PDFs come from the `relatorio-financas` skill. It is **on-demand onl
 - `int_carteira_extra.sql`: o fallback de camada é `'NAO CLASSIFICADO'`, mas a intenção registrada era `'RESERVA ESTRATEGICA'` — saldo em conta, que tem camada natural, aparece como pendência de classificação na planilha.
 - Reserva-alvo: o N em meses de despesa (6 casal / 12 Deusa) está marcado `[CONFIRMAR]` na política — nunca foi validado.
 - Sources sem `freshness:` — nenhuma source em `_sources.yml` tem alerta de dados desatualizados configurado.
-- `sinal()` em `montar_relatorio.py` troca todo `.` por `,`, então o sufixo `" p.p."` sai como `" p,p,"` no PDF.
 - Domínio NHL desabilitado (`+enabled: false`): `stg_all_players.sql` duplica ~45 linhas de extração JSON entre `regular` e `playoffs`, e `stg_all_games_details` usa incremental por `game_id > max(game_id)`, que não cobre backfills.

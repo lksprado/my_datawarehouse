@@ -376,6 +376,9 @@ models:
       valor / LAG(valor) - 1 sobre mes_base. O primeiro mês da série e qualquer mês cujo antecessor
       seja zero ou nulo vêm nulos. Somar ou comparar estas colunas com as de `patrimonio` mistura
       unidades diferentes.
+      A variação mistura aporte, rentabilidade e consumo — antes de lê-la como desempenho, confira
+      os fatos relevantes das categorias de gasto em `_docs_financas.md`: uma saída de caixa
+      planejada derruba o saldo sem que tenha havido perda.
     columns:
       - name: mes_base
         description: "Primeiro dia do mês-base de referência."

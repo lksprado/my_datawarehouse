@@ -17,8 +17,12 @@
 #   TIMEOUT_SEG      teto de execução (default: 900)
 #   PERMITIR_INCOMPLETO=1  mesmo efeito de --forcar
 #
-# Saída: 0 com os dois PDFs gerados
-#        75 mês ainda não fechou (não é erro — tente de novo depois)
+# São quatro relatórios: um de investimentos por titular (lucas, jessica, deusa)
+# e um de orçamento do casal. Os portões de prontidão são dois e independentes —
+# com o orçamento reprovado e a carteira em dia, saem os três de investimento.
+#
+# Saída: 0 com os PDFs esperados gerados (4, ou 3 se só o orçamento reprovou)
+#        75 nada pôde ser gerado (não é erro — tente de novo depois)
 #        outros != 0 para falha de verdade
 #
 # Backfill:
@@ -63,26 +67,42 @@ DADOS="$DESTINO/.dados_$MES_REF.json"
 
 # Portão: mês que ainda não terminou de carregar produz relatório errado com
 # cara de certo. Sair com 75 em vez de 1 para o chamador distinguir "ainda não"
-# de "quebrou".
-PRONTO="$(python3 - "$DADOS" <<'PY'
+# de "quebrou". São dois portões — o do orçamento pode reprovar sozinho, e nesse
+# caso os três relatórios de investimento saem normalmente.
+LEITURA="$(python3 - "$DADOS" <<'PY'
 import json, sys
 p = json.load(open(sys.argv[1]))["meta"]["prontidao"]
-print("1" if p["pronto"] else "0")
-for frase in p.get("pendencias") or []:
-    print("  - " + frase, file=sys.stderr)
-if not p["pronto"] and p.get("ultimo_mes_fechado"):
+# Fallback para `pronto`: extração antiga, sem as flags por escopo.
+orc = p.get("pronto_orcamento", p.get("pronto", False))
+inv = p.get("pronto_investimentos", p.get("pronto", False))
+print(("1" if orc else "0") + " " + ("1" if inv else "0"))
+for rotulo, chave in (("orçamento", "pendencias_orcamento"),
+                      ("investimentos", "pendencias_investimentos")):
+    for frase in p.get(chave) or []:
+        print(f"  - [{rotulo}] {frase}", file=sys.stderr)
+if not (orc and inv) and p.get("ultimo_mes_fechado"):
     print("  último mês fechado: " + p["ultimo_mes_fechado"][:7], file=sys.stderr)
 PY
 )"
+read -r PRONTO_ORC PRONTO_INV <<<"$LEITURA"
 
-if [[ "$PRONTO" != "1" ]]; then
-    if [[ "$FORCAR" != "1" ]]; then
+if [[ "$PRONTO_ORC" != "1" || "$PRONTO_INV" != "1" ]]; then
+    if [[ "$FORCAR" == "1" ]]; then
+        echo "[relatorios] AVISO: $MES_REF não passou no portão; gerando mesmo assim (--forcar)" >&2
+        PRONTO_ORC=1
+        PRONTO_INV=1
+    elif [[ "$PRONTO_ORC" != "1" && "$PRONTO_INV" != "1" ]]; then
         echo "[relatorios] $MES_REF ainda não fechou — nada gerado (use --forcar para ignorar)" >&2
         rm -f "$DADOS"
         exit 75
     fi
-    echo "[relatorios] AVISO: $MES_REF não fechou; gerando mesmo assim (--forcar)" >&2
 fi
+
+ESCOPOS=()
+if [[ "$PRONTO_ORC" == "1" ]]; then ESCOPOS+=(orcamento); fi
+if [[ "$PRONTO_INV" == "1" ]]; then ESCOPOS+=(lucas jessica deusa); fi
+ESPERADOS=${#ESCOPOS[@]}
+echo "[relatorios] escopos liberados: ${ESCOPOS[*]} ($ESPERADOS PDFs)"
 
 cd "$PROJETO"
 set +e
@@ -90,7 +110,7 @@ RELATORIOS_DIR="$DESTINO" timeout "$TIMEOUT_SEG" "$CLAUDE_BIN" \
     --print \
     --permission-mode acceptEdits \
     --allowedTools "Bash,Read,Write,Edit,Glob,Grep,Skill" \
-    "/relatorio-financas mês de referência $MES_REF-01. Grave os PDFs em $DESTINO. Modo não interativo: não faça perguntas, use os defaults do glossário para qualquer parâmetro marcado [CONFIRMAR] e registre no rodapé quais premissas foram usadas.$([[ "$PRONTO" != "1" ]] && echo ' O portão de prontidão reprovou este mês e a geração foi forçada: diga no diagnóstico que os valores estão parciais.')"
+    "/relatorio-financas mês de referência $MES_REF-01. Gere exatamente estes escopos, nada além: ${ESCOPOS[*]}. Grave os PDFs em $DESTINO. Modo não interativo: não faça perguntas, use os defaults do glossário para qualquer parâmetro marcado [CONFIRMAR] e registre no rodapé quais premissas foram usadas.$([[ "$FORCAR" == "1" ]] && echo ' O portão de prontidão reprovou este mês e a geração foi forçada: diga no diagnóstico que os valores estão parciais.')"
 STATUS=$?
 set -e
 
@@ -101,8 +121,8 @@ fi
 
 # O agente pode errar o nome; valida por contagem e não por caminho exato.
 mapfile -t PDFS < <(find "$DESTINO" -maxdepth 1 -name '*.pdf' -newermt '-1 hour' | sort)
-if [[ ${#PDFS[@]} -lt 2 ]]; then
-    echo "erro: esperava 2 PDFs em $DESTINO, encontrei ${#PDFS[@]}" >&2
+if [[ ${#PDFS[@]} -lt $ESPERADOS ]]; then
+    echo "erro: esperava $ESPERADOS PDFs em $DESTINO, encontrei ${#PDFS[@]}" >&2
     printf '  %s\n' "${PDFS[@]:-（nenhum）}" >&2
     exit 4
 fi

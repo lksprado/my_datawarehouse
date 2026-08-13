@@ -125,26 +125,31 @@ prontidao AS (
     ) AS d ON TRUE
 ),
 
+-- Cada pendência é etiquetada com o escopo que ela bloqueia. São dois portões
+-- independentes: o relatório de orçamento depende do DRE, os de investimento
+-- dependem só de a carteira estar em dia. Mês de gasto ainda carregando não é
+-- motivo para segurar a leitura de carteira.
 pendencias AS (
-    SELECT COALESCE(json_agg(t.frase), '[]'::json) AS j
-    FROM (
-        SELECT 'Não há lançamento em marts.resultado para o mês de referência.' AS frase
-        FROM prontidao WHERE NOT dre_presente
-        UNION ALL
-        SELECT 'O mês só tem as despesas fixas recorrentes — role, diversos e transporte estão zerados. É um mês pré-lançado, não realizado.'
-        FROM prontidao WHERE dre_presente AND NOT dre_com_variaveis
-        UNION ALL
-        SELECT 'Último gasto lançado em ' || to_char(ultimo_dia_com_gasto, 'DD/MM')
-               || ', a ' || dias_sem_lancamento_no_fim || ' dias do fim do mês: o mês ainda não terminou de carregar.'
-        FROM prontidao WHERE dias_sem_lancamento_no_fim > 2
-        UNION ALL
-        SELECT 'Nenhum dia com gasto lançado no mês.'
-        FROM prontidao WHERE ultimo_dia_com_gasto IS NULL
-        UNION ALL
-        SELECT 'A carteira está ' || carteira_defasagem_meses
-               || ' meses atrás do mês de referência — defasagem grande demais para comparar patrimônio e orçamento.'
-        FROM prontidao WHERE carteira_defasagem_meses > 2
-    ) AS t
+    SELECT 'orcamento'::text AS escopo,
+           'Não há lançamento em marts.resultado para o mês de referência.' AS frase
+    FROM prontidao WHERE NOT dre_presente
+    UNION ALL
+    SELECT 'orcamento',
+           'O mês só tem as despesas fixas recorrentes — role, diversos e transporte estão zerados. É um mês pré-lançado, não realizado.'
+    FROM prontidao WHERE dre_presente AND NOT dre_com_variaveis
+    UNION ALL
+    SELECT 'orcamento',
+           'Último gasto lançado em ' || to_char(ultimo_dia_com_gasto, 'DD/MM')
+           || ', a ' || dias_sem_lancamento_no_fim || ' dias do fim do mês: o mês ainda não terminou de carregar.'
+    FROM prontidao WHERE dias_sem_lancamento_no_fim > 2
+    UNION ALL
+    SELECT 'orcamento', 'Nenhum dia com gasto lançado no mês.'
+    FROM prontidao WHERE ultimo_dia_com_gasto IS NULL
+    UNION ALL
+    SELECT 'investimentos',
+           'A carteira está ' || carteira_defasagem_meses
+           || ' meses atrás do mês de referência — defasagem grande demais para reportar a posição como se fosse a do mês.'
+    FROM prontidao WHERE carteira_defasagem_meses > 2
 ),
 
 -- ---------------------------------------------------------------- blocos ---
@@ -163,12 +168,18 @@ b_meta AS (
             FROM marts.resultado r CROSS JOIN params p
             WHERE r.mes_debito = p.mes_ref
         ),
+        -- Dois portões, um por família de relatório. `pronto` é o E dos dois e
+        -- só serve como resumo; quem decide o que gerar lê as flags por escopo.
         'prontidao',                  (
             SELECT json_build_object(
                 'pronto', (dre_presente
                        AND dre_com_variaveis
                        AND COALESCE(dias_sem_lancamento_no_fim, 99) <= 2
                        AND carteira_defasagem_meses <= 2),
+                'pronto_orcamento', (dre_presente
+                       AND dre_com_variaveis
+                       AND COALESCE(dias_sem_lancamento_no_fim, 99) <= 2),
+                'pronto_investimentos', (carteira_defasagem_meses <= 2),
                 'dre_presente',               dre_presente,
                 'dre_com_variaveis',          dre_com_variaveis,
                 'dias_no_mes',                dias_no_mes,
@@ -177,7 +188,17 @@ b_meta AS (
                 'dias_sem_lancamento_no_fim', dias_sem_lancamento_no_fim,
                 'carteira_defasagem_meses',   carteira_defasagem_meses,
                 'ultimo_mes_fechado',         ultimo_mes_fechado,
-                'pendencias',                 (SELECT j FROM pendencias)
+                'pendencias', (
+                    SELECT COALESCE(json_agg(frase), '[]'::json) FROM pendencias
+                ),
+                'pendencias_orcamento', (
+                    SELECT COALESCE(json_agg(frase), '[]'::json)
+                    FROM pendencias WHERE escopo = 'orcamento'
+                ),
+                'pendencias_investimentos', (
+                    SELECT COALESCE(json_agg(frase), '[]'::json)
+                    FROM pendencias WHERE escopo = 'investimentos'
+                )
             )
             FROM prontidao
         ),
