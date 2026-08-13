@@ -2,5 +2,8 @@
 target/
 dbt_packages/
 logs/
-relatorios/
+# Só o diretório de saída dos PDFs, na raiz. Sem a barra inicial este
+# padrão casava com qualquer pasta chamada `relatorios` em qualquer nível —
+# e engolia o pacote compartilhado `scripts/relatorios/`.
+/relatorios/
 __pycache__/

@@ -76,9 +76,30 @@ Other domains:
 
 `models/marts/financas/_docs_financas.md` is the single source of truth for spending categories, investment layers and the investment policy (target allocation, contribution targets, reserve, FGC limits). Change a rule **there**, not in a `schema.yml`.
 
-Its numeric parameters are duplicated in `.claude/skills/relatorio-financas/scripts/montar_relatorio.py` (`ALVOS_CAMADA`, `APORTE_ALVO`, `META_RESERVA_*`, `TEXTO_CATEGORIA`, `TEXTO_CAMADA`) because the report builder cannot read Markdown. **Edit both in the same pass** — they silently diverged once and the monthly PDF rendered targets that contradicted the written policy.
+Its numeric parameters are duplicated in `scripts/relatorios/politica.py` (`ALVOS_CAMADA`, `APORTE_ALVO`, `META_RESERVA_*`, `META_POUPANCA_PCT`, `TEXTO_CATEGORIA`, `TEXTO_CAMADA`) because the report builders cannot read Markdown. **Edit both in the same pass** — they silently diverged once and the monthly PDF rendered targets that contradicted the written policy. There is exactly **one** Python copy, shared by both report skills; do not make a third.
 
-The monthly PDFs come from the `relatorio-financas` skill. It is **on-demand only** — nothing schedules it, no DAG, no cron. It emits **four** reports per month: one of investments per titular (`--escopo lucas|jessica|deusa`) and one of the couple's budget (`--escopo orcamento`) — investment is individual, receita/despesa is joint, and the emergency reserve lives in the budget one because it is sized by the couple's median expense. The skill resolves its own reference month from `date` (never `MAX(mes)`, never the current month) and refuses a month that has not finished loading; `meta.prontidao` in `queries/extrair.sql` is that gate, and it carries **two independent flags** — `pronto_orcamento` (needs the DRE) and `pronto_investimentos` (needs the carteira in date), so a still-loading spend month no longer holds back the carteira reports. `scripts/gerar_relatorios_financas.sh` is the batch path for backfilling old months.
+### Two reports, two cadences
+
+The sources do not become trustworthy at the same time — `{% docs calendario_dados %}` in `_docs_financas.md` is the table. Spend is daily; the DRE closes in the first days of the next month; the carteira closes on its own cadence; **the indexadores (IPCA/CDI/Selic/inflação pessoal) only land around day 10**, because the IPCA is published then and the spreadsheet is filled afterwards. Hence two skills, both **on-demand only** — nothing schedules them, no DAG, no cron:
+
+| | `relatorio-financas` | `relatorio-meio-mes` |
+|---|---|---|
+| Runs | days 1–5 | days 15–20 |
+| Reference | the **previous**, closed month | the **current** month (+ benchmark of the previous) |
+| Output | 4 PDFs — one per titular + the couple's budget | 1 PDF, the couple's |
+| Parameter | a month (`AAAA-MM`) | a **date** (`AAAA-MM-DD`), so a past day can be reproduced |
+| Gates in `meta.prontidao` | `pronto_orcamento` (needs the DRE), `pronto_investimentos` (needs the carteira in date) | `pronto_ritmo` (day ≥ 10, entries fresh), `pronto_indicadores` (previous month's IPCA filled) |
+| Batch path | `scripts/gerar_relatorios_financas.sh` | `scripts/gerar_relatorio_meio_mes.sh` |
+
+`relatorio-financas` resolves its month from `date` (never `MAX(mes)`, never the current month). Investment is individual, receita/despesa is joint, and the emergency reserve lives in the budget report because it is sized by the couple's median expense.
+
+`relatorio-meio-mes` answers "what to do in the days that remain": accumulated spend against the min–max envelope and median of the six closed months **on the same day of the billing cycle** (`dia_fatura`, never `dia_mes`), a projected close, and the margin still available in the compressible categories. **The benchmark section lives here, not in the closing report** — `riqueza` INNER JOINs the indexadores, so on day 1 the reference month is simply absent and the series used to shrink by one month in silence. The mart `indicadores` exists to make that legible: unlike `riqueza` it keeps the row with `NULL`, which is what `pronto_indicadores` reads.
+
+Projection rule (documented in `{% docs cadencia_relatorios %}`): `realizado + GREATEST(median of what fell after the cut in the 6 closed months, what is already booked with a future date)`. `GREATEST` and not a sum, because the historical median already embeds the day-25 fixed expenses. It is biased high by construction, and **the per-category column does not add up to the total** — the median of a sum is not the sum of the medians. Both facts are printed in the PDF; never reconcile them in the narrative.
+
+### Shared rendering layer
+
+`scripts/relatorios/` is a Python package imported by **both** skills: `politica` (the policy parameters above), `formato` (pt-BR money/percent/date), `calculo` (`media`/`mediana`/`variacao`), `graficos` (hand-written inline SVG — no chart library), `blocos` (KPI/table/section/glossary HTML) and `relatorio.css`. Capa, rodapé, readiness banner and section order stay in each skill's montador, because the procedência text and the gates differ. Touching `scripts/relatorios/` changes both PDFs — check both. The montadores bootstrap it with `sys.path.insert(0, parents[4] / "scripts")`.
 
 ### Key patterns
 

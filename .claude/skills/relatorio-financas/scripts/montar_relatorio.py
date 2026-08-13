@@ -9,9 +9,14 @@ São quatro relatórios, separados por assunto e por titular:
     orcamento          casal — receita, despesa, resultado, poupança, gasto por
                        categoria, conta de luz e cobertura da reserva
     lucas | jessica    investimentos do titular — patrimônio, carteira, renda
-                       passiva, riscos, desempenho contra benchmark, aporte
-    deusa              idem, sem patrimônio e sem benchmark: não há dado dela
-                       em marts.patrimonio nem em marts.riqueza
+                       passiva, riscos, aporte
+    deusa              idem, sem patrimônio: não há dado dela em
+                       marts.patrimonio
+
+O desempenho contra CDI e inflação pessoal não sai aqui. Os indexadores do mês
+só são publicados por volta do dia 10 e a planilha é preenchida depois — no
+dia em que este relatório roda eles ainda não existem. A leitura de benchmark
+é do relatório de meio de mês (`.claude/skills/relatorio-meio-mes/`).
 
 Divisão de responsabilidades: este script renderiza tudo que é *calculável*
 — KPIs, tabelas, gráficos SVG — direto dos dados, para que nenhum número do
@@ -25,7 +30,6 @@ Estrutura do arquivo de narrativa (todas as chaves opcionais):
       "diagnostico_orcamento": "<p>…</p>",   # só no escopo orcamento
       "diagnostico_carteira": "<p>…</p>",    # só nos escopos de investimento
       "diagnostico_riscos": "<p>…</p>",      # idem
-      "diagnostico_desempenho": "<p>…</p>",  # idem, exceto deusa
       "recomendacoes": [{"titulo": "…", "texto": "…"}],
       "premissas": ["…"]
     }
@@ -34,380 +38,30 @@ from __future__ import annotations
 
 import argparse
 import json
-from datetime import date, datetime
+import sys
 from pathlib import Path
 
-AQUI = Path(__file__).resolve().parent
-CSS = AQUI.parent / "assets" / "relatorio.css"
+# A camada compartilhada com o relatório de meio de mês mora no repositório, em
+# scripts/relatorios/ — parâmetros da política, formatação pt-BR, gráficos SVG e
+# blocos de HTML. Aqui fica só o que é específico do fechamento: capa, rodapé,
+# tarja de prontidão e a ordem das seções.
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "scripts"))
 
-MESES = ["", "janeiro", "fevereiro", "março", "abril", "maio", "junho",
-         "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
-MES_CURTO = ["", "jan", "fev", "mar", "abr", "mai", "jun",
-             "jul", "ago", "set", "out", "nov", "dez"]
-
-SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100",
-          "#e87ba4", "#008300", "#4a3aa7", "#e34948"]
-COR_CAMADA = {"RESERVA": SERIES[0], "CRESCIMENTO": SERIES[1], "RENDA": SERIES[2],
-              "RESERVA ESTRATEGICA": SERIES[3], "NAO CLASSIFICADO": "#7a7975"}
-CATEGORIAS = ["mercado", "diversos", "assinaturas", "role",
-              "transporte", "apartamento", "saude", "educacao"]
-ROTULO_CAT = {"mercado": "Mercado", "diversos": "Diversos",
-              "assinaturas": "Assinaturas", "role": "Rolê",
-              "transporte": "Transporte", "apartamento": "Apartamento",
-              "saude": "Saúde", "educacao": "Educação"}
-COR_CAT = {c: SERIES[i] for i, c in enumerate(CATEGORIAS)}
-
-# Resumo de _docs_financas.md. Ao editar lá, propague para cá — a SKILL.md
-# exige que os dois não divirjam, e já divergiram uma vez.
-TEXTO_CAMADA = {
-    "RESERVA": "Liquidez e preservação de capital. Resgate em até D+1, sem "
-               "marcação a mercado negativa, e destinado a cobrir despesa — "
-               "não a ser carregado até o vencimento.",
-    "CRESCIMENTO": "Acumulação de patrimônio no longo prazo, aceitando "
-                   "volatilidade. Horizonte de cinco anos ou mais.",
-    "RENDA": "Geração de fluxo de caixa recorrente e previsível. O que "
-             "qualifica é a regularidade do pagamento, não o retorno total "
-             "nem o prazo.",
-    "RESERVA ESTRATEGICA": "Reserva de valor em cripto, moeda estrangeira e "
-                           "cashback. Líquida, mas dependente de cenário "
-                           "favorável para ser liquidada e sem novos aportes — "
-                           "por isso fica fora da alocação-alvo.",
-    "NAO CLASSIFICADO": "Ativo ainda sem camada atribuída na planilha. Não é "
-                        "uma alocação — é pendência de classificação.",
-}
-TEXTO_CATEGORIA = {
-    "mercado": "Supermercado, hortifruti, feira, açougue, peixaria, padaria, "
-               "marmitas, bebidas de casa, limpeza e higiene. Não inclui "
-               "refeição fora nem farmácia.",
-    "diversos": "Categoria residual: vestuário, presentes, eletrônicos, "
-                "objetos domésticos, taxas bancárias, imprevistos. O que não "
-                "cabe nas demais.",
-    "assinaturas": "Serviços recorrentes de cobrança automática: streaming, "
-                   "nuvem, software, telefonia, academia.",
-    "role": "Lazer e consumo fora de casa: bares, restaurantes, delivery, "
-            "cinema, eventos, viagens.",
-    "transporte": "Combustível, aplicativos, transporte público, "
-                  "estacionamento, pedágio, manutenção, seguro e IPVA.",
-    "apartamento": "Moradia: prestação do imóvel, condomínio, IPTU, luz, "
-                   "água, gás, internet fixa, móveis, reformas, reparos e "
-                   "serviços domésticos.",
-    "saude": "Plano de saúde, consultas, exames, odontologia, terapia e "
-             "farmácia.",
-    "educacao": "Cursos, graduação e pós, certificações, livros, material "
-                "didático e plataformas de ensino.",
-}
-
-
-# ------------------------------------------------------------- formatação ---
-
-def brl(v, casas=0):
-    if v is None:
-        return "—"
-    v = float(v)
-    if casas == 0:
-        s = f"{abs(v):,.0f}".replace(",", ".")
-    else:
-        s = f"{abs(v):,.{casas}f}".replace(",", "\x00").replace(".", ",").replace("\x00", ".")
-    return f"{'-' if v < 0 else ''}R$ {s}"
-
-
-def pct(v, casas=1):
-    return "—" if v is None else f"{float(v):.{casas}f}%".replace(".", ",")
-
-
-def sinal(v, casas=1, sufixo="%"):
-    if v is None:
-        return "—"
-    # A vírgula decimal vale só para o número. Aplicada à string inteira, como
-    # era antes, o sufixo " p.p." saía " p,p," no PDF.
-    return (f"{'+' if v >= 0 else ''}{float(v):.{casas}f}".replace(".", ",")
-            + sufixo)
-
-
-def data_br(s):
-    if not s:
-        return "—"
-    d = datetime.strptime(s[:10], "%Y-%m-%d").date()
-    return d.strftime("%d/%m/%Y")
-
-
-def mes_extenso(s):
-    d = datetime.strptime(s[:10], "%Y-%m-%d").date()
-    return f"{MESES[d.month]} de {d.year}"
-
-
-def mes_curto(s):
-    d = datetime.strptime(s[:10], "%Y-%m-%d").date()
-    return f"{MES_CURTO[d.month]}/{str(d.year)[2:]}"
-
-
-def esc(t):
-    return (str(t).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
-
-
-def classe_delta(v, bom_se_sobe=True):
-    if v is None or abs(v) < 0.05:
-        return ""
-    positivo = v > 0 if bom_se_sobe else v < 0
-    return "delta-pos" if positivo else "delta-neg"
-
-
-# ---------------------------------------------------------------- gráficos ---
-# SVG inline, sem biblioteca. Todo gráfico tem tabela irmã na mesma seção —
-# a paleta tem slots abaixo de 3:1 na superfície clara e a tabela é a
-# mitigação exigida pela regra de alívio da skill dataviz.
-
-def _eixo_y(x0, x1, y_de, vmax, passos=4):
-    p = []
-    for i in range(passos + 1):
-        v = vmax * i / passos
-        y = y_de(v)
-        p.append(f'<line class="grade" x1="{x0}" y1="{y:.1f}" x2="{x1}" y2="{y:.1f}"/>')
-        rot = f"{v/1000:.0f}k" if vmax >= 10000 else f"{v:.0f}"
-        p.append(f'<text class="eixo" x="{x0-4}" y="{y+3:.1f}" text-anchor="end">{rot}</text>')
-    return "".join(p)
-
-
-def barras_empilhadas(meses, series, largura=640, altura=210):
-    """series: lista de (rotulo, cor, [valores]) — uma pilha por mês."""
-    m = {"e": 40, "d": 8, "t": 10, "b": 26}
-    pw, ph = largura - m["e"] - m["d"], altura - m["t"] - m["b"]
-    totais = [sum(s[2][i] for s in series) for i in range(len(meses))]
-    vmax = max(totais) * 1.08 or 1
-    def y_de(v): return m["t"] + ph - (v / vmax) * ph
-    lb = largura / max(len(meses), 1) * 0.58
-    passo = pw / max(len(meses), 1)
-
-    p = [f'<svg viewBox="0 0 {largura} {altura}" role="img">']
-    p.append(_eixo_y(m["e"], largura - m["d"], y_de, vmax))
-    for i, mes in enumerate(meses):
-        cx = m["e"] + passo * (i + 0.5)
-        acum = 0.0
-        for _, cor, vals in series:
-            v = vals[i]
-            if v <= 0:
-                continue
-            y0, y1 = y_de(acum + v), y_de(acum)
-            p.append(f'<rect class="fatia" x="{cx-lb/2:.1f}" y="{y0:.1f}" '
-                     f'width="{lb:.1f}" height="{max(y1-y0,0.6):.1f}" fill="{cor}"/>')
-            acum += v
-        p.append(f'<text class="eixo" x="{cx:.1f}" y="{altura-13}" '
-                 f'text-anchor="middle">{mes_curto(mes)}</text>')
-        p.append(f'<text class="rotulo-direto" x="{cx:.1f}" y="{y_de(acum)-3:.1f}" '
-                 f'text-anchor="middle">{totais[i]/1000:.1f}k</text>')
-    p.append(f'<line class="linha-base" x1="{m["e"]}" y1="{y_de(0):.1f}" '
-             f'x2="{largura-m["d"]}" y2="{y_de(0):.1f}"/>')
-    p.append("</svg>")
-    return "".join(p)
-
-
-def barras_agrupadas(meses, series, largura=640, altura=200):
-    m = {"e": 40, "d": 8, "t": 12, "b": 26}
-    pw, ph = largura - m["e"] - m["d"], altura - m["t"] - m["b"]
-    vmax = max(max(s[2]) for s in series) * 1.12 or 1
-    def y_de(v): return m["t"] + ph - (v / vmax) * ph
-    passo = pw / max(len(meses), 1)
-    n = len(series)
-    lb = passo * 0.62 / n
-
-    p = [f'<svg viewBox="0 0 {largura} {altura}" role="img">']
-    p.append(_eixo_y(m["e"], largura - m["d"], y_de, vmax))
-    for i, mes in enumerate(meses):
-        base = m["e"] + passo * (i + 0.5) - (lb * n) / 2
-        for k, (_, cor, vals) in enumerate(series):
-            v = max(vals[i], 0)
-            y = y_de(v)
-            p.append(f'<rect class="fatia" x="{base+k*lb:.1f}" y="{y:.1f}" '
-                     f'width="{lb:.1f}" height="{max(y_de(0)-y,0.6):.1f}" '
-                     f'fill="{cor}" rx="2"/>')
-        p.append(f'<text class="eixo" x="{m["e"]+passo*(i+0.5):.1f}" y="{altura-13}" '
-                 f'text-anchor="middle">{mes_curto(mes)}</text>')
-    p.append(f'<line class="linha-base" x1="{m["e"]}" y1="{y_de(0):.1f}" '
-             f'x2="{largura-m["d"]}" y2="{y_de(0):.1f}"/>')
-    p.append("</svg>")
-    return "".join(p)
-
-
-def linhas(meses, series, largura=640, altura=200, formato="k"):
-    """series: lista de (rotulo, cor, [valores]) — rotuladas direto na ponta."""
-    m = {"e": 40, "d": 78, "t": 12, "b": 26}  # margem direita cabe o rótulo direto
-    pw, ph = largura - m["e"] - m["d"], altura - m["t"] - m["b"]
-    todos = [v for _, _, vs in series for v in vs if v is not None]
-    vmin, vmax = min(todos), max(todos)
-    faixa = (vmax - vmin) or 1
-    lo, hi = vmin - faixa * 0.12, vmax + faixa * 0.12
-    def y_de(v): return m["t"] + ph - ((v - lo) / (hi - lo)) * ph
-    def x_de(i): return m["e"] + (pw * i / max(len(meses) - 1, 1))
-
-    p = [f'<svg viewBox="0 0 {largura} {altura}" role="img">']
-    for i in range(5):
-        v = lo + (hi - lo) * i / 4
-        y = y_de(v)
-        rot = f"{v/1000:.0f}k" if formato == "k" else f"{v:.2f}".replace(".", ",")
-        p.append(f'<line class="grade" x1="{m["e"]}" y1="{y:.1f}" '
-                 f'x2="{largura-m["d"]}" y2="{y:.1f}"/>')
-        p.append(f'<text class="eixo" x="{m["e"]-4}" y="{y+3:.1f}" text-anchor="end">{rot}</text>')
-    for rotulo, cor, vals in series:
-        d = " ".join(f'{"M" if i == 0 else "L"}{x_de(i):.1f},{y_de(v):.1f}'
-                     for i, v in enumerate(vals))
-        p.append(f'<path class="serie-linha" d="{d}" stroke="{cor}"/>')
-        xf, yf = x_de(len(vals) - 1), y_de(vals[-1])
-        p.append(f'<circle cx="{xf:.1f}" cy="{yf:.1f}" r="3.2" fill="{cor}" '
-                 f'stroke="#ffffff" stroke-width="2"/>')
-        p.append(f'<text class="rotulo-direto" x="{xf+7:.1f}" y="{yf+3:.1f}">{esc(rotulo)}</text>')
-    for i, mes in enumerate(meses):
-        if len(meses) > 8 and i % 2 == 1 and i != len(meses) - 1:
-            continue
-        p.append(f'<text class="eixo" x="{x_de(i):.1f}" y="{altura-13}" '
-                 f'text-anchor="middle">{mes_curto(mes)}</text>')
-    p.append("</svg>")
-    return "".join(p)
-
-
-def barras_alvo(linhas_dados, largura=640, altura=None):
-    """Atual vs alvo por camada. linhas_dados: (rotulo, cor, pct_atual, pct_alvo)."""
-    lh = 30
-    altura = altura or (len(linhas_dados) * lh + 26)
-    m = {"e": 96, "d": 78}
-    pw = largura - m["e"] - m["d"]
-    escala = max([max(a, b) for _, _, a, b in linhas_dados] + [10]) * 1.15
-
-    p = [f'<svg viewBox="0 0 {largura} {altura}" role="img">']
-    for i, (rotulo, cor, atual, alvo) in enumerate(linhas_dados):
-        y = 10 + i * lh
-        wa, wt = pw * atual / escala, pw * alvo / escala
-        p.append(f'<text class="eixo" x="{m["e"]-8}" y="{y+13}" text-anchor="end" '
-                 f'style="font-size:8.5px;font-weight:600">{esc(rotulo)}</text>')
-        p.append(f'<rect x="{m["e"]}" y="{y+3}" width="{max(wa,1):.1f}" height="15" '
-                 f'fill="{cor}" rx="3"/>')
-        # marcador do alvo: linha vertical + rótulo, nunca cor sozinha
-        p.append(f'<line x1="{m["e"]+wt:.1f}" y1="{y-1}" x2="{m["e"]+wt:.1f}" '
-                 f'y2="{y+22}" stroke="#0b0b0b" stroke-width="1.6" '
-                 f'stroke-dasharray="3 2"/>')
-        desvio = atual - alvo
-        p.append(f'<text class="rotulo-direto" x="{largura-m["d"]+6}" y="{y+14}">'
-                 f'{atual:.0f}% <tspan fill="#52514e" style="font-weight:400">'
-                 f'({desvio:+.0f} p.p.)</tspan></text>')
-    p.append(f'<text class="eixo" x="{m["e"]}" y="{altura-3}" '
-             f'style="font-size:7.5px">Barra: alocação atual · Tracejado: alvo da política</text>')
-    p.append("</svg>")
-    return "".join(p)
-
-
-def legenda(itens):
-    sp = "".join(f'<span><i class="chip" style="background:{c}"></i>{esc(r)}</span>'
-                 for r, c in itens)
-    return f'<div class="legenda">{sp}</div>'
-
-
-# ------------------------------------------------------------------ blocos ---
-
-def kpi(rotulo, valor, nota="", cls=""):
-    n = f'<div class="nota {cls}">{nota}</div>' if nota else ""
-    return f'<div class="kpi"><div class="rotulo">{esc(rotulo)}</div>' \
-           f'<div class="valor">{valor}</div>{n}</div>'
-
-
-def tabela(cabecalhos, linhas_, rodape=None, alinhamentos=None):
-    al = alinhamentos or ["l"] + ["n"] * (len(cabecalhos) - 1)
-    th = "".join(f'<th class="{"num" if a == "n" else ""}">{esc(h)}</th>'
-                 for h, a in zip(cabecalhos, al))
-    corpo = []
-    for ln in linhas_:
-        cls = ' class="destaque"' if isinstance(ln, dict) else ""
-        cels = ln["cels"] if isinstance(ln, dict) else ln
-        tds = "".join(f'<td class="{"num" if a == "n" else ""}">{c}</td>'
-                      for c, a in zip(cels, al))
-        corpo.append(f"<tr{cls}>{tds}</tr>")
-    tf = ""
-    if rodape:
-        tds = "".join(f'<td class="{"num" if a == "n" else ""}">{c}</td>'
-                      for c, a in zip(rodape, al))
-        tf = f"<tfoot><tr>{tds}</tr></tfoot>"
-    return (f'<table><thead><tr>{th}</tr></thead>'
-            f'<tbody>{"".join(corpo)}</tbody>{tf}</table>')
-
-
-def secao(num, titulo, sub, conteudo, quebra=False):
-    s = f'<div class="sub">{esc(sub)}</div>' if sub else ""
-    q = " quebra" if quebra else ""
-    return (f'<section class="{q.strip()}"><h2><span class="num">{num}</span>'
-            f'{esc(titulo)}</h2>{s}{conteudo}</section>')
-
-
-def bloco(titulo, html, tipo=""):
-    t = f"<h4>{esc(titulo)}</h4>" if titulo else ""
-    return f'<div class="destaque-bloco {tipo}">{t}{html}</div>'
-
-
-def tag_risco(txt):
-    mapa = {"OK": "tag-ok", "PERIGO!": "tag-critico"}
-    icone = {"OK": "✓", "PERIGO!": "▲"}
-    return (f'<span class="tag {mapa.get(txt, "tag-atencao")}">'
-            f'{icone.get(txt, "•")} {esc(txt)}</span>')
-
-
-# ------------------------------------------------------------------ cálculo ---
-
-def media(vals):
-    vals = [v for v in vals if v is not None]
-    return sum(vals) / len(vals) if vals else 0.0
-
-
-def mediana(vals):
-    """Usada para dimensionar a reserva: a política pede mediana justamente
-    para que um mês atípico (IPVA, viagem, reforma) não infle a meta."""
-    vals = sorted(v for v in vals if v is not None)
-    if not vals:
-        return 0.0
-    meio = len(vals) // 2
-    if len(vals) % 2:
-        return float(vals[meio])
-    return (float(vals[meio - 1]) + float(vals[meio])) / 2
-
-
-def variacao(atual, base):
-    return None if not base else (atual - base) / base * 100
-
-
-# Escopos de relatório. `orcamento` é o do casal; os demais são um por titular.
-ESCOPOS_INVESTIMENTO = ["lucas", "jessica", "deusa"]
-# Quem tem série em marts.patrimonio e marts.riqueza. Deusa não tem: o
-# enriquecimento dela entra na carteira como disponibilidade, não vira
-# patrimônio mensal nem índice acumulado.
-COM_PATRIMONIO = ["lucas", "jessica"]
-NOME = {"lucas": "Lucas", "jessica": "Jéssica", "deusa": "Deusa"}
-
-# Alocação-alvo, cópia da tabela de `politica_investimentos` em
-# _docs_financas.md. Percentuais sobre a carteira EXCLUINDO
-# 'RESERVA ESTRATEGICA' e 'NAO CLASSIFICADO' — as duas não têm alvo.
-ALVOS_CAMADA = {
-    "lucas":   {"RESERVA": 30, "CRESCIMENTO": 50, "RENDA": 20},
-    "jessica": {"RESERVA": 30, "CRESCIMENTO": 70, "RENDA": 0},
-    "deusa":   {"RESERVA": 30, "CRESCIMENTO": 60, "RENDA": 10},
-}
-
-
-# Camadas com alocação-alvo, na ordem em que saem no relatório.
-CAMADAS_COM_ALVO = ["RESERVA", "CRESCIMENTO", "RENDA"]
-# Camadas reportadas à parte, sem alvo (ver `camada_investimento`).
-CAMADAS_SEM_ALVO = ["RESERVA ESTRATEGICA", "NAO CLASSIFICADO"]
-# Os valores no banco não têm acento; o PDF tem.
-ROTULO_CAMADA = {"RESERVA": "Reserva", "CRESCIMENTO": "Crescimento",
-                 "RENDA": "Renda", "RESERVA ESTRATEGICA": "Reserva estratégica",
-                 "NAO CLASSIFICADO": "Não classificado"}
-
-APORTE_ALVO = {"lucas": 4000, "jessica": 2000, "deusa": 3000}
-# Reserva-alvo = max(N x mediana da despesa de 6 meses, R$ 100.000). O N de
-# Deusa está na política mas não tem uso aqui: não há despesa dela no warehouse
-# para dimensionar cobertura, então o KPI só existe no relatório de orçamento.
-META_RESERVA_MESES = {"casal": 6, "deusa": 12}
-META_RESERVA_PISO = 100000
-META_POUPANCA_PCT = 35
-FGC_FOLGA_MINIMA = 50000
-# Exposição internacional alvo, % da carteira.
-META_INTERNACIONAL_PCT = {"lucas": 15, "jessica": 15, "deusa": 10}
-
+from relatorios.blocos import (bloco, css_inline, glossario_camadas,  # noqa: E402
+                              glossario_categorias, kpi, recomendacoes_html,
+                              rotulo_chip, secao, tabela, tag_risco)
+from relatorios.calculo import media, mediana, variacao  # noqa: E402
+from relatorios.formato import (brl, classe_delta, data_br, esc,  # noqa: E402
+                                mes_curto, mes_extenso, pct, sinal)
+from relatorios.graficos import (barras_agrupadas, barras_alvo,  # noqa: E402
+                                 barras_empilhadas, legenda)
+from relatorios.politica import (ALVOS_CAMADA, APORTE_ALVO,  # noqa: E402
+                                 CAMADAS_COM_ALVO, CAMADAS_SEM_ALVO,
+                                 CATEGORIAS, COM_PATRIMONIO, COR_CAMADA,
+                                 COR_CAT, ESCOPOS_INVESTIMENTO,
+                                 META_INTERNACIONAL_PCT, META_RESERVA_MESES,
+                                 META_RESERVA_PISO, NOME, ROTULO_CAMADA,
+                                 ROTULO_CAT, SERIES, TEXTO_CAMADA)
 
 # ----------------------------------------------------------------- carteira ---
 
@@ -445,7 +99,7 @@ def secao_carteira(d, pessoa):
         desvio = a - alvo
         dentro = abs(desvio) <= 5
         lin.append([
-            f'<i class="chip" style="background:{cor}"></i>{ROTULO_CAMADA[cm]}',
+            rotulo_chip(cor, ROTULO_CAMADA[cm]),
             brl(valores.get(cm, 0)), pct(a), f"{alvo}%",
             # desvio do alvo é ruim nos dois sentidos — nunca verde por ser positivo
             f'<span class="{"" if dentro else "delta-neg"}">'
@@ -460,8 +114,7 @@ def secao_carteira(d, pessoa):
             continue
         pendencia = cm == "NAO CLASSIFICADO"
         lin.append([
-            f'<i class="chip" style="background:{COR_CAMADA[cm]}"></i>'
-            f'{ROTULO_CAMADA[cm]}',
+            rotulo_chip(COR_CAMADA[cm], ROTULO_CAMADA[cm]),
             brl(valores[cm]), pct(atual_total.get(cm, 0.0)), "—", "—",
             '<span class="tag tag-atencao">▲ classificar</span>' if pendencia
             else '<span class="tag">sem alvo</span>'])
@@ -542,7 +195,7 @@ def aviso_prontidao(meta, escopo):
 
 
 def cabecalho(titulo, subtitulo, meta, destinatarios, escopo):
-    css = CSS.read_text(encoding="utf-8")
+    css = css_inline()
     defasagem = meta["defasagem_carteira_meses"]
     if escopo == "orcamento":
         conteudo = ("Reúne a apuração do orçamento do período — receita, "
@@ -557,9 +210,8 @@ def cabecalho(titulo, subtitulo, meta, destinatarios, escopo):
                  f"{mes_extenso(meta['mes_carteira'])}.</p>") if defasagem else ""
     else:
         conteudo = ("Reúne o patrimônio do titular, a posição consolidada da "
-                    "carteira, a renda passiva do período, a leitura de riscos, "
-                    "o desempenho contra os benchmarks e o destino recomendado "
-                    "para o aporte."
+                    "carteira, a renda passiva do período, a leitura de riscos "
+                    "e o destino recomendado para o aporte."
                     if escopo in COM_PATRIMONIO else
                     "Reúne a posição consolidada da carteira, a renda passiva "
                     "do período, a leitura de riscos e o destino recomendado "
@@ -616,10 +268,12 @@ def rodape(meta, premissas, escopo):
             f"{mes_extenso(meta['mes_carteira'])}.")
     elif escopo in COM_PATRIMONIO:
         procedencia = (
-            f"Patrimônio, carteira, renda passiva e índices de desempenho em "
+            f"Patrimônio, carteira e renda passiva em "
             f"{mes_extenso(meta['mes_carteira'])}. Este relatório não apura "
             f"orçamento: receita e despesa são lançadas em conjunto para o "
-            f"casal e saem no relatório de orçamento.")
+            f"casal e saem no relatório de orçamento. O desempenho contra CDI "
+            f"e inflação pessoal sai no relatório de meio de mês, quando os "
+            f"indexadores do mês já foram publicados.")
     else:
         procedencia = (
             f"Carteira e renda passiva em {mes_extenso(meta['mes_carteira'])}. "
@@ -643,38 +297,17 @@ def rodape(meta, premissas, escopo):
 def glossario(escopo):
     """Só entra no glossário o vocabulário que o relatório de fato usa: o de
     orçamento fala de categoria de gasto e cita uma única camada, a reserva."""
-    itens = []
     if escopo == "orcamento":
-        itens.append("<h3>Categorias de gasto</h3><dl class='glossario'>")
-        for c in CATEGORIAS:
-            itens.append(f'<dt><i class="chip" style="background:{COR_CAT[c]}"></i>'
-                         f'{ROTULO_CAT[c]}</dt><dd>{TEXTO_CATEGORIA[c]}</dd>')
-        itens.append("</dl>")
-        itens.append("<h3>Camada citada</h3><dl class='glossario'>"
-                     f'<dt><i class="chip" style="background:{COR_CAMADA["RESERVA"]}">'
-                     f'</i>{ROTULO_CAMADA["RESERVA"]}</dt>'
-                     f'<dd>{TEXTO_CAMADA["RESERVA"]}</dd></dl>'
-                     "<p class='sub'>As demais camadas de investimento estão nos "
-                     "relatórios individuais de carteira.</p>")
-        return "".join(itens)
-    itens.append("<h3>Camadas de investimento</h3><dl class='glossario'>")
-    for cm in CAMADAS_COM_ALVO + CAMADAS_SEM_ALVO:
-        itens.append(f'<dt><i class="chip" style="background:{COR_CAMADA[cm]}"></i>'
-                     f'{ROTULO_CAMADA[cm]}</dt><dd>{TEXTO_CAMADA[cm]}</dd>')
-    itens.append("</dl>")
-    itens.append(
-        "<p class='sub'>A camada descreve o papel do ativo na carteira, não o que "
-        "ele é. Um CDB pode ser reserva ou crescimento conforme sua liquidez e "
-        "exposição a marcação a mercado.</p>")
-    return "".join(itens)
-
-
-def recomendacoes_html(recs):
-    if not recs:
-        return "<p>Sem recomendações para o período.</p>"
-    li = "".join(f'<li><span class="titulo-rec">{esc(r["titulo"])}</span>{r["texto"]}</li>'
-                 for r in recs)
-    return f'<ol class="recomendacoes">{li}</ol>'
+        return (glossario_categorias()
+                + "<h3>Camada citada</h3><dl class='glossario'>"
+                f'<dt>{rotulo_chip(COR_CAMADA["RESERVA"], ROTULO_CAMADA["RESERVA"])}</dt>'
+                f'<dd>{TEXTO_CAMADA["RESERVA"]}</dd></dl>'
+                "<p class='sub'>As demais camadas de investimento estão nos "
+                "relatórios individuais de carteira.</p>")
+    return (glossario_camadas()
+            + "<p class='sub'>A camada descreve o papel do ativo na carteira, "
+              "não o que ele é. Um CDB pode ser reserva ou crescimento conforme "
+              "sua liquidez e exposição a marcação a mercado.</p>")
 
 
 def montar_orcamento(d, n):
@@ -755,7 +388,7 @@ def montar_orcamento(d, n):
         part = atual / ult["total_despesas"] * 100 if ult["total_despesas"] else 0
         v = variacao(atual, m6)
         lin_cat.append([
-            f'<i class="chip" style="background:{COR_CAT[c]}"></i>{ROTULO_CAT[c]}',
+            rotulo_chip(COR_CAT[c], ROTULO_CAT[c]),
             brl(atual), pct(part), brl(m6),
             f'<span class="{classe_delta(v, bom_se_sobe=False)}">{sinal(v)}</span>'])
     partes.append(secao(3, "Gastos por categoria",
@@ -856,42 +489,11 @@ def bloco_riscos(d, pessoas):
     return "".join(h)
 
 
-def bloco_desempenho(d, pessoa):
-    """Índice acumulado do patrimônio do titular contra CDI e inflação pessoal.
-    Nunca lê `comparativo_*`: aquelas colunas rotulam superação com RICO/POBRE,
-    vocabulário interno que não vai para o PDF."""
-    r = d["riqueza"]
-    if not r:
-        return "<p>Sem série de benchmark disponível.</p>"
-    col = f"patrimonio_liquido_{pessoa}_acum"
-    if col not in r[-1]:
-        return "<p>Sem série de benchmark disponível para este titular.</p>"
-    meses = [x["mes_base"] for x in r]
-    u = r[-1]
-    return (
-        f'<figure>{linhas(meses, [("Patrimônio", SERIES[0], [float(x[col]) for x in r]), ("CDI", SERIES[1], [float(x["cdi_acum"]) for x in r]), ("Infl. pessoal", SERIES[2], [float(x["minha_inflacao_acum"]) for x in r])], formato="idx")}'
-        f'<figcaption>Índice acumulado, base 1. Séries indexadas à mesma base — '
-        f'eixo único.</figcaption></figure>'
-        + tabela(["Mês", "Patrimônio", "CDI", "IPCA", "Inflação pessoal"],
-                 [[mes_curto(x["mes_base"]),
-                   f'{float(x[col]):.3f}'.replace(".", ","),
-                   f'{float(x["cdi_acum"]):.3f}'.replace(".", ","),
-                   f'{float(x["ipca_acum"]):.3f}'.replace(".", ","),
-                   f'{float(x["minha_inflacao_acum"]):.3f}'.replace(".", ",")]
-                  for x in r])
-        + f'<p class="sub">No mês de referência o patrimônio acumula índice '
-          f'{float(u[col]):.3f}'.replace(".", ",")
-        + f' contra {float(u["cdi_acum"]):.3f}'.replace(".", ",")
-        + f' do CDI e {float(u["minha_inflacao_acum"]):.3f}'.replace(".", ",")
-        + " da inflação pessoal. O índice de patrimônio compõe aporte e "
-          "rentabilidade — não é retorno da carteira.</p>")
-
-
 def montar_investimentos(d, n, pessoa):
-    """Relatório de investimentos de um titular. Duas seções — patrimônio e
-    desempenho contra benchmark — só existem para quem tem série em
-    marts.patrimonio e marts.riqueza, então a numeração é sequencial e não
-    literal: o relatório de Deusa não pode sair com buraco de seção."""
+    """Relatório de investimentos de um titular. A seção de patrimônio só
+    existe para quem tem série em marts.patrimonio, então a numeração é
+    sequencial e não literal: o relatório de Deusa não pode sair com buraco
+    de seção."""
     meta = d["meta"]
     tem_patrimonio = pessoa in COM_PATRIMONIO
     camadas = [c for c in d["carteira_camada"] if c["pessoa"] == pessoa]
@@ -989,20 +591,13 @@ def montar_investimentos(d, n, pessoa):
     partes.append(secao(prox(), "Riscos", "FGC, concentração e vencimentos",
         bloco_riscos(d, [pessoa]) + bloco("", n.get("diagnostico_riscos", ""))))
 
-    # 6 — desempenho (só quem tem série)
-    if tem_patrimonio:
-        partes.append(secao(prox(), "Desempenho contra benchmarks",
-            "Patrimônio líquido acumulado, base 1 em novembro de 2023",
-            bloco_desempenho(d, pessoa)
-            + bloco("", n.get("diagnostico_desempenho", "")), quebra=True))
-
-    # 7 — recomendações
+    # 6 — recomendações
     partes.append(secao(prox(), "Recomendações",
         f"Destino sugerido para o aporte · aporte-alvo "
         f"{brl(APORTE_ALVO[pessoa])}/mês",
         recomendacoes_html(n.get("recomendacoes", [])), quebra=True))
 
-    # 8 — glossário
+    # 7 — glossário
     partes.append(secao(prox(), "Glossário",
         "O que significa cada camada de investimento",
         glossario(pessoa)))

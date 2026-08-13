@@ -11,7 +11,7 @@ recomendado para o aporte.
 
 | Relatório | Escopo | Conteúdo |
 |---|---|---|
-| `relatorio_investimentos_lucas_AAAA-MM.pdf` | `lucas` | Patrimônio, carteira, renda passiva, riscos, desempenho vs. benchmark, aporte |
+| `relatorio_investimentos_lucas_AAAA-MM.pdf` | `lucas` | Patrimônio, carteira, renda passiva, riscos, aporte |
 | `relatorio_investimentos_jessica_AAAA-MM.pdf` | `jessica` | idem |
 | `relatorio_investimentos_deusa_AAAA-MM.pdf` | `deusa` | Carteira, renda passiva, riscos, aporte |
 | `relatorio_orcamento_casal_AAAA-MM.pdf` | `orcamento` | Receita, despesa, resultado, poupança, gastos por categoria, luz, reserva de emergência |
@@ -26,6 +26,14 @@ A separação é por assunto **e** por titular: investimento é individual, orç
   é dimensionada pela mediana da despesa. Nos individuais a reserva aparece só
   como camada contra o alvo de alocação.
 
+- **Não há leitura de benchmark aqui.** Os indexadores (IPCA, CDI, Selic,
+  inflação pessoal) só são publicados por volta do dia 10 e a planilha é
+  preenchida depois — no dia em que este relatório roda, o mês de referência
+  ainda não existe em `marts.indicadores` nem em `marts.riqueza`. O desempenho
+  do patrimônio contra CDI e inflação pessoal é assunto da skill
+  `relatorio-meio-mes`, que roda entre os dias 15 e 20. Não tente compensar
+  citando o mês anterior: o leitor entende como sendo o mês do relatório.
+
 **Acionamento: sob demanda, só.** Não há agendador — nem cron, nem DAG. O
 usuário pede, você roda. Por isso o mês de referência é decidido aqui dentro
 (Passo 1) e o mês incompleto é barrado aqui dentro (Passo 2). Para refazer
@@ -38,8 +46,9 @@ meses antigos em lote, sem sessão interativa, existe
 
 É a fonte única do que cada categoria de gasto engloba, do que cada camada de
 investimento significa e da política de investimento (aporte alvo, alocação-alvo
-por camada, metas de reserva, limites e benchmark). Todo diagnóstico e toda
-recomendação saem de lá.
+por camada, metas de reserva e limites). Todo diagnóstico e toda recomendação
+saem de lá. O parâmetro de benchmark também está lá, mas não se aplica a este
+relatório — ver a nota acima.
 
 Cada categoria de gasto termina com uma subseção **Fatos relevantes**: eventos
 datados que explicam variação brusca e não existem em nenhum campo do dado, uns
@@ -50,10 +59,12 @@ de patrimônio como desempenho ruim. Fato usado no diagnóstico entra em
 mesmo assim e sinalize no relatório que é premissa a validar — não o substitua
 por um número inventado.
 
-Os parâmetros numéricos da política estão duplicados em `montar_relatorio.py`
-(`alvos_camada()`, `APORTE_ALVO`, `META_RESERVA_*`, `TEXTO_CATEGORIA`,
-`TEXTO_CAMADA`), porque o montador não lê Markdown. Se os dois discordarem,
-**vale o `_docs_financas.md`** — e corrija o Python na mesma passada.
+Os parâmetros numéricos da política estão duplicados em
+`scripts/relatorios/politica.py` (`ALVOS_CAMADA`, `APORTE_ALVO`,
+`META_RESERVA_*`, `META_POUPANCA_PCT`, `TEXTO_CATEGORIA`, `TEXTO_CAMADA`),
+porque o montador não lê Markdown. É **uma** cópia, compartilhada com a skill
+`relatorio-meio-mes` — não duplique de novo. Se ela e o Markdown discordarem,
+**vale o `_docs_financas.md`**, e corrija o Python na mesma passada.
 
 ## Passo 1 — Resolver o mês de referência
 
@@ -157,9 +168,6 @@ diagnóstico precisa dizer que os valores estão parciais.
   os alvos de 30/50/20 são sobre a carteira sem as duas. O montador já faz essa
   conta e imprime a nota das duas bases — ao citar percentual de camada na
   narrativa, use o da tabela, não o `pct_da_carteira` cru do JSON.
-- **`riqueza.comparativo_*`** usa `RICO`/`POBRE` como rótulo interno de
-  superação de benchmark. Não reproduza esses termos no PDF — escreva "acima do
-  CDI" / "abaixo do IPCA".
 
 ## Passo 3 — Analisar
 
@@ -185,8 +193,6 @@ daquela pessoa, contra a alocação-alvo dela):
 - Concentração por instituição, emissor e conglomerado; exposição em moeda.
 - Exposição FGC: conglomerados sem folga contra o limite.
 - Vencimentos nos próximos 12 meses e o que fazer com o principal que retorna.
-- Desempenho contra CDI e contra a inflação pessoal, separadamente (Lucas e
-  Jéssica; Deusa não tem série).
 - **Destino do aporte do mês**: qual camada e por quê, em valor.
 
 Os alvos são por pessoa e diferentes entre si — 30/50/20 para Lucas, 30/70/0
@@ -213,7 +219,6 @@ escopo, gravado no scratchpad:
   "diagnostico_orcamento": "<p>…</p>",
   "diagnostico_carteira": "<p>…</p>",
   "diagnostico_riscos": "<p>…</p>",
-  "diagnostico_desempenho": "<p>…</p>",
   "recomendacoes": [{"titulo": "…", "texto": "…"}],
   "premissas": ["…"]
 }
@@ -227,8 +232,10 @@ renderiza é trabalho jogado fora**; não a escreva:
 | escopo | chaves renderizadas |
 |---|---|
 | `orcamento` | `sumario`, `diagnostico_orcamento`, `recomendacoes`, `premissas` |
-| `lucas`, `jessica` | `sumario`, `diagnostico_carteira`, `diagnostico_riscos`, `diagnostico_desempenho`, `recomendacoes`, `premissas` |
-| `deusa` | idem, sem `diagnostico_desempenho` |
+| `lucas`, `jessica`, `deusa` | `sumario`, `diagnostico_carteira`, `diagnostico_riscos`, `recomendacoes`, `premissas` |
+
+`diagnostico_desempenho` **não existe mais aqui** — é chave da skill
+`relatorio-meio-mes`.
 
 As `recomendacoes` do orçamento são sobre gasto, poupança e reforço da reserva;
 as dos três individuais são sobre o destino do aporte por camada. Não repita a
@@ -244,10 +251,10 @@ Sobre o texto:
   leitor não deduziria dos números: qual das duas regras de reserva-alvo está
   valendo, qualquer marcação `[CONFIRMAR]` do glossário que você tenha usado,
   e as limitações do dado que afetaram o diagnóstico. Saem no rodapé do PDF.
-- Quando os dados não sustentarem uma conclusão, escreva que não sustentam. O
-  índice de `riqueza`, por exemplo, compõe variação de patrimônio que **inclui
-  aportes** — não é rentabilidade, e compará-lo ao CDI superestima o desempenho
-  da carteira. Diga isso em vez de omitir.
+- Quando os dados não sustentarem uma conclusão, escreva que não sustentam.
+  Uma carteira sem histórico suficiente, um mês com uma única compra grande
+  explicando toda a variação, uma camada com dois ativos — em todos esses casos
+  a descrição vale e o diagnóstico não.
 
 ### O que o montador já produz sozinho
 
@@ -267,7 +274,7 @@ Não peça para escrever, não duplique na narrativa:
 | — | Notas e procedência, com as `premissas[]` |
 
 **Escopos `lucas` / `jessica` / `deusa`** (a numeração é sequencial; no relatório
-de Deusa as seções de patrimônio e desempenho não existem e as demais sobem):
+de Deusa a seção de patrimônio não existe e as demais sobem):
 
 | # | Seção | Quem |
 |---|---|---|
@@ -277,9 +284,8 @@ de Deusa as seções de patrimônio e desempenho não existem e as demais sobem)
 | 3 | Carteira — camada vs. alvo, instituição, tipo, moeda, posições + `diagnostico_carteira` | todos |
 | 4 | Renda passiva — dividendos e yield | todos |
 | 5 | Riscos — FGC, vencimentos, não classificados + `diagnostico_riscos` | todos |
-| 6 | Desempenho contra CDI e inflação pessoal + `diagnostico_desempenho` | lucas, jessica |
-| 7 | Recomendações — a partir de `recomendacoes[]` | todos |
-| 8 | Glossário de camadas | todos |
+| 6 | Recomendações — a partir de `recomendacoes[]` | todos |
+| 7 | Glossário de camadas | todos |
 | — | Notas e procedência, com as `premissas[]` | todos |
 
 O glossário do PDF sai do próprio montador (`TEXTO_CATEGORIA` no orçamento,
@@ -335,11 +341,15 @@ Obrigatório, não opcional:
 3. Verifique que nenhum mês futuro entrou em número ou gráfico.
 4. Confirme que cada PDF gerado tem mais de uma página e tamanho plausível.
 5. Confira que o assunto não vazou de um relatório para o outro: nenhum dos
-   individuais fala de despesa, e o de orçamento não traz posição de carteira.
-   No de Deusa, a numeração das seções não pode ter buraco.
+   individuais fala de despesa, o de orçamento não traz posição de carteira, e
+   nenhum dos quatro cita CDI, IPCA ou desempenho contra benchmark — isso é do
+   relatório de meio de mês. No de Deusa, a numeração das seções não pode ter
+   buraco.
 
 Se o texto estiver errado, corrija o `narrativa.json`; se o layout ou um número
-renderizado estiver errado, corrija `montar_relatorio.py` ou `relatorio.css`.
+renderizado estiver errado, corrija `montar_relatorio.py` ou
+`scripts/relatorios/relatorio.css`. Mexer em `scripts/relatorios/` afeta
+também o relatório de meio de mês — confira os dois.
 Nos dois casos, monte e converta de novo. Não entregue um PDF que você não olhou.
 
 ## Encerramento

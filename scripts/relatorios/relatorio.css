@@ -348,3 +348,17 @@ ol.recomendacoes .titulo-rec {
     font-size: 7.5pt;
     color: var(--text-muted);
 }
+
+/* ------------------------------------------------- ritmo do meio de mês --- */
+/* Envoltória mín–máx dos meses fechados. Referência, não entidade: cinza de
+   régua, sem cor de série — cor categórica aqui faria o leitor ler a faixa
+   como mais uma carteira. */
+svg .faixa-ref {
+    fill: var(--rule);
+    fill-opacity: 0.55;
+    stroke: none;
+}
+
+/* Chip de cor e o rótulo que ele identifica nunca se separam: numa coluna
+   estreita o chip ficava sozinho numa linha e a palavra caía para a de baixo. */
+.rotulo-chip { white-space: nowrap; }

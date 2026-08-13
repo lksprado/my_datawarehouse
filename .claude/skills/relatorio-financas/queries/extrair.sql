@@ -9,6 +9,13 @@
 -- explícito e nunca derivado de MAX(). A carteira fecha em cadência própria e
 -- pode estar defasada em relação ao DRE — `meta.defasagem_carteira_meses`
 -- reporta isso para que o relatório declare a data de cada número.
+--
+-- marts.riqueza NÃO entra aqui. Ela faz INNER JOIN com os indexadores, que são
+-- preenchidos na planilha depois da publicação do IPCA, por volta do dia 10 —
+-- ou seja, no dia em que este relatório roda o mês de referência ainda não
+-- existe naquela tabela, e a série encolheria um mês em silêncio. A leitura de
+-- desempenho contra CDI e inflação pessoal é do relatório de meio de mês, em
+-- .claude/skills/relatorio-meio-mes/queries/extrair_meio_mes.sql.
 
 \set ON_ERROR_STOP on
 
@@ -249,16 +256,6 @@ b_patrimonio_mom AS (
     ) AS t
 ),
 
-b_riqueza AS (
-    SELECT COALESCE(json_agg(t ORDER BY t.mes_base), '[]'::json) AS j
-    FROM (
-        SELECT *
-        FROM marts.riqueza
-        WHERE mes_base <= (SELECT mes_ref FROM params)
-          AND mes_base >  (SELECT mes_ref FROM params) - interval '13 months'
-    ) AS t
-),
-
 b_dividendos AS (
     SELECT COALESCE(json_agg(t ORDER BY t.mes_base, t.pessoa), '[]'::json) AS j
     FROM (
@@ -381,7 +378,6 @@ SELECT json_build_object(
     'consumo_diario',        (SELECT j FROM b_consumo_dia),
     'patrimonio',            (SELECT j FROM b_patrimonio),
     'patrimonio_mom_pct',    (SELECT j FROM b_patrimonio_mom),
-    'riqueza',               (SELECT j FROM b_riqueza),
     'dividendos',            (SELECT j FROM b_dividendos),
     'carteira_camada',       (SELECT j FROM b_carteira_camada),
     'carteira_instituicao',  (SELECT j FROM b_carteira_instituicao),

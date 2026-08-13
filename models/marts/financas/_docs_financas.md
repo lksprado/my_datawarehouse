@@ -22,16 +22,18 @@
   É lido em três lugares:
     - pelo `dbt docs generate` (os blocos `{% docs %}` abaixo são referenciados
       em `_schema.yml` via `{{ doc('...') }}`);
-    - pela skill `/relatorio-financas`, que usa estas definições para escrever
-      o diagnóstico e as recomendações dos relatórios em PDF;
-    - pelos dicionários `TEXTO_CATEGORIA`, `TEXTO_CAMADA`, `alvos_camada()`,
-      `APORTE_ALVO` e `META_RESERVA_MESES` de
-      `.claude/skills/relatorio-financas/scripts/montar_relatorio.py`, que são
-      cópia resumida deste arquivo e vão impressos no PDF.
+    - pelas skills `/relatorio-financas` (fechamento do mês anterior) e
+      `/relatorio-meio-mes` (acompanhamento do mês em andamento), que usam
+      estas definições para escrever diagnóstico e recomendações;
+    - por `scripts/relatorios/politica.py`, cópia resumida deste arquivo em
+      Python — `TEXTO_CATEGORIA`, `TEXTO_CAMADA`, `ALVOS_CAMADA`,
+      `APORTE_ALVO`, `META_RESERVA_*`, `META_POUPANCA_PCT` — que vai impressa
+      nos PDFs. É UMA cópia, compartilhada pelos dois relatórios; não crie uma
+      terceira.
 
   Ao mudar uma regra de classificação de gasto ou de camada, edite AQUI —
-  não no schema.yml e não na skill. Depois propague para os dicionários do
-  `montar_relatorio.py`: eles não leem este arquivo, e já divergiram dele.
+  não no schema.yml e não nas skills. Depois propague para
+  `scripts/relatorios/politica.py`: ele não lê este arquivo, e já divergiu dele.
 
   ============================================================================
 #}
@@ -395,5 +397,97 @@ O sucesso do mês é medido contra o CDI e contra a inflação pessoal
 (`minha_inflacao`), disponíveis no mart `riqueza`. Bater o CDI é a meta da
 carteira; bater a inflação pessoal é a meta do patrimônio. As duas são
 reportadas separadamente.
+
+{% enddocs %}
+
+{% docs calendario_dados %}
+
+**Calendário do dado** — o que se sabe, e quando.
+
+As fontes do domínio não ficam prontas ao mesmo tempo. Esta tabela é a razão de
+existirem dois relatórios em vez de um, e é o primeiro lugar a consultar quando
+um número parece estar faltando.
+
+| Fonte | Grão | Quando fica confiável | Por quê |
+|---|---|---|---|
+| `consumo` | **diário** | contínuo, ~D+1 | Lançado à mão na planilha, quase todo dia |
+| `resultado` | mensal | primeiros dias do mês seguinte | Fecha quando o último lançamento do mês entra |
+| `luz` | mensal | com a chegada da fatura | |
+| `patrimonio`, `patrimonio_mom` | mensal | fechamento manual da planilha | |
+| `carteira_*`, `dividendos` | mensal | cadência própria da B3 e da Avenue | Costuma vir **1 mês atrás** do DRE; `defasagem_carteira_meses` reporta |
+| `indicadores`, `riqueza` | mensal | **~dia 10 do mês seguinte, ou depois** | O IPCA é publicado pelo IBGE por volta do dia 10 e só então é digitado na planilha |
+
+Três consequências que não são óbvias:
+
+1. **Nos primeiros dias do mês não existe leitura de benchmark.** No dia 1º o
+   IPCA do mês anterior ainda não saiu. `riqueza` faz `INNER JOIN` com os
+   indexadores, então o mês simplesmente não existe lá — a série encolhe sem
+   avisar. O mart `indicadores` é a mitigação: ele mantém a linha com `NULL`,
+   o que dá um sinal legível para o portão de prontidão.
+2. **O gasto diário é o dado mais fresco do domínio** e era usado uma vez por
+   mês, no fechamento, quando já não dava para agir sobre ele.
+3. **Meses futuros existem na base.** `resultado` e `consumo` carregam
+   lançamentos pré-agendados das despesas fixas — que caem no dia 25 da
+   competência. Não são realizados e nunca entram em média, mediana ou
+   diagnóstico. Num mês em andamento, porém, eles são informação boa: é
+   dinheiro já comprometido, e a projeção de fechamento os usa como piso.
+
+{% enddocs %}
+
+{% docs cadencia_relatorios %}
+
+**Cadência dos relatórios** — quem fala do quê, e quando.
+
+Dois relatórios complementares, nenhum repetindo o assunto do outro. A divisão
+segue o `calendario_dados`: cada um fala do que já se sabe no dia em que roda.
+
+| | `/relatorio-financas` | `/relatorio-meio-mes` |
+|---|---|---|
+| Quando roda | dias 1 a 5 | dias 15 a 20 |
+| Sobre qual mês | o **anterior**, fechado | o **corrente**, em andamento (+ benchmark do anterior) |
+| Saída | 4 PDFs: um por titular + orçamento do casal | 1 PDF, do casal |
+| Pergunta | "como foi o mês" | "o que fazer nos dias que restam" |
+
+**Fronteira de assunto — nenhum dos dois invade o outro:**
+
+| Assunto | Onde mora |
+|---|---|
+| Receita, despesa, resultado, taxa de poupança do mês fechado | fechamento |
+| Gasto por categoria do mês fechado, conta de luz | fechamento |
+| Reserva de emergência e cobertura em meses | fechamento (orçamento) |
+| Carteira, alocação por camada, FGC, vencimentos, renda passiva | fechamento (individuais) |
+| Destino do aporte | fechamento (individuais) |
+| Ritmo do gasto, projeção de fechamento, margem disponível | meio de mês |
+| Desempenho do patrimônio contra CDI e inflação pessoal | **meio de mês** |
+
+A última linha é a que costuma surpreender. O desempenho contra benchmark
+parece pertencer ao fechamento, e ficou lá por um tempo — mas no dia em que o
+fechamento roda os indexadores do mês ainda não foram publicados, e a seção
+saía calada, um mês curta. Ver `calendario_dados`.
+
+### Regra de projeção do fechamento
+
+Usada só pelo relatório de meio de mês, por categoria:
+
+> projeção = realizado até o corte + **o maior** entre
+> (a) a mediana, nos 6 meses fechados, do que caiu **depois** do mesmo dia do
+> ciclo, e (b) o que já está lançado neste mês com data futura.
+
+É o maior dos dois, e **não a soma**: a mediana histórica já embute as despesas
+fixas do dia 25, e somar o agendado por cima as contaria duas vezes. Quando o
+agendado do mês supera o padrão histórico — uma fixa nova, uma parcela grande —
+ele passa a ser o piso.
+
+Duas propriedades a declarar em qualquer relatório que use a projeção:
+
+- **É enviesada para cima**, por construção. Erra para o lado de avisar demais,
+  não de avisar de menos.
+- **A coluna por categoria não soma ao total.** A mediana de uma soma não é a
+  soma das medianas, e `GREATEST` não é linear. O total é apurado sobre a série
+  do total e é ele que vale para julgar o mês; a linha da categoria vale para
+  julgar a categoria. Reconciliar os dois na narrativa é erro.
+
+O dia usado é o **`dia_fatura`** (o `dia_ajustado` da planilha), nunca o dia do
+calendário — ver `ciclo_fatura`. É o que torna dois meses comparáveis dia a dia.
 
 {% enddocs %}

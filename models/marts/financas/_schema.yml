@@ -479,6 +479,49 @@ models:
       - name: model_updated_at
         description: "Data/hora em que o dbt materializou esta tabela (current_timestamp da carga, com fuso). Igual em todas as linhas do mart; serve para auditar a atualidade dos dados."
 
+  - name: indicadores
+    description: >
+      Indexadores macro (inflação pessoal, IPCA, IGP-M, Selic, CDI) no grão mensal, com a taxa do
+      mês e o índice acumulado base 1 lado a lado. Espelha int_indexadores na camada marts, que é
+      a única que as extrações dos relatórios leem.
+      LATÊNCIA: os valores são digitados na planilha depois da publicação oficial dos índices —
+      o IPCA sai por volta do dia 10 do mês seguinte. Um mês recente com taxas NULL não é erro de
+      carga, é índice ainda não publicado ou ainda não preenchido, e é exatamente o sinal que o
+      portão `pronto_indicadores` do relatório de meio de mês consome. Diferente de riqueza, que
+      faz INNER JOIN e some com o mês inteiro, aqui a linha existe com NULL.
+      As taxas estão em fração decimal (0,0042 = 0,42%); os índices _acum são base 1.
+      {{ doc('calendario_dados') }}
+    columns:
+      - name: mes_base
+        description: "Primeiro dia do mês-base de referência."
+        tests:
+          - unique
+          - not_null
+      - name: trimestre
+        description: "Trimestre do ano do mês-base."
+      - name: ano
+        description: "Ano do mês-base."
+      - name: minha_inflacao
+        description: "Inflação pessoal do mês, fração decimal. Cesta própria, apurada fora do warehouse."
+      - name: ipca
+        description: "IPCA do mês, fração decimal. Publicado pelo IBGE por volta do dia 10 do mês seguinte."
+      - name: igpm
+        description: "IGP-M do mês, fração decimal."
+      - name: selic
+        description: "Selic do mês, fração decimal."
+      - name: cdi
+        description: "CDI do mês, fração decimal. É o benchmark da carteira segundo a política."
+      - name: minha_inflacao_acum
+        description: "Índice acumulado (base 1) da inflação pessoal. É o benchmark do patrimônio segundo a política."
+      - name: ipca_acum
+        description: "Índice acumulado (base 1) do IPCA."
+      - name: igpm_acum
+        description: "Índice acumulado (base 1) do IGP-M."
+      - name: selic_acum
+        description: "Índice acumulado (base 1) da Selic."
+      - name: cdi_acum
+        description: "Índice acumulado (base 1) do CDI."
+
   - name: riqueza
     description: >
       Compara mês a mês o crescimento acumulado do patrimônio líquido (composto a partir das
@@ -549,7 +592,10 @@ models:
       com receita use `resultado`.
       ATENÇÃO: contém meses futuros pré-lançados, com as despesas fixas recorrentes já agendadas.
       Esses meses não são realizados e precisam ser cortados antes de qualquer média ou diagnóstico.
+      Num mês em andamento, porém, eles são informação boa: é despesa já comprometida, e a projeção
+      de fechamento do relatório de meio de mês os usa como piso.
       {{ doc('ciclo_fatura') }}
+      {{ doc('cadencia_relatorios') }}
     columns:
       - name: mes
         description: "Primeiro dia do mês de débito/competência."
